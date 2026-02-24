@@ -1,0 +1,1 @@
+"# CampusConnect Event Management System" 

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import prisma from "./config/prisma.js";
+import authRoutes from "./routes/auth.js";
 
 dotenv.config();
 
@@ -13,6 +14,9 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("CampusConnect API running");
 });
+
+// Mount authentication routes
+app.use("/api/auth", authRoutes);
 
 // test database connection
 app.get("/db-test", async (req, res) => {

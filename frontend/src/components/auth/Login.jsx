@@ -1,15 +1,50 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 
 const Login = () => {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Simulate login logic
-        console.log('Login attempt:', { email, password });
+        setError('');
+        setLoading(true);
+
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Store token and user data
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('student', JSON.stringify(data.student));
+                
+                // Show success message
+                alert('Login successful!');
+                
+                // Redirect to dashboard or home
+                navigate('/');
+            } else {
+                setError(data.message || 'Login failed. Please try again.');
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Network error. Please check if the server is running.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -19,6 +54,17 @@ const Login = () => {
                     <h2>Welcome Back</h2>
                     <p>Login to CampusConnect Event Management</p>
                 </div>
+
+                {error && (
+                    <div className="error-message">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="login-form">
                     <div className="input-group">
@@ -68,13 +114,13 @@ const Login = () => {
                         <a href="#" className="forgot-password">Forgot Password?</a>
                     </div>
 
-                    <button type="submit" className="login-button">
-                        Sign In
+                    <button type="submit" className="login-button" disabled={loading}>
+                        {loading ? 'Signing In...' : 'Sign In'}
                     </button>
                 </form>
 
                 <div className="login-footer">
-                    <p>Don't have an account? <a href="#">Create one</a></p>
+                    <p>Don't have an account? <Link to="/register">Create one</Link></p>
                 </div>
             </div>
 

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 import './Landing.css';
 
 const events = [
@@ -59,6 +60,47 @@ const events = [
 ];
 
 const Landing = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [student, setStudent] = useState(null);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const profileRef = useRef(null);
+
+    useEffect(() => {
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        const studentData = localStorage.getItem('student');
+        
+        if (token && studentData) {
+            setIsLoggedIn(true);
+            setStudent(JSON.parse(studentData));
+        }
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setShowProfileMenu(false);
+            }
+        };
+
+        if (showProfileMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showProfileMenu]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('student');
+        setIsLoggedIn(false);
+        setStudent(null);
+        setShowProfileMenu(false);
+    };
+
     return (
         <div className="landing-container">
             <nav className="navbar">
@@ -85,9 +127,59 @@ const Landing = () => {
                     <button className="icon-btn" aria-label="Calendar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     </button>
-                    <Link to="/login" className="btn-login-nav">
-                        Log In
-                    </Link>
+                    
+                    {isLoggedIn ? (
+                        <div className="profile-container" ref={profileRef}>
+                            <button 
+                                className="profile-btn" 
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                aria-label="Profile"
+                            >
+                                <div className="profile-avatar">
+                                    {student?.name?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                            </button>
+                            
+                            {showProfileMenu && (
+                                <div className="profile-dropdown">
+                                    <div className="profile-header">
+                                        <div className="profile-avatar-large">
+                                            {student?.name?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                        <div className="profile-info">
+                                            <h4>{student?.name}</h4>
+                                            <p>{student?.email}</p>
+                                            <span className="student-id">{student?.studentId}</span>
+                                        </div>
+                                    </div>
+                                    <div className="profile-menu-divider"></div>
+                                    <div className="profile-menu-items">
+                                        <Link to="/profile" className="profile-menu-item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                            My Profile
+                                        </Link>
+                                        <Link to="/my-events" className="profile-menu-item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                            My Events
+                                        </Link>
+                                        <Link to="/settings" className="profile-menu-item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m5.2-15.8l-4.2 4.2m0 5.2l4.2 4.2M23 12h-6m-6 0H1m20.8-5.2l-4.2 4.2m0 5.2l4.2 4.2"></path></svg>
+                                            Settings
+                                        </Link>
+                                    </div>
+                                    <div className="profile-menu-divider"></div>
+                                    <button onClick={handleLogout} className="profile-menu-item logout">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Link to="/login" className="btn-login-nav">
+                            Log In
+                        </Link>
+                    )}
                 </div>
             </nav>
 

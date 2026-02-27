@@ -76,7 +76,7 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
@@ -105,11 +105,11 @@ const Register = () => {
             if (response.ok) {
                 // Store token in localStorage
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('student', JSON.stringify(data.student));
-                
+                localStorage.setItem('user', JSON.stringify(data.user));
+
                 // Show success message
                 alert('Registration successful! Redirecting to login...');
-                
+
                 // Redirect to login page
                 navigate('/login');
             } else {

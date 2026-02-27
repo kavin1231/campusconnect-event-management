@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import StudentModel from '../models/studentModel.js';
+import UserModel from '../models/userModel.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -12,45 +13,38 @@ class AuthController {
 
       // Validation
       if (!name || !email || !password || !studentId || !department || !year) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'All fields are required' 
+        return res.status(400).json({
+          success: false,
+          message: 'All fields are required'
         });
       }
 
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid email format' 
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email format'
         });
       }
 
-      // Validate year
-      const yearNum = parseInt(year);
-      if (isNaN(yearNum) || yearNum < 1 || yearNum > 4) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Year must be between 1 and 4' 
-        });
-      }
+      // Check if email already exists in User OR Student table
+      const userEmailExists = await UserModel.emailExists(email);
+      const studentEmailExists = await StudentModel.emailExists(email);
 
-      // Check if email already exists
-      const emailExists = await StudentModel.emailExists(email);
-      if (emailExists) {
-        return res.status(409).json({ 
-          success: false, 
-          message: 'Email already registered' 
+      if (userEmailExists || studentEmailExists) {
+        return res.status(409).json({
+          success: false,
+          message: 'Email already registered'
         });
       }
 
       // Check if studentId already exists
       const studentIdExists = await StudentModel.studentIdExists(studentId);
       if (studentIdExists) {
-        return res.status(409).json({ 
-          success: false, 
-          message: 'Student ID already registered' 
+        return res.status(409).json({
+          success: false,
+          message: 'Student ID already registered'
         });
       }
 
@@ -65,15 +59,15 @@ class AuthController {
         password: hashedPassword,
         studentId,
         department,
-        year: yearNum
+        year: parseInt(year)
       });
 
-      // Generate JWT token
+      // Generate JWT token including role
       const token = jwt.sign(
-        { 
-          id: student.id, 
+        {
+          id: student.id,
           email: student.email,
-          studentId: student.studentId 
+          role: 'STUDENT'
         },
         JWT_SECRET,
         { expiresIn: '7d' }
@@ -83,63 +77,76 @@ class AuthController {
         success: true,
         message: 'Student registered successfully',
         token,
-        student: {
+        user: {
           id: student.id,
           name: student.name,
           email: student.email,
           studentId: student.studentId,
-          department: student.department,
-          year: student.year
+          role: 'STUDENT'
         }
       });
 
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: 'Server error during registration',
-        error: error.message 
+        error: error.message
       });
     }
   }
 
-  // Login student
+  // Unified login for all roles
   static async login(req, res) {
     try {
       const { email, password } = req.body;
 
-      // Validation
       if (!email || !password) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Email and password are required' 
+        return res.status(400).json({
+          success: false,
+          message: 'Email and password are required'
         });
       }
 
-      // Find student by email
-      const student = await StudentModel.findByEmail(email);
-      if (!student) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Invalid email or password' 
+      let userData = null;
+      let role = null;
+
+      // 1. Check User table (Admin/Organizer)
+      const user = await UserModel.findByEmail(email);
+      if (user) {
+        userData = user;
+        role = user.role;
+      } else {
+        // 2. Check Student table
+        const student = await StudentModel.findByEmail(email);
+        if (student) {
+          userData = student;
+          role = 'STUDENT';
+        }
+      }
+
+      if (!userData) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
         });
       }
 
       // Verify password
-      const isValidPassword = await bcrypt.compare(password, student.password);
+      const isValidPassword = await bcrypt.compare(password, userData.password);
       if (!isValidPassword) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Invalid email or password' 
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
         });
       }
 
-      // Generate JWT token
+      // Generate JWT token with role
       const token = jwt.sign(
-        { 
-          id: student.id, 
-          email: student.email,
-          studentId: student.studentId 
+        {
+          id: userData.id,
+          email: userData.email,
+          role: role
         },
         JWT_SECRET,
         { expiresIn: '7d' }
@@ -149,22 +156,21 @@ class AuthController {
         success: true,
         message: 'Login successful',
         token,
-        student: {
-          id: student.id,
-          name: student.name,
-          email: student.email,
-          studentId: student.studentId,
-          department: student.department,
-          year: student.year
+        user: {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          role: role,
+          studentId: userData.studentId || undefined
         }
       });
 
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: 'Server error during login',
-        error: error.message 
+        error: error.message
       });
     }
   }
@@ -173,12 +179,12 @@ class AuthController {
   static async getProfile(req, res) {
     try {
       const studentId = req.user.id; // Assuming middleware sets req.user
-      
+
       const student = await StudentModel.findById(studentId);
       if (!student) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Student not found' 
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found'
         });
       }
 
@@ -197,10 +203,10 @@ class AuthController {
 
     } catch (error) {
       console.error('Get profile error:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: 'Server error',
-        error: error.message 
+        error: error.message
       });
     }
   }

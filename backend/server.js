@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "./config/db.js";
+import prisma from "./config/prisma.js";
 
 dotenv.config();
 
@@ -17,8 +17,8 @@ app.get("/", (req, res) => {
 // test database connection
 app.get("/db-test", async (req, res) => {
   try {
-    const result = await pool.query("SELECT NOW()");
-    res.json(result.rows);
+    const result = await prisma.$queryRaw`SELECT NOW()`;
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).send("Database connection error");

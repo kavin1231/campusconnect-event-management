@@ -1,72 +1,18 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import ChatBot from '../common/ChatBot';
 import './Landing.css';
-
-const events = [
-    {
-        id: 1,
-        title: "AI & Robotics Workshop",
-        date: { day: "24", month: "OCT" },
-        category: "TECH",
-        location: "Engineering Block, Hall A",
-        registered: "124 Students Registered",
-        image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        id: 2,
-        title: "Intra-University Sprint Meet",
-        date: { day: "28", month: "OCT" },
-        category: "SPORTS",
-        location: "Main Sports Complex",
-        registered: "350+ Participants",
-        image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        id: 3,
-        title: "Midnight Canvas: Live Painting",
-        date: { day: "02", month: "NOV" },
-        category: "ARTS",
-        location: "Central Plaza Garden",
-        registered: "42 Registered",
-        image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        id: 4,
-        title: "Battle of the Bands: Auditions",
-        date: { day: "05", month: "NOV" },
-        category: "MUSIC",
-        location: "Auditorium 2",
-        registered: "15 Bands Registered",
-        image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        id: 5,
-        title: "International Relations Mock UN",
-        date: { day: "08", month: "NOV" },
-        category: "DEBATE",
-        location: "Humanities Seminar Room",
-        registered: "88 Delegates",
-        image: "https://images.unsplash.com/photo-1431576901776-e539bd916ba2?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        id: 6,
-        title: "24h Hackathon: Build for Campus",
-        date: { day: "12", month: "NOV" },
-        category: "TECH",
-        location: "CS Innovation Lab",
-        registered: "200+ Developers",
-        image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800"
-    }
-];
 
 const Landing = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const profileRef = useRef(null);
 
     useEffect(() => {
-        // Check if user is logged in
+        // 1. Check if user is logged in
         const token = localStorage.getItem('token');
         const userDataStr = localStorage.getItem('user');
 
@@ -79,11 +25,27 @@ const Landing = () => {
                 }
             } catch (error) {
                 console.error('Error parsing user data:', error);
-                // Clear malformed data
                 localStorage.removeItem('user');
                 localStorage.removeItem('token');
             }
         }
+
+        // 2. Fetch events from API
+        const fetchEvents = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/events');
+                const data = await response.json();
+                if (data.success) {
+                    setEvents(data.events);
+                }
+            } catch (error) {
+                console.error("Error fetching events:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
     }, []);
 
     // Close dropdown when clicking outside
@@ -109,6 +71,15 @@ const Landing = () => {
         setIsLoggedIn(false);
         setUser(null);
         setShowProfileMenu(false);
+    };
+
+    // Helper to format date from DB
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return {
+            day: date.getDate().toString().padStart(2, '0'),
+            month: date.toLocaleString('default', { month: 'short' }).toUpperCase()
+        };
     };
 
     return (
@@ -251,40 +222,49 @@ const Landing = () => {
                         <a href="#view-all" className="view-all">View All <span>&gt;</span></a>
                     </div>
 
-                    <div className="events-grid">
-                        {events.map(event => (
-                            <div key={event.id} className="event-card">
-                                <div className="card-image-wrap">
-                                    <img src={event.image} alt={event.title} className="card-bg-img" />
-                                    <div className="date-badge">
-                                        <span className="day">{event.date.day}</span>
-                                        <span className="month">{event.date.month}</span>
-                                    </div>
-                                    <div className="category-badge">{event.category}</div>
-                                </div>
-                                <div className="card-body">
-                                    <h3 className="card-title">{event.title}</h3>
-                                    <div className="card-meta">
-                                        <div className="meta-item">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                                            {event.location}
+                    {loading ? (
+                        <div className="loading-state">Loading campus events...</div>
+                    ) : (
+                        <div className="events-grid">
+                            {events.map(event => {
+                                const formatted = formatDate(event.date);
+                                return (
+                                    <div key={event.id} className="event-card">
+                                        <div className="card-image-wrap">
+                                            <img src={event.image} alt={event.title} className="card-bg-img" />
+                                            <div className="date-badge">
+                                                <span className="day">{formatted.day}</span>
+                                                <span className="month">{formatted.month}</span>
+                                            </div>
+                                            <div className="category-badge">{event.category}</div>
                                         </div>
-                                        <div className="meta-item">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                                            {event.registered}
+                                        <div className="card-body">
+                                            <h3 className="card-title">{event.title}</h3>
+                                            <div className="card-meta">
+                                                <div className="meta-item">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                                    {event.location}
+                                                </div>
+                                                <div className="meta-item">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                                    {event.registeredCount} Registered
+                                                </div>
+                                            </div>
+                                            <Link to={`/login`} className="btn-register">Register</Link>
                                         </div>
                                     </div>
-                                    <Link to={`/login`} className="btn-register">Register</Link>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     <div className="load-more-container">
                         <button className="btn-load-more">Load More Events <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
                     </div>
                 </section>
             </main>
+
+            {isLoggedIn && <ChatBot />}
         </div>
     );
 };

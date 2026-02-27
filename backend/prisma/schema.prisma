@@ -1,6 +1,7 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -34,4 +35,16 @@ model User {
   password  String
   role      Role
   createdAt DateTime @default(now())
+}
+
+model Event {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String
+  date            DateTime
+  category        String
+  location        String
+  image           String
+  registeredCount Int      @default(0)
+  createdAt       DateTime @default(now())
 }

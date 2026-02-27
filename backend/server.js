@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import prisma from "./config/prisma.js";
 import authRoutes from "./routes/auth.js";
+import chatbotRoutes from "./routes/chatbot.js";
+import eventRoutes from "./routes/events.js";
 
 dotenv.config();
 
@@ -15,8 +17,10 @@ app.get("/", (req, res) => {
   res.send("CampusConnect API running");
 });
 
-// Mount authentication routes
+// Mount routes
 app.use("/api/auth", authRoutes);
+app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/events", eventRoutes);
 
 // test database connection
 app.get("/db-test", async (req, res) => {

@@ -29,11 +29,11 @@ const Login = () => {
             if (response.ok) {
                 // Store token and user data
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('student', JSON.stringify(data.student));
-                
+                localStorage.setItem('user', JSON.stringify(data.user));
+
                 // Show success message
                 alert('Login successful!');
-                
+
                 // Redirect to dashboard or home
                 navigate('/');
             } else {

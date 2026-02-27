@@ -61,18 +61,28 @@ const events = [
 
 const Landing = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [student, setStudent] = useState(null);
+    const [user, setUser] = useState(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const profileRef = useRef(null);
 
     useEffect(() => {
         // Check if user is logged in
         const token = localStorage.getItem('token');
-        const studentData = localStorage.getItem('student');
-        
-        if (token && studentData) {
-            setIsLoggedIn(true);
-            setStudent(JSON.parse(studentData));
+        const userDataStr = localStorage.getItem('user');
+
+        if (token && userDataStr) {
+            try {
+                const parsedUser = JSON.parse(userDataStr);
+                if (parsedUser) {
+                    setIsLoggedIn(true);
+                    setUser(parsedUser);
+                }
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                // Clear malformed data
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            }
         }
     }, []);
 
@@ -95,9 +105,9 @@ const Landing = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('student');
+        localStorage.removeItem('user');
         setIsLoggedIn(false);
-        setStudent(null);
+        setUser(null);
         setShowProfileMenu(false);
     };
 
@@ -127,29 +137,30 @@ const Landing = () => {
                     <button className="icon-btn" aria-label="Calendar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     </button>
-                    
+
                     {isLoggedIn ? (
                         <div className="profile-container" ref={profileRef}>
-                            <button 
-                                className="profile-btn" 
+                            <button
+                                className="profile-btn"
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 aria-label="Profile"
                             >
                                 <div className="profile-avatar">
-                                    {student?.name?.charAt(0).toUpperCase() || 'U'}
+                                    {user?.name?.charAt(0).toUpperCase() || 'U'}
                                 </div>
                             </button>
-                            
+
                             {showProfileMenu && (
                                 <div className="profile-dropdown">
                                     <div className="profile-header">
                                         <div className="profile-avatar-large">
-                                            {student?.name?.charAt(0).toUpperCase() || 'U'}
+                                            {user?.name?.charAt(0).toUpperCase() || 'U'}
                                         </div>
                                         <div className="profile-info">
-                                            <h4>{student?.name}</h4>
-                                            <p>{student?.email}</p>
-                                            <span className="student-id">{student?.studentId}</span>
+                                            <h4>{user?.name}</h4>
+                                            <p>{user?.email}</p>
+                                            <span className="user-role-badge">{user?.role}</span>
+                                            {user?.studentId && <span className="student-id">{user.studentId}</span>}
                                         </div>
                                     </div>
                                     <div className="profile-menu-divider"></div>

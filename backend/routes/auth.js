@@ -13,5 +13,8 @@ router.post('/login', AuthController.login);
 // GET /api/auth/profile - Get current user profile
 router.get('/profile', verifyToken, AuthController.getProfile);
 
+// PUT /api/auth/profile - Update student profile
+router.put('/profile', verifyToken, AuthController.updateProfile);
+
 export default router;
 

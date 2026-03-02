@@ -175,39 +175,91 @@ class AuthController {
     }
   }
 
-  // Get current user profile (optional - for future use)
+  // Get current user profile
   static async getProfile(req, res) {
     try {
-      const studentId = req.user.id; // Assuming middleware sets req.user
+      const userId = req.user.id;
+      const role = req.user.role;
 
-      const student = await StudentModel.findById(studentId);
-      if (!student) {
-        return res.status(404).json({
-          success: false,
-          message: 'Student not found'
+      if (role === 'STUDENT') {
+        const student = await StudentModel.findById(userId);
+        if (!student) {
+          return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+        return res.status(200).json({
+          success: true,
+          profile: {
+            id: student.id,
+            name: student.name,
+            email: student.email,
+            studentId: student.studentId,
+            department: student.department,
+            year: student.year,
+            createdAt: student.createdAt,
+            role: 'STUDENT'
+          }
+        });
+      } else {
+        const user = await UserModel.findById(userId);
+        if (!user) {
+          return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        return res.status(200).json({
+          success: true,
+          profile: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            createdAt: user.createdAt
+          }
         });
       }
+    } catch (error) {
+      console.error('Get profile error:', error);
+      res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+  }
+
+  // Update student profile
+  static async updateProfile(req, res) {
+    try {
+      const userId = req.user.id;
+      const role = req.user.role;
+
+      if (role !== 'STUDENT') {
+        return res.status(403).json({ success: false, message: 'Only students can update their profile here.' });
+      }
+
+      const { name, department, year } = req.body;
+
+      if (!name || !department || !year) {
+        return res.status(400).json({ success: false, message: 'Name, department, and year are required.' });
+      }
+
+      const updated = await StudentModel.update(userId, {
+        name,
+        department,
+        year: parseInt(year)
+      });
 
       res.status(200).json({
         success: true,
-        student: {
-          id: student.id,
-          name: student.name,
-          email: student.email,
-          studentId: student.studentId,
-          department: student.department,
-          year: student.year,
-          createdAt: student.createdAt
+        message: 'Profile updated successfully',
+        profile: {
+          id: updated.id,
+          name: updated.name,
+          email: updated.email,
+          studentId: updated.studentId,
+          department: updated.department,
+          year: updated.year,
+          createdAt: updated.createdAt,
+          role: 'STUDENT'
         }
       });
-
     } catch (error) {
-      console.error('Get profile error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Server error',
-        error: error.message
-      });
+      console.error('Update profile error:', error);
+      res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
   }
 }

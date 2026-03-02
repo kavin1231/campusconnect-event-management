@@ -5,6 +5,7 @@ import prisma from "./prisma/client.js";
 import authRoutes from "./routes/auth.js";
 import chatbotRoutes from "./routes/chatbot.js";
 import eventRoutes from "./routes/events.js";
+import dashboardRoutes from "./routes/dashboard.js";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // test database connection
 app.get("/db-test", async (req, res) => {

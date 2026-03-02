@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Landing from './components/home/Landing';
+import StudentProfile from './components/profile/StudentProfile';
+import StudentDashboard from './components/dashboard/StudentDashboard';
 import './App.css';
 
 function App() {
@@ -11,6 +13,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<StudentProfile />} />
+        <Route path="/dashboard" element={<StudentDashboard />} />
       </Routes>
     </div>
   );

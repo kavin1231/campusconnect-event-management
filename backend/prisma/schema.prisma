@@ -12,14 +12,26 @@ datasource db {
 }
 
 model Student {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String   @unique
-  password     String
-  studentId    String   @unique
-  department   String
-  year         Int
-  createdAt    DateTime @default(now())
+  id            Int                   @id @default(autoincrement())
+  name          String
+  email         String                @unique
+  password      String
+  studentId     String                @unique
+  department    String
+  year          Int
+  createdAt     DateTime              @default(now())
+  registrations StudentRegistration[]
+}
+
+model StudentRegistration {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  eventId    Int
+  registeredAt DateTime @default(now())
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, eventId])
 }
 
 enum Role {
@@ -38,13 +50,14 @@ model User {
 }
 
 model Event {
-  id              Int      @id @default(autoincrement())
+  id              Int                   @id @default(autoincrement())
   title           String
   description     String
   date            DateTime
   category        String
   location        String
   image           String
-  registeredCount Int      @default(0)
-  createdAt       DateTime @default(now())
+  registeredCount Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  registrations   StudentRegistration[]
 }

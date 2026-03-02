@@ -1,7 +1,11 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import pool from "./config/db.js";
+import prisma from "./prisma/client.js";
+import authRoutes from "./routes/auth.js";
+import chatbotRoutes from "./routes/chatbot.js";
+import eventRoutes from "./routes/events.js";
+import dashboardRoutes from "./routes/dashboard.js";
 
 dotenv.config();
 
@@ -14,11 +18,17 @@ app.get("/", (req, res) => {
   res.send("CampusConnect API running");
 });
 
+// Mount routes
+app.use("/api/auth", authRoutes);
+app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+
 // test database connection
 app.get("/db-test", async (req, res) => {
   try {
-    const result = await pool.query("SELECT NOW()");
-    res.json(result.rows);
+    const result = await prisma.$queryRaw`SELECT NOW()`;
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).send("Database connection error");

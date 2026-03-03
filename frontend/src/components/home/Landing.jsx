@@ -20,6 +20,11 @@ const Landing = () => {
             try {
                 const parsedUser = JSON.parse(userDataStr);
                 if (parsedUser) {
+                    // Redirect admin away from home page
+                    if (parsedUser.role === 'SYSTEM_ADMIN') {
+                        window.location.href = '/admin-dashboard';
+                        return;
+                    }
                     setIsLoggedIn(true);
                     setUser(parsedUser);
                 }
@@ -88,11 +93,11 @@ const Landing = () => {
                 <div className="nav-left">
                     <div className="logo">
                         <div className="logo-icon">🚀</div>
-                        <span>CampusConnect</span>
+                        <span>NEXORA</span>
                     </div>
                     <div className="nav-links">
                         <a href="#explore" className="nav-link active">Explore</a>
-                        <Link to="/dashboard" className="nav-link">My Events</Link>
+                        <Link to="/dashboard" className="nav-link">Dashboard</Link>
                         <a href="#logistics" className="nav-link">Logistics</a>
                         <a href="#clubs" className="nav-link">Clubs</a>
                     </div>
@@ -142,7 +147,7 @@ const Landing = () => {
                                         </Link>
                                         <Link to="/dashboard" className="profile-menu-item">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                            My Events
+                                            Dashboard
                                         </Link>
                                         <Link to="/settings" className="profile-menu-item">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m5.2-15.8l-4.2 4.2m0 5.2l4.2 4.2M23 12h-6m-6 0H1m20.8-5.2l-4.2 4.2m0 5.2l4.2 4.2"></path></svg>

@@ -128,7 +128,7 @@ const Register = () => {
             <div className="register-card">
                 <div className="register-header">
                     <h2>Create Account</h2>
-                    <p>Join CampusConnect Event Management</p>
+                    <p>Join NEXORA Event Management</p>
                 </div>
 
                 {error && (
@@ -212,7 +212,7 @@ const Register = () => {
                             type="email"
                             id="email"
                             name="email"
-                            placeholder="you@campusconnect.edu"
+                            placeholder="you@nexora.edu"
                             value={formData.email}
                             onChange={handleChange}
                             required

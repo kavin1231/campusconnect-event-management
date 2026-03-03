@@ -19,6 +19,7 @@ model Student {
   studentId     String                @unique
   department    String
   year          Int
+  profileImage  String?
   createdAt     DateTime              @default(now())
   registrations StudentEventRegistration[]
 }
@@ -46,6 +47,7 @@ model User {
   email     String   @unique
   password  String
   role      Role
+  profileImage String?
   createdAt DateTime @default(now())
 }
 

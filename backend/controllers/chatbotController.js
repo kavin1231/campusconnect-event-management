@@ -45,7 +45,7 @@ class ChatbotController {
                 response = "Unleash your creativity at these arts events!";
             }
             else if (query.includes('hello') || query.includes('hi')) {
-                response = "Hello! I'm your CampusConnect assistant. Ask me about upcoming workshops, sports meets, or fests!";
+                response = "Hello! I'm your NEXORA assistant. Ask me about upcoming workshops, sports meets, or fests!";
             }
             else {
                 // Fallback: Keyword search in title/description

@@ -34,8 +34,12 @@ const Login = () => {
                 // Show success message
                 alert('Login successful!');
 
-                // Redirect to dashboard or home
-                navigate('/');
+                // Redirect based on role
+                if (data.user.role === 'SYSTEM_ADMIN') {
+                    navigate('/admin-dashboard');
+                } else {
+                    navigate('/');
+                }
             } else {
                 setError(data.message || 'Login failed. Please try again.');
             }
@@ -52,7 +56,7 @@ const Login = () => {
             <div className="login-card">
                 <div className="login-header">
                     <h2>Welcome Back</h2>
-                    <p>Login to CampusConnect Event Management</p>
+                    <p>Login to NEXORA Event Management</p>
                 </div>
 
                 {error && (
@@ -72,7 +76,7 @@ const Login = () => {
                         <input
                             type="email"
                             id="email"
-                            placeholder="you@campusconnect.edu"
+                            placeholder="you@nexora.edu"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required

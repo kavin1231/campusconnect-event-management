@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth.js";
 import chatbotRoutes from "./routes/chatbot.js";
 import eventRoutes from "./routes/events.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import logisticsRoutes from "./routes/logistics.js";
+import presidentRoutes from "./routes/president.js";
 
 dotenv.config();
 
@@ -23,6 +25,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/logistics", logisticsRoutes);
+app.use("/api/president", presidentRoutes);
 
 // test database connection
 app.get("/db-test", async (req, res) => {

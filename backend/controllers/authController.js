@@ -195,6 +195,7 @@ class AuthController {
             studentId: student.studentId,
             department: student.department,
             year: student.year,
+            profileImage: student.profileImage,
             createdAt: student.createdAt,
             role: 'STUDENT'
           }
@@ -211,6 +212,7 @@ class AuthController {
             name: user.name,
             email: user.email,
             role: user.role,
+            profileImage: user.profileImage,
             createdAt: user.createdAt
           }
         });
@@ -231,7 +233,7 @@ class AuthController {
         return res.status(403).json({ success: false, message: 'Only students can update their profile here.' });
       }
 
-      const { name, department, year } = req.body;
+      const { name, department, year, profileImage } = req.body;
 
       if (!name || !department || !year) {
         return res.status(400).json({ success: false, message: 'Name, department, and year are required.' });
@@ -240,7 +242,8 @@ class AuthController {
       const updated = await StudentModel.update(userId, {
         name,
         department,
-        year: parseInt(year)
+        year: parseInt(year),
+        profileImage
       });
 
       res.status(200).json({
@@ -253,6 +256,7 @@ class AuthController {
           studentId: updated.studentId,
           department: updated.department,
           year: updated.year,
+          profileImage: updated.profileImage,
           createdAt: updated.createdAt,
           role: 'STUDENT'
         }

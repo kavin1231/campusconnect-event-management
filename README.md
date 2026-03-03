@@ -2,7 +2,7 @@
 ## 📦 Project Structure
 
 ```text
-campusconnect-event-management/
+nexora-event-management/
 ├── backend/            # Express API & Prisma Schema
 │   ├── config/         # App configurations
 │   ├── controllers/    # Business logic
@@ -69,8 +69,8 @@ After running the seed command, you can use these default credentials to test th
 
 | Role | Email | Password |
 | :--- | :--- | :--- |
-| **System Admin** | `admin@campusconnect.edu` | `Admin@123` |
-| **Event Organizer** | `organizer@campusconnect.edu` | `Organizer@123` |
+| **System Admin** | `admin@nexora.edu` | `admin123` |
+| **Event Organizer** | `organizer@nexora.edu` | `admin123` |
 
 ---
 

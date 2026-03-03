@@ -55,6 +55,7 @@ class StudentModel {
         studentId: true,
         department: true,
         year: true,
+        profileImage: true,
         createdAt: true
       }
     });

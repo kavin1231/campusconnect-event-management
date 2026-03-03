@@ -1,0 +1,181 @@
+/* ── Sidebar ─────────────────────────────────── */
+.sd-sidebar {
+    width: 260px;
+    background: #ffffff;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+    z-index: 1000;
+}
+
+.sd-side-header {
+    padding: 0 24px 32px;
+}
+
+.sd-side-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px;
+}
+
+.sd-side-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.sd-side-link svg {
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.sd-side-link:hover {
+    background: rgba(79, 70, 229, 0.05);
+    color: var(--primary-accent);
+}
+
+.sd-side-link:hover svg {
+    color: var(--primary-accent);
+}
+
+.sd-side-active {
+    background: rgba(79, 70, 229, 0.08);
+    color: var(--primary-accent);
+    font-weight: 600;
+}
+
+.sd-side-active svg {
+    color: var(--primary-accent);
+}
+
+.sd-side-footer {
+    padding: 16px;
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sd-side-user {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.sd-side-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--primary-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.sd-side-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sd-side-user-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sd-side-user-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sd-side-user-role {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sd-side-logout-btn {
+    padding: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sd-side-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 1024px) {
+    .sd-sidebar {
+        width: 80px;
+        padding: 20px 0;
+    }
+
+    .sd-side-header .sd-logo span {
+        display: none;
+    }
+
+    .sd-side-link {
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .sd-side-link span {
+        display: none;
+    }
+
+    .sd-side-user-info {
+        display: none;
+    }
+
+    .sd-side-footer {
+        flex-direction: column;
+        padding: 16px 0;
+    }
+
+    .sd-side-user {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .sd-sidebar {
+        display: none;
+    }
+}

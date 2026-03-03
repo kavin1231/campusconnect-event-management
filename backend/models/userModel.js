@@ -46,6 +46,7 @@ class UserModel {
                 name: true,
                 email: true,
                 role: true,
+                profileImage: true,
                 createdAt: true
             }
         });

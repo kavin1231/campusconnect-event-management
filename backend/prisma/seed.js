@@ -8,15 +8,15 @@ async function main() {
         const saltRounds = 10;
 
         // 1. Seed System Admin
-        const adminEmail = 'admin@campusconnect.edu';
-        const adminPassword = await bcrypt.hash('Admin@123', saltRounds);
+        const adminEmail = 'admin@nexora.edu';
+        const adminPassword = await bcrypt.hash('admin123', saltRounds);
 
         const admin = await prisma.user.upsert({
             where: { email: adminEmail },
-            update: {},
+            update: { password: adminPassword },
             create: {
                 email: adminEmail,
-                name: 'System Admin',
+                name: 'NEXORA Admin',
                 password: adminPassword,
                 role: 'SYSTEM_ADMIN',
             },
@@ -24,15 +24,15 @@ async function main() {
         console.log(`System Admin created with email: ${admin.email}`);
 
         // 2. Seed Event Organizer
-        const organizerEmail = 'organizer@campusconnect.edu';
-        const organizerPassword = await bcrypt.hash('Organizer@123', saltRounds);
+        const organizerEmail = 'organizer@nexora.edu';
+        const organizerPassword = await bcrypt.hash('admin123', saltRounds);
 
         const organizer = await prisma.user.upsert({
             where: { email: organizerEmail },
-            update: {},
+            update: { password: organizerPassword },
             create: {
                 email: organizerEmail,
-                name: 'Event Organizer',
+                name: 'NEXORA Organizer',
                 password: organizerPassword,
                 role: 'EVENT_ORGANIZER',
             },

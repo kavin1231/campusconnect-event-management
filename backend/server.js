@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("CampusConnect API running");
+  res.send("NEXORA API running");
 });
 
 // Mount routes

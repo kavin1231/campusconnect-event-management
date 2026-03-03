@@ -1,7 +1,6 @@
-import prisma from '../prisma/client.js';
+import prisma from "../prisma/client.js";
 
 class DashboardController {
-
   // GET /api/dashboard/stats  — summary counts for the logged-in student
   static async getStats(req, res) {
     try {
@@ -10,23 +9,28 @@ class DashboardController {
 
       const [registered, upcoming, past, totalEvents] = await Promise.all([
         // total events this student registered for
-        prisma.studentRegistration.count({ where: { studentId } }),
+        prisma.studentEventRegistration.count({ where: { studentId } }),
         // upcoming (event date >= now)
-        prisma.studentRegistration.count({
-          where: { studentId, event: { date: { gte: now } } }
+        prisma.studentEventRegistration.count({
+          where: { studentId, event: { date: { gte: now } } },
         }),
         // past (event date < now)
-        prisma.studentRegistration.count({
-          where: { studentId, event: { date: { lt: now } } }
+        prisma.studentEventRegistration.count({
+          where: { studentId, event: { date: { lt: now } } },
         }),
         // total events on the platform
-        prisma.event.count()
+        prisma.event.count(),
       ]);
 
-      res.json({ success: true, stats: { registered, upcoming, past, totalEvents } });
+      res.json({
+        success: true,
+        stats: { registered, upcoming, past, totalEvents },
+      });
     } catch (err) {
-      console.error('Dashboard stats error:', err);
-      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+      console.error("Dashboard stats error:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err.message });
     }
   }
 
@@ -34,25 +38,27 @@ class DashboardController {
   static async getEvents(req, res) {
     try {
       const studentId = req.user.id;
-      const { filter = 'all', category = '', search = '' } = req.query;
+      const { filter = "all", category = "", search = "" } = req.query;
       const now = new Date();
 
       // Fetch all events with registration status
       const events = await prisma.event.findMany({
         where: {
           ...(category ? { category } : {}),
-          ...(search ? { title: { contains: search, mode: 'insensitive' } } : {})
+          ...(search
+            ? { title: { contains: search, mode: "insensitive" } }
+            : {}),
         },
         include: {
           registrations: {
-            where: { studentId }
-          }
+            where: { studentId },
+          },
         },
-        orderBy: { date: 'asc' }
+        orderBy: { date: "asc" },
       });
 
       // Annotate with isRegistered / isPast
-      let annotated = events.map(ev => ({
+      let annotated = events.map((ev) => ({
         id: ev.id,
         title: ev.title,
         description: ev.description,
@@ -63,24 +69,26 @@ class DashboardController {
         registeredCount: ev.registeredCount,
         createdAt: ev.createdAt,
         isRegistered: ev.registrations.length > 0,
-        isPast: ev.date < now
+        isPast: ev.date < now,
       }));
 
       // Apply filter
-      if (filter === 'registered') {
-        annotated = annotated.filter(e => e.isRegistered);
-      } else if (filter === 'upcoming') {
-        annotated = annotated.filter(e => e.isRegistered && !e.isPast);
-      } else if (filter === 'past') {
-        annotated = annotated.filter(e => e.isRegistered && e.isPast);
-      } else if (filter === 'explore') {
-        annotated = annotated.filter(e => !e.isRegistered && !e.isPast);
+      if (filter === "registered") {
+        annotated = annotated.filter((e) => e.isRegistered);
+      } else if (filter === "upcoming") {
+        annotated = annotated.filter((e) => e.isRegistered && !e.isPast);
+      } else if (filter === "past") {
+        annotated = annotated.filter((e) => e.isRegistered && e.isPast);
+      } else if (filter === "explore") {
+        annotated = annotated.filter((e) => !e.isRegistered && !e.isPast);
       }
 
       res.json({ success: true, events: annotated });
     } catch (err) {
-      console.error('Dashboard events error:', err);
-      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+      console.error("Dashboard events error:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err.message });
     }
   }
 
@@ -91,35 +99,44 @@ class DashboardController {
       const eventId = parseInt(req.params.eventId);
 
       if (isNaN(eventId)) {
-        return res.status(400).json({ success: false, message: 'Invalid event ID' });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid event ID" });
       }
 
       const event = await prisma.event.findUnique({ where: { id: eventId } });
       if (!event) {
-        return res.status(404).json({ success: false, message: 'Event not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "Event not found" });
       }
 
       if (event.date < new Date()) {
-        return res.status(400).json({ success: false, message: 'Cannot register for a past event' });
+        return res.status(400).json({
+          success: false,
+          message: "Cannot register for a past event",
+        });
       }
 
       // upsert to avoid duplicates
-      await prisma.studentRegistration.upsert({
+      await prisma.studentEventRegistration.upsert({
         where: { studentId_eventId: { studentId, eventId } },
         create: { studentId, eventId },
-        update: {}
+        update: {},
       });
 
       // increment count
       await prisma.event.update({
         where: { id: eventId },
-        data: { registeredCount: { increment: 1 } }
+        data: { registeredCount: { increment: 1 } },
       });
 
-      res.json({ success: true, message: 'Registered successfully' });
+      res.json({ success: true, message: "Registered successfully" });
     } catch (err) {
-      console.error('Register event error:', err);
-      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+      console.error("Register event error:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err.message });
     }
   }
 
@@ -130,31 +147,37 @@ class DashboardController {
       const eventId = parseInt(req.params.eventId);
 
       if (isNaN(eventId)) {
-        return res.status(400).json({ success: false, message: 'Invalid event ID' });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid event ID" });
       }
 
-      const existing = await prisma.studentRegistration.findUnique({
-        where: { studentId_eventId: { studentId, eventId } }
+      const existing = await prisma.studentEventRegistration.findUnique({
+        where: { studentId_eventId: { studentId, eventId } },
       });
 
       if (!existing) {
-        return res.status(404).json({ success: false, message: 'Registration not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "Registration not found" });
       }
 
-      await prisma.studentRegistration.delete({
-        where: { studentId_eventId: { studentId, eventId } }
+      await prisma.studentEventRegistration.delete({
+        where: { studentId_eventId: { studentId, eventId } },
       });
 
       // decrement count (never below 0)
       await prisma.event.update({
         where: { id: eventId },
-        data: { registeredCount: { decrement: 1 } }
+        data: { registeredCount: { decrement: 1 } },
       });
 
-      res.json({ success: true, message: 'Unregistered successfully' });
+      res.json({ success: true, message: "Unregistered successfully" });
     } catch (err) {
-      console.error('Unregister event error:', err);
-      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+      console.error("Unregister event error:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err.message });
     }
   }
 }

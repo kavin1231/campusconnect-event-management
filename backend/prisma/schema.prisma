@@ -39,6 +39,7 @@ enum Role {
   STUDENT
   EVENT_ORGANIZER
   SYSTEM_ADMIN
+  CLUB_PRESIDENT
 }
 
 model User {
@@ -49,6 +50,11 @@ model User {
   role      Role
   profileImage String?
   createdAt DateTime @default(now())
+
+  // relations for logistics module
+  assets             Asset[]          @relation("AssetOwner")
+  approvedBookings   AssetBooking[]   @relation("AssetBookingApprovedBy")
+  requestedBookings  AssetBooking[]   @relation("AssetBookingRequester")
 }
 
 model Event {
@@ -62,4 +68,68 @@ model Event {
   registeredCount Int                   @default(0)
   createdAt       DateTime              @default(now())
   registrations   StudentEventRegistration[]
+}
+
+// Logistics module models
+model Asset {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  ownerId     Int
+  owner       User         @relation(name: "AssetOwner", fields: [ownerId], references: [id])
+  status      AssetStatus  @default(AVAILABLE)
+  bookings    AssetBooking[]
+  createdAt   DateTime     @default(now())
+}
+
+model AssetBooking {
+  id           Int           @id @default(autoincrement())
+  assetId      Int
+  requesterId  Int
+  startDate    DateTime
+  endDate      DateTime
+  status       BookingStatus @default(PENDING)
+  damageReport String?
+  penalty      Float?
+  approvedById Int?
+  approvedBy   User?         @relation(name: "AssetBookingApprovedBy", fields: [approvedById], references: [id])
+
+  asset        Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  requester    User          @relation(name: "AssetBookingRequester", fields: [requesterId], references: [id])
+
+  @@index([assetId])
+  @@index([requesterId])
+}
+
+// president applications
+model PresidentApplication {
+  id           Int                @id @default(autoincrement())
+  studentId    Int
+  student      Student            @relation(fields: [studentId], references: [id])
+  clubName     String
+  email        String             // email for president account
+  status       ApplicationStatus  @default(PENDING)
+  appliedAt    DateTime           @default(now())
+  approvedById Int?
+  approvedBy   User?              @relation(fields: [approvedById], references: [id])
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AssetStatus {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHECKED_OUT
+  RETURNED
+  DAMAGED
 }

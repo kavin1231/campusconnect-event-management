@@ -1,0 +1,38 @@
+/* Club Onboarding Styles */
+.club-onboarding {
+  --primary-color: #10b981;
+  --secondary-color: #059669;
+}
+
+.club-onboarding header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.club-onboarding .filter-tabs button {
+  transition: all 0.3s ease;
+}
+
+.club-onboarding .filter-tabs button:hover {
+  transform: translateY(-2px);
+}
+
+/* Status Badge Animation */
+.status-badge {
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .club-onboarding > div > div {
+    grid-template-columns: 1fr !important;
+  }
+}

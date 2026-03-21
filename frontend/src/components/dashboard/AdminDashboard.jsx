@@ -1,18 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// Dashboard design converted to Tailwind; sidebar is built-in
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalEvents: 0,
-    pendingApprovals: 0,
-    activeOrganizers: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,148 +16,272 @@ const AdminDashboard = () => {
     }
 
     try {
-      const u = JSON.parse(userStr);
-      if (u.role !== "SYSTEM_ADMIN") {
-        navigate("/");
-        return;
-      }
-      setUser(u);
-
-      // mocked stats
-      setStats({
-        totalUsers: 1250,
-        totalEvents: 45,
-        pendingApprovals: 12,
-        activeOrganizers: 28,
-      });
-      setLoading(false);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
+      const userData = JSON.parse(userStr);
+      setUser(userData);
+    } catch (e) {
       navigate("/login");
     }
   }, [navigate]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Loading...</p>
-      </div>
-    );
-  }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  if (!user) return <div className="p-10 text-white">Loading...</div>;
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* reuse existing sidebar or you can implement a Tailwind sidebar here */}
-      {/* For simplicity we use a placeholder div */}
-      <div className="w-64 flex-shrink-0 border-r border-primary/20 bg-background-light dark:bg-background-dark">
-        {/* Sidebar content could be extracted to component */}
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
-            <span className="material-symbols-outlined">hub</span>
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-primary">
-              NEXORA
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Super Admin Platform
-            </p>
-          </div>
-        </div>
-        {/* ... nav links ... */}
-      </div>
+    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+      <div className="flex flex-col min-h-screen">
+        {/* ================= HEADER ================= */}
+        <header className="flex items-center justify-between px-8 py-4 border-b border-neutral-border bg-background-dark">
+          {/* LEFT */}
+          <div className="flex items-center gap-10">
+            {/* Logo */}
+            <div className="flex items-center gap-3 text-white">
+              <div className="size-9 bg-primary rounded-xl flex items-center justify-center shadow-md">
+                <span className="material-symbols-outlined text-white text-lg">
+                  inventory_2
+                </span>
+              </div>
+              <h2 className="text-xl font-extrabold tracking-wide">NEXORA</h2>
+            </div>
 
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <header className="h-16 flex items-center justify-between px-8 border-b border-primary/10 bg-background-light/50 dark:bg-background-dark/50 sticky top-0 z-10">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold">Super Admin Overview</h2>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                search
-              </span>
+            {/* Navigation */}
+            <nav className="hidden lg:flex items-center gap-8">
+              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
+                Core Responsibilities
+              </button>
+              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
+                Club & Faculty Onboarding
+              </button>
+              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
+                Event Approval
+              </button>
+              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
+                Role Management
+              </button>
+              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
+                President Registration
+              </button>
+              <button className="text-primary text-sm font-semibold border-b-2 border-primary pb-1">
+                Logistics Module
+              </button>
+            </nav>
+
+            {/* Search */}
+            <div className="hidden md:flex items-center bg-neutral-dark rounded-xl overflow-hidden h-11 w-72 border border-neutral-border">
+              <div className="px-3 text-primary/70">
+                <span className="material-symbols-outlined text-lg">
+                  search
+                </span>
+              </div>
               <input
-                className="pl-10 pr-4 py-1.5 bg-slate-100 dark:bg-primary/5 border-none rounded-lg focus:ring-2 focus:ring-primary/50 text-sm w-64"
-                placeholder="Search ..."
-                type="text"
+                className="w-full bg-transparent text-white placeholder:text-slate-400 focus:outline-none px-2 text-sm"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button className="p-2 text-slate-500 hover:text-primary transition-colors">
-              <span className="material-symbols-outlined">notifications</span>
+          </div>
+
+          {/* RIGHT */}
+          <div className="flex items-center gap-6">
+            {/* Add Asset */}
+            <button className="hidden md:flex items-center gap-2 rounded-xl px-5 h-11 bg-primary text-white text-sm font-semibold shadow-lg hover:scale-105 transition">
+              <span className="material-symbols-outlined text-lg">add</span>
+              Add Asset
             </button>
-            <button className="p-2 text-slate-500 hover:text-primary transition-colors">
-              <span className="material-symbols-outlined">help_outline</span>
+
+            {/* Notifications */}
+            <button className="relative flex items-center justify-center size-11 rounded-xl bg-neutral-dark border border-neutral-border hover:bg-neutral-border transition">
+              <span className="material-symbols-outlined text-white text-xl">
+                notifications
+              </span>
+              <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full"></span>
             </button>
+
+            {/* Settings */}
+            <button className="flex items-center justify-center size-11 rounded-xl bg-neutral-dark border border-neutral-border hover:bg-neutral-border transition">
+              <span className="material-symbols-outlined text-white text-xl">
+                settings
+              </span>
+            </button>
+
+            {/* Avatar */}
+            <div
+              className="size-11 rounded-full bg-cover bg-center border-2 border-primary/40 cursor-pointer hover:border-primary transition"
+              style={{
+                backgroundImage:
+                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCQYy7RawK0QbFc3GBmyCj6gLx1hX6LOeQap9dV6bgCBtr-6eWSles1sQOPVdM0b-hjydlHW2BaYaGJyzYlLnYTjQf-QGCdM3nfUjvdOGM6ZOkGMHWJsfxaeo-N9lf8v_8Ri4FA7YNMaEr4btES9hCjn_YRFULl7FlJByKL2L3EDxzSrZbiGAYuPDe0P3fFdcDmiAvVczVMMwgSLKW0hst7jn8Ddrpd9NF7Ehn-j-9krvILLl4")',
+              }}
+              onClick={handleLogout}
+              title="Logout"
+            />
           </div>
         </header>
 
-        <div className="p-8 space-y-8">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">
-              University Dashboard
+        {/* ================= MAIN ================= */}
+        <main className="flex-1 py-10 px-6 sm:px-10 max-w-[1200px] mx-auto w-full">
+          {/* Title */}
+          <div className="mb-10">
+            <h1 className="text-4xl font-black text-white mb-2">
+              Inter-Club Logistics Exchange
             </h1>
-            <p className="text-slate-500 dark:text-slate-400">
-              Real-time metrics and operational oversight for NEXORA.
+            <p className="text-slate-400">
+              🔥 Resource Availability Engine: Clubs share speakers, cameras,
+              banners, booth materials, tables/chairs. Prevent double booking
+              with smart allocation.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl flex flex-col gap-2">
-              <div className="flex justify-between items-start">
-                <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-                  Total Users
-                </span>
-                <span className="bg-emerald-500/10 text-emerald-500 text-xs px-2 py-0.5 rounded-full font-bold">
-                  +12%
-                </span>
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            {[
+              {
+                title: "Available Assets",
+                value: "1,247",
+                icon: "inventory",
+                color: "text-emerald-400",
+              },
+              {
+                title: "Active Requests",
+                value: "23",
+                icon: "pending_actions",
+                color: "text-blue-400",
+              },
+              {
+                title: "In Transit",
+                value: "45",
+                icon: "local_shipping",
+                color: "text-yellow-400",
+              },
+              {
+                title: "Overdue Returns",
+                value: "7",
+                icon: "warning",
+                color: "text-red-400",
+              },
+            ].map((card, i) => (
+              <div
+                key={i}
+                className="rounded-2xl p-6 border border-neutral-border bg-neutral-dark/30 hover:bg-neutral-dark/50 transition"
+              >
+                <div className={`flex items-center gap-2 ${card.color}`}>
+                  <span className="material-symbols-outlined text-sm">
+                    {card.icon}
+                  </span>
+                  <p className="text-sm font-semibold uppercase tracking-wider">
+                    {card.title}
+                  </p>
+                </div>
+                <p className="text-3xl font-black text-white mt-3">
+                  {card.value}
+                </p>
               </div>
-              <p className="text-3xl font-bold">{stats.totalUsers}</p>
-              <div className="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-primary h-full rounded-full"
-                  style={{ width: "65%" }}
-                ></div>
-              </div>
-            </div>
-            <div className="p-6 bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl flex flex-col gap-2">
-              <div className="flex justify-between items-start">
-                <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-                  Total Events
-                </span>
-                <span className="bg-emerald-500/10 text-emerald-500 text-xs px-2 py-0.5 rounded-full font-bold">
-                  +5%
-                </span>
-              </div>
-              <p className="text-3xl font-bold">{stats.totalEvents}</p>
-              <div className="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-primary h-full rounded-full"
-                  style={{ width: "42%" }}
-                ></div>
-              </div>
-            </div>
-            <div className="p-6 bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl flex flex-col gap-2">
-              <div className="flex justify-between items-start">
-                <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-                  Pending Approvals
-                </span>
-                <span className="bg-rose-500/10 text-rose-500 text-xs px-2 py-0.5 rounded-full font-bold">
-                  -2%
-                </span>
-              </div>
-              <p className="text-3xl font-bold">{stats.pendingApprovals}</p>
-              <div className="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-primary h-full rounded-full"
-                  style={{ width: "82%" }}
-                ></div>
-              </div>
-            </div>
+            ))}
           </div>
-          {/* Additional sections can be added similarly */}
-        </div>
-      </main>
+
+          {/* Table */}
+          <div className="overflow-hidden rounded-2xl border border-neutral-border bg-neutral-dark/20 shadow-xl">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-neutral-dark border-b border-neutral-border text-slate-400 uppercase text-xs tracking-widest">
+                  <th className="px-6 py-4">Asset</th>
+                  <th className="px-6 py-4">Owner Club</th>
+                  <th className="px-6 py-4">Requesting Club</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Due Date</th>
+                  <th className="px-6 py-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-border">
+                <tr className="hover:bg-neutral-dark/40 transition">
+                  <td className="px-6 py-5 font-semibold text-white">
+                    Professional Speaker System
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">Music Club</td>
+                  <td className="px-6 py-5 text-slate-400">Drama Society</td>
+                  <td className="px-6 py-5 text-blue-400 font-semibold">
+                    Requested
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">Mar 15, 2026</td>
+                  <td className="px-6 py-5 text-right">
+                    <button className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 transition">
+                      Approve
+                    </button>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-neutral-dark/40 transition">
+                  <td className="px-6 py-5 font-semibold text-white">
+                    DSLR Camera Kit
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">Photography Club</td>
+                  <td className="px-6 py-5 text-slate-400">
+                    IEEE Student Branch
+                  </td>
+                  <td className="px-6 py-5 text-emerald-400 font-semibold">
+                    Approved
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">Mar 18, 2026</td>
+                  <td className="px-6 py-5 text-right">
+                    <button className="px-4 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition">
+                      Track
+                    </button>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-neutral-dark/40 transition">
+                  <td className="px-6 py-5 font-semibold text-white">
+                    Exhibition Booth Panels
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">Business Society</td>
+                  <td className="px-6 py-5 text-slate-400">
+                    Cultural Committee
+                  </td>
+                  <td className="px-6 py-5 text-yellow-400 font-semibold">
+                    In Transit
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">Mar 20, 2026</td>
+                  <td className="px-6 py-5 text-right">
+                    <button className="px-4 py-2 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition">
+                      Confirm Return
+                    </button>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-neutral-dark/40 transition">
+                  <td className="px-6 py-5 font-semibold text-white">
+                    Conference Tables (Set of 6)
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">
+                    Faculty of Engineering
+                  </td>
+                  <td className="px-6 py-5 text-slate-400">Debate Club</td>
+                  <td className="px-6 py-5 text-red-400 font-semibold">
+                    Overdue
+                  </td>
+                  <td className="px-6 py-5 text-red-400 font-semibold">
+                    Mar 10, 2026
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <button className="px-4 py-2 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition">
+                      Send Reminder
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+
+        {/* ================= FOOTER ================= */}
+        <footer className="border-t border-neutral-border py-6 text-center text-slate-500 text-sm bg-background-dark/50">
+          © 2026 NEXORA Event Management System
+        </footer>
+      </div>
     </div>
   );
 };

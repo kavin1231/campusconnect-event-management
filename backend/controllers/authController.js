@@ -166,11 +166,12 @@ class AuthController {
       });
 
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error full:', error);
       res.status(500).json({
         success: false,
         message: 'Server error during login',
-        error: error.message
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }

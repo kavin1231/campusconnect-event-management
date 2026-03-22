@@ -1,7 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -9,6 +8,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Student {
@@ -22,6 +22,7 @@ model Student {
   profileImage  String?
   createdAt     DateTime              @default(now())
   registrations StudentEventRegistration[]
+  presidentApplications PresidentApplication[]
 }
 
 model StudentEventRegistration {
@@ -55,6 +56,7 @@ model User {
   assets             Asset[]          @relation("AssetOwner")
   approvedBookings   AssetBooking[]   @relation("AssetBookingApprovedBy")
   requestedBookings  AssetBooking[]   @relation("AssetBookingRequester")
+  approvedApplications PresidentApplication[]
 }
 
 model Event {

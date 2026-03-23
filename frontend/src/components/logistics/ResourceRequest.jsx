@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const ResourceRequest = () => {
@@ -90,71 +91,78 @@ const ResourceRequest = () => {
   };
 
   return (
-    <div className="resource-request bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
-      {/* HEADER */}
-      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
-        <div className="px-8 py-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center text-2xl">
-              🔍
+    <div className="flex min-h-screen">
+      <Sidebar isAdmin={true} />
+      <div className="flex-1">
+        <div className="resource-request bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
+          {/* HEADER */}
+          <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
+            <div className="px-8 py-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center text-2xl">
+                  🔍
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">
+                    Resource Requests
+                  </h1>
+                  <p className="text-gray-400 text-sm">
+                    Browse & request resources from other clubs
+                  </p>
+                </div>
+              </div>
+
+              {/* MODE TOGGLE */}
+              <div className="flex gap-2 border-b border-gray-700 mt-4">
+                {["browse", "myRequests"].map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setRequestMode(mode)}
+                    className={`px-6 py-3 font-semibold transition-all ${
+                      requestMode === mode
+                        ? "text-emerald-400 border-b-2 border-emerald-400"
+                        : "text-gray-400 hover:text-gray-300"
+                    }`}
+                  >
+                    {mode === "browse"
+                      ? "🔍 Browse Resources"
+                      : "📋 My Requests"}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                Resource Requests
-              </h1>
-              <p className="text-gray-400 text-sm">
-                Browse & request resources from other clubs
-              </p>
-            </div>
+          </header>
+
+          {/* MAIN CONTENT */}
+          <div className="px-8 py-8 max-w-7xl mx-auto">
+            {requestMode === "browse" ? (
+              <BrowseMode
+                assets={availableAssets}
+                onRequest={(asset) => {
+                  setSelectedAsset(asset);
+                  setShowRequestModal(true);
+                }}
+              />
+            ) : (
+              <MyRequestsMode requests={myRequests} />
+            )}
           </div>
 
-          {/* MODE TOGGLE */}
-          <div className="flex gap-2 border-b border-gray-700 mt-4">
-            {["browse", "myRequests"].map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setRequestMode(mode)}
-                className={`px-6 py-3 font-semibold transition-all ${
-                  requestMode === mode
-                    ? "text-emerald-400 border-b-2 border-emerald-400"
-                    : "text-gray-400 hover:text-gray-300"
-                }`}
-              >
-                {mode === "browse" ? "🔍 Browse Resources" : "📋 My Requests"}
-              </button>
-            ))}
-          </div>
+          {/* REQUEST MODAL */}
+          {showRequestModal && selectedAsset && (
+            <RequestModal
+              asset={selectedAsset}
+              form={requestForm}
+              setForm={setRequestForm}
+              onSubmit={handleSubmitRequest}
+              onClose={() => {
+                setShowRequestModal(false);
+                setSelectedAsset(null);
+              }}
+            />
+          )}
         </div>
-      </header>
-
-      {/* MAIN CONTENT */}
-      <div className="px-8 py-8 max-w-7xl mx-auto">
-        {requestMode === "browse" ? (
-          <BrowseMode
-            assets={availableAssets}
-            onRequest={(asset) => {
-              setSelectedAsset(asset);
-              setShowRequestModal(true);
-            }}
-          />
-        ) : (
-          <MyRequestsMode requests={myRequests} />
-        )}
       </div>
-
-      {/* REQUEST MODAL */}
-      {showRequestModal && selectedAsset && (
-        <RequestModal
-          asset={selectedAsset}
-          form={requestForm}
-          setForm={setRequestForm}
-          onSubmit={handleSubmitRequest}
-          onClose={() => {
-            setShowRequestModal(false);
-            setSelectedAsset(null);
-          }}
-        />
-      )}
     </div>
   );
 };

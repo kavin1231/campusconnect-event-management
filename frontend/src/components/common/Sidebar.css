@@ -1,8 +1,8 @@
 /* ── Sidebar ─────────────────────────────────── */
 .sd-sidebar {
   width: 260px;
-  background: #ffffff;
-  border-right: 1px solid var(--border-color);
+  background: linear-gradient(180deg, #1f1f2e 0%, #16151f 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   padding: 24px 0;
@@ -11,10 +11,31 @@
   height: 100vh;
   flex-shrink: 0;
   z-index: 1000;
+  color: #ffffff;
 }
 
 .sd-side-header {
   padding: 0 24px 32px;
+}
+
+.sd-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.25rem;
+  transition: all 0.2s;
+}
+
+.sd-logo:hover {
+  color: #ffffff;
+}
+
+.sd-logo-icon {
+  font-size: 1.5rem;
 }
 
 .sd-side-nav {
@@ -31,7 +52,7 @@
   gap: 12px;
   padding: 12px 16px;
   text-decoration: none;
-  color: var(--text-muted);
+  color: #ffffff;
   font-size: 0.9rem;
   font-weight: 500;
   border-radius: 10px;
@@ -39,33 +60,32 @@
 }
 
 .sd-side-link svg {
-  color: var(--text-muted);
-  transition: color 0.2s;
+  color: #ffffff;
 }
 
 .sd-side-link:hover {
-  background: rgba(79, 70, 229, 0.05);
-  color: var(--primary-accent);
+  background: rgba(99, 102, 241, 0.1);
+  color: #ffffff;
 }
 
 .sd-side-link:hover svg {
-  color: var(--primary-accent);
+  color: #ffffff;
 }
 
 .sd-side-active {
-  background: rgba(79, 70, 229, 0.08);
-  color: var(--primary-accent);
+  background: rgba(99, 102, 241, 0.2);
+  color: #ffffff;
   font-weight: 600;
 }
 
 .sd-side-active svg {
-  color: var(--primary-accent);
+  color: #ffffff;
 }
 
 .sd-side-footer {
   padding: 16px;
   margin-top: auto;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -83,7 +103,7 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: var(--primary-accent);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: #fff;
   display: flex;
   align-items: center;
@@ -109,7 +129,7 @@
 .sd-side-user-name {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-main);
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -117,7 +137,7 @@
 
 .sd-side-user-role {
   font-size: 0.7rem;
-  color: var(--text-muted);
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -126,7 +146,7 @@
   padding: 8px;
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #ffffff;
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s;
@@ -136,8 +156,8 @@
 }
 
 .sd-side-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ffffff;
 }
 
 /* ── Admin Menu Items ────────────────────────── */
@@ -148,15 +168,15 @@
   padding: 12px 16px;
   cursor: pointer;
   border-radius: 10px;
+  color: #ffffff;
   transition: all 0.2s;
-  color: var(--text-muted);
   font-weight: 500;
   font-size: 0.9rem;
 }
 
 .sd-menu-item:hover {
-  background: rgba(79, 70, 229, 0.05);
-  color: var(--primary-accent);
+  background: rgba(99, 102, 241, 0.15);
+  color: #ffffff;
 }
 
 .sd-menu-item-left {
@@ -169,10 +189,12 @@
 .sd-menu-icon {
   font-size: 1.1rem;
   flex-shrink: 0;
+  color: #ffffff;
 }
 
 .sd-menu-label {
   flex: 1;
+  color: #ffffff;
 }
 
 .sd-menu-badge {
@@ -183,7 +205,7 @@
   min-height: 24px;
   padding: 0 6px;
   background: #ef4444;
-  color: white;
+  color: #ffffff;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -196,7 +218,7 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  color: var(--text-muted);
+  color: #ffffff;
   font-size: 0.8rem;
   transition: transform 0.2s;
   flex-shrink: 0;
@@ -216,7 +238,6 @@
     opacity 0.3s ease;
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .sd-submenu-active {
@@ -232,7 +253,7 @@
   gap: 12px;
   padding: 10px 16px 10px 48px;
   text-decoration: none;
-  color: var(--text-muted);
+  color: #ffffff;
   font-size: 0.85rem;
   font-weight: 500;
   border-radius: 8px;
@@ -246,23 +267,24 @@
   left: 24px;
   width: 1px;
   height: 100%;
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(99, 102, 241, 0.2);
 }
 
 .sd-submenu-item:hover {
-  background: rgba(79, 70, 229, 0.05);
-  color: var(--primary-accent);
+  background: rgba(99, 102, 241, 0.12);
+  color: #ffffff;
 }
 
 .sd-submenu-item.sd-active {
-  background: rgba(79, 70, 229, 0.12);
-  color: var(--primary-accent);
+  background: rgba(99, 102, 241, 0.2);
+  color: #ffffff;
   font-weight: 600;
 }
 
 .sd-submenu-icon {
   font-size: 0.95rem;
   flex-shrink: 0;
+  color: #ffffff;
 }
 
 .sd-submenu-badge {
@@ -272,8 +294,8 @@
   min-width: 22px;
   min-height: 22px;
   padding: 0 5px;
-  background: #fef3c7;
-  color: #92400e;
+  background: #776002;
+  color: #ffffff;
   border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 600;

@@ -41,7 +41,6 @@ model StudentEventRegistration {
 
 enum Role {
   STUDENT
-  EVENT_ORGANIZER
   SYSTEM_ADMIN
   CLUB_PRESIDENT
 }
@@ -52,6 +51,7 @@ model User {
   email     String   @unique
   password  String
   role      Role
+  clubName  String?
   profileImage String?
   createdAt DateTime @default(now())
 

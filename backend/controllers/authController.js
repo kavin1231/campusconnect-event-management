@@ -267,6 +267,72 @@ class AuthController {
       res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
   }
+
+  // Change password for both Student and User
+  static async changePassword(req, res) {
+    try {
+      const userId = req.user.id;
+      const role = req.user.role;
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, message: 'Current and new passwords are required' });
+      }
+
+      let userData = null;
+      let Model = null;
+
+      if (role === 'STUDENT') {
+        userData = await StudentModel.findById(userId);
+        Model = StudentModel;
+      } else {
+        userData = await UserModel.findById(userId);
+        Model = UserModel;
+      }
+
+      if (!userData) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, userData.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ success: false, message: 'Incorrect current password' });
+      }
+
+      // Hash new password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      // Update password
+      await Model.update(userId, { password: hashedPassword });
+
+      res.status(200).json({ success: true, message: 'Password changed successfully' });
+
+    } catch (error) {
+      console.error('Change password error:', error);
+      res.status(500).json({ success: false, message: 'Server error during password change', error: error.message });
+    }
+  }
+
+  // Get all students (Admin only)
+  static async getAllStudents(req, res) {
+    try {
+      const students = await StudentModel.findAll();
+      res.status(200).json({
+        success: true,
+        students
+      });
+    } catch (error) {
+      console.error('Get all students error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error fetching students',
+        error: error.message
+      });
+    }
+  }
 }
+
 
 export default AuthController;

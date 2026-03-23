@@ -8,6 +8,10 @@ import StudentDashboard from "./components/dashboard/StudentDashboard";
 import AdminDashboard from "./components/dashboard/AdminDashboard";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
+import RoleManagement from "./components/admin/RoleManagement";
+import StudentManagement from "./components/admin/StudentManagement";
+
+
 
 // Governance Components
 import {
@@ -46,6 +50,10 @@ function App() {
         {/* Study Support Routes */}
         <Route path="/study-materials" element={<StudyMaterials />} />
         <Route path="/admin/study-support" element={<StudySupportAdmin />} />
+        <Route path="/admin/roles" element={<RoleManagement />} />
+        <Route path="/admin/students" element={<StudentManagement />} />
+
+
 
         {/* Governance Routes */}
         <Route path="/governance" element={<GovernanceDashboard />} />

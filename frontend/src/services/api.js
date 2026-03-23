@@ -67,7 +67,13 @@ export const authAPI = {
     });
     return response.json();
   },
+
+  getAllStudents: async () => {
+    const response = await fetchWithAuth("/auth/students");
+    return response.json();
+  },
 };
+
 
 // ============================================
 // DASHBOARD ENDPOINTS

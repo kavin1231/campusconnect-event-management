@@ -9,9 +9,10 @@ router.get("/assets", verifyToken, LogisticsController.listAssets);
 router.post(
   "/assets",
   verifyToken,
-  requireRole("EVENT_ORGANIZER", "SYSTEM_ADMIN"),
+  requireRole("SYSTEM_ADMIN"),
   LogisticsController.createAsset,
 );
+
 router.get("/assets/:id", verifyToken, LogisticsController.getAsset);
 
 // booking requests
@@ -26,15 +27,17 @@ router.get("/requests", verifyToken, LogisticsController.listRequests);
 router.patch(
   "/requests/:id/approve",
   verifyToken,
-  requireRole("EVENT_ORGANIZER", "SYSTEM_ADMIN"),
+  requireRole("SYSTEM_ADMIN"),
   LogisticsController.approveRequest,
 );
+
 router.patch(
   "/requests/:id/reject",
   verifyToken,
-  requireRole("EVENT_ORGANIZER", "SYSTEM_ADMIN"),
+  requireRole("SYSTEM_ADMIN"),
   LogisticsController.rejectRequest,
 );
+
 
 // lifecycle updates
 router.patch(

@@ -108,8 +108,10 @@ class PresidentController {
           email: app.email,
           password: hashed,
           role: "CLUB_PRESIDENT",
+          clubName: app.clubName,
         },
       });
+
 
       // update application
       const updated = await prisma.presidentApplication.update({
@@ -170,6 +172,52 @@ class PresidentController {
         .json({ success: false, message: "Server error", error: err.message });
     }
   }
+
+  // admin creates a president directly (no application)
+  static async createPresident(req, res) {
+    try {
+      const { name, email, clubName, password } = req.body;
+      if (!name || !email || !clubName || !password) {
+        return res
+          .status(400)
+          .json({ success: false, message: "name, email, clubName, and password are required" });
+      }
+
+      // check if user already exists
+      const existing = await prisma.user.findUnique({
+        where: { email },
+      });
+      if (existing) {
+        return res
+          .status(409)
+          .json({ success: false, message: "A user with this email already exists" });
+      }
+
+      const hashed = await bcrypt.hash(password, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          password: hashed,
+          role: "CLUB_PRESIDENT",
+          clubName,
+        },
+      });
+
+      res.status(201).json({ 
+        success: true, 
+        message: "President created successfully",
+        user: { id: user.id, name: user.name, email: user.email, clubName: user.clubName }
+      });
+    } catch (err) {
+      console.error("Direct president creation error:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err.message });
+    }
+  }
 }
+
 
 export default PresidentController;

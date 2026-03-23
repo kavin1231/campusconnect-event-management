@@ -327,14 +327,14 @@ const StudentProfile = () => {
                                             <h4>Password</h4>
                                             <p>Change your password to keep your account secure.</p>
                                         </div>
-                                        <button className="sp-btn-outline" disabled>Update Password</button>
+                                        <button className="sp-btn-outline">Update Password</button>
                                     </div>
                                     <div className="sp-security-row">
                                         <div className="sp-security-info">
                                             <h4>Two-Factor Authentication</h4>
                                             <p>Add an extra layer of security to your account.</p>
                                         </div>
-                                        <button className="sp-btn-outline" disabled>Enable 2FA</button>
+                                        <button className="sp-btn-outline">Enable 2FA</button>
                                     </div>
                                 </div>
                             </div>
@@ -351,11 +351,6 @@ const StudentProfile = () => {
                                 <div className="sp-stat-item">
                                     <span className="sp-stat-label">Participation Rate</span>
                                     <span className="sp-stat-val">High</span>
-                                </div>
-                                <div className="sp-divider"></div>
-                                <div className="sp-stat-item">
-                                    <span className="sp-stat-label">Member Role</span>
-                                    <span className="sp-role-badge">Premium Member</span>
                                 </div>
                             </div>
 

@@ -186,7 +186,7 @@
 
 .send-btn:hover {
     transform: scale(1.05);
-    background: #4f46e5;
+    background: #FF6B35;
 }
 
 .send-btn:disabled {

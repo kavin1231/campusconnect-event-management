@@ -14,7 +14,15 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     navigate("/");
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path, query = "") => {
+    const pathMatch = location.pathname === path;
+    if (query) {
+      return pathMatch && location.search === query;
+    }
+    // For items without a query (like Dashboard), they should only be active
+    // if there's no filter query parameter currently in the URL.
+    return pathMatch && !location.search.includes("filter=");
+  };
 
   const toggleMenu = (menu) => {
     setExpandedMenu(expandedMenu === menu ? null : menu);
@@ -90,6 +98,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     { label: "Dashboard", path: "/dashboard", icon: "📊" },
     { label: "My Events", path: "/events", icon: "📅" },
     { label: "Resources", path: "/resources", icon: "📦" },
+    { label: "Study Materials", path: "/dashboard", icon: "📚", query: "?filter=study" },
     { label: "My Profile", path: "/profile", icon: "👤" },
   ];
 
@@ -98,15 +107,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   return (
     <aside className="sd-sidebar">
       {/* SIDEBAR HEADER */}
-      <div className="sd-side-header">
-        <Link
-          to={isAdmin ? "/admin-dashboard" : "/dashboard"}
-          className="sd-logo"
-        >
-          <div className="sd-logo-icon">🚀</div>
-          <span>NEXORA</span>
-        </Link>
-      </div>
 
       {/* SIDEBAR NAVIGATION */}
       <div className="sd-side-nav">
@@ -167,8 +167,8 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
             {menuItems.map((item) => (
               <Link
                 key={item.path}
-                to={item.path}
-                className={`sd-side-link ${isActive(item.path) ? "sd-side-active" : ""}`}
+                to={item.query ? `${item.path}${item.query}` : item.path}
+                className={`sd-side-link ${isActive(item.path, item.query) ? "sd-side-active" : ""}`}
               >
                 <span>{item.icon}</span>
                 <span>{item.label}</span>

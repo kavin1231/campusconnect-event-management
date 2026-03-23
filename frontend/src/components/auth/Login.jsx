@@ -31,7 +31,8 @@ const Login = () => {
         ) {
           navigate("/admin-dashboard");
         } else {
-          navigate("/dashboard");
+          // Students go to home page
+          navigate("/");
         }
       } else {
         setError(data.message || "Login failed. Please try again.");

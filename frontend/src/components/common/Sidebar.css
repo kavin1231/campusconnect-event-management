@@ -1,181 +1,322 @@
 /* ── Sidebar ─────────────────────────────────── */
 .sd-sidebar {
-    width: 260px;
-    background: #ffffff;
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    padding: 24px 0;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    flex-shrink: 0;
-    z-index: 1000;
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+  z-index: 1000;
 }
 
 .sd-side-header {
-    padding: 0 24px 32px;
+  padding: 0 24px 32px;
 }
 
 .sd-side-nav {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px;
 }
 
 .sd-side-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    text-decoration: none;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    font-weight: 500;
-    border-radius: 10px;
-    transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.2s;
 }
 
 .sd-side-link svg {
-    color: var(--text-muted);
-    transition: color 0.2s;
+  color: var(--text-muted);
+  transition: color 0.2s;
 }
 
 .sd-side-link:hover {
-    background: rgba(79, 70, 229, 0.05);
-    color: var(--primary-accent);
+  background: rgba(79, 70, 229, 0.05);
+  color: var(--primary-accent);
 }
 
 .sd-side-link:hover svg {
-    color: var(--primary-accent);
+  color: var(--primary-accent);
 }
 
 .sd-side-active {
-    background: rgba(79, 70, 229, 0.08);
-    color: var(--primary-accent);
-    font-weight: 600;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--primary-accent);
+  font-weight: 600;
 }
 
 .sd-side-active svg {
-    color: var(--primary-accent);
+  color: var(--primary-accent);
 }
 
 .sd-side-footer {
-    padding: 16px;
-    margin-top: auto;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  padding: 16px;
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .sd-side-user {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .sd-side-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: var(--primary-accent);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 600;
-    flex-shrink: 0;
-    overflow: hidden;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .sd-side-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .sd-side-user-info {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .sd-side-user-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sd-side-user-role {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .sd-side-logout-btn {
-    padding: 8px;
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sd-side-logout-btn:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* ── Admin Menu Items ────────────────────────── */
+.sd-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.sd-menu-item:hover {
+  background: rgba(79, 70, 229, 0.05);
+  color: var(--primary-accent);
+}
+
+.sd-menu-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.sd-menu-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.sd-menu-label {
+  flex: 1;
+}
+
+.sd-menu-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 6px;
+  background: #ef4444;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.sd-menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.sd-menu-toggle.sd-expanded {
+  transform: rotate(180deg);
+}
+
+/* ── Submenu ─────────────────────────────────── */
+.sd-submenu {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sd-submenu-active {
+  max-height: 500px;
+  opacity: 1;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.sd-submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 10px 48px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.sd-submenu-item::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  width: 1px;
+  height: 100%;
+  background: rgba(79, 70, 229, 0.1);
+}
+
+.sd-submenu-item:hover {
+  background: rgba(79, 70, 229, 0.05);
+  color: var(--primary-accent);
+}
+
+.sd-submenu-item.sd-active {
+  background: rgba(79, 70, 229, 0.12);
+  color: var(--primary-accent);
+  font-weight: 600;
+}
+
+.sd-submenu-icon {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.sd-submenu-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0 5px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* ── Responsive ──────────────────────────────── */
 @media (max-width: 1024px) {
-    .sd-sidebar {
-        width: 80px;
-        padding: 20px 0;
-    }
+  .sd-sidebar {
+    width: 80px;
+    padding: 20px 0;
+  }
 
-    .sd-side-header .sd-logo span {
-        display: none;
-    }
+  .sd-side-header .sd-logo span {
+    display: none;
+  }
 
-    .sd-side-link {
-        justify-content: center;
-        padding: 12px;
-    }
+  .sd-side-link {
+    justify-content: center;
+    padding: 12px;
+  }
 
-    .sd-side-link span {
-        display: none;
-    }
+  .sd-side-link span {
+    display: none;
+  }
 
-    .sd-side-user-info {
-        display: none;
-    }
+  .sd-side-user-info {
+    display: none;
+  }
 
-    .sd-side-footer {
-        flex-direction: column;
-        padding: 16px 0;
-    }
+  .sd-side-footer {
+    flex-direction: column;
+    padding: 16px 0;
+  }
 
-    .sd-side-user {
-        justify-content: center;
-    }
+  .sd-side-user {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 768px) {
-    .sd-sidebar {
-        display: none;
-    }
+  .sd-sidebar {
+    display: none;
+  }
 }

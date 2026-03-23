@@ -1,46 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { logisticsAPI } from "../../services/api";
 
 const ResourceAvailabilityEngine = () => {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [viewMode, setViewMode] = useState("timeline"); // timeline or calendar
-
-  const [assets] = useState([
-    {
-      id: 1,
-      name: "Projector Sony",
-      owner: "Arts Club",
-      bookings: [
-        {
-          id: 1,
-          club: "Drama Club",
-          startDate: "2024-03-25",
-          endDate: "2024-03-26",
-          status: "approved",
-        },
-        {
-          id: 2,
-          club: "Event Management",
-          startDate: "2024-03-28",
-          endDate: "2024-03-30",
-          status: "pending",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Speaker System",
-      owner: "Music Club",
-      bookings: [
-        {
-          id: 3,
-          club: "Music Club",
-          startDate: "2024-03-22",
-          endDate: "2024-03-23",
-          status: "approved",
-        },
-      ],
-    },
-  ]);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [newBooking, setNewBooking] = useState({
     assetId: null,
@@ -48,6 +13,30 @@ const ResourceAvailabilityEngine = () => {
     startDate: "",
     endDate: "",
   });
+
+  useEffect(() => {
+    fetchAssets();
+  }, []);
+
+  const fetchAssets = async () => {
+    setLoading(true);
+    try {
+      const data = await logisticsAPI.listAssets();
+      if (data.success) {
+        // Map assets to include bookings info from requests
+        const assetsData = data.assets || [];
+        setAssets(
+          assetsData.map((asset) => ({
+            ...asset,
+            bookings: [],
+          })),
+        );
+      }
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+    }
+    setLoading(false);
+  };
 
   const getAvailableSlots = (assetId, startDate, endDate) => {
     const asset = assets.find((a) => a.id === assetId);
@@ -71,7 +60,7 @@ const ResourceAvailabilityEngine = () => {
   const isSlotAvailable = getAvailableSlots(
     newBooking.assetId,
     newBooking.startDate,
-    newBooking.endDate
+    newBooking.endDate,
   );
 
   return (
@@ -84,8 +73,12 @@ const ResourceAvailabilityEngine = () => {
               🚫
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Resource Availability Engine</h1>
-              <p className="text-gray-400 text-sm">Prevent double bookings & manage schedules</p>
+              <h1 className="text-2xl font-bold text-white">
+                Resource Availability Engine
+              </h1>
+              <p className="text-gray-400 text-sm">
+                Prevent double bookings & manage schedules
+              </p>
             </div>
           </div>
 
@@ -128,7 +121,8 @@ const ResourceAvailabilityEngine = () => {
                   >
                     <p className="font-medium">{asset.name}</p>
                     <p className="text-xs mt-1">
-                      {asset.bookings.length} booking{asset.bookings.length !== 1 ? "s" : ""}
+                      {asset.bookings.length} booking
+                      {asset.bookings.length !== 1 ? "s" : ""}
                     </p>
                   </button>
                 ))}
@@ -136,12 +130,17 @@ const ResourceAvailabilityEngine = () => {
 
               {/* BOOKING FORM */}
               <div className="mt-6 pt-6 border-t border-gray-700">
-                <h3 className="text-sm font-bold text-white mb-3">New Booking</h3>
+                <h3 className="text-sm font-bold text-white mb-3">
+                  New Booking
+                </h3>
                 <div className="space-y-3">
                   <select
                     value={newBooking.assetId || ""}
                     onChange={(e) =>
-                      setNewBooking({ ...newBooking, assetId: parseInt(e.target.value) || null })
+                      setNewBooking({
+                        ...newBooking,
+                        assetId: parseInt(e.target.value) || null,
+                      })
                     }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
                   >
@@ -156,14 +155,21 @@ const ResourceAvailabilityEngine = () => {
                   <input
                     type="date"
                     value={newBooking.startDate}
-                    onChange={(e) => setNewBooking({ ...newBooking, startDate: e.target.value })}
+                    onChange={(e) =>
+                      setNewBooking({
+                        ...newBooking,
+                        startDate: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
                   />
 
                   <input
                     type="date"
                     value={newBooking.endDate}
-                    onChange={(e) => setNewBooking({ ...newBooking, endDate: e.target.value })}
+                    onChange={(e) =>
+                      setNewBooking({ ...newBooking, endDate: e.target.value })
+                    }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
                   />
 
@@ -171,7 +177,9 @@ const ResourceAvailabilityEngine = () => {
                     type="text"
                     placeholder="Club name"
                     value={newBooking.club}
-                    onChange={(e) => setNewBooking({ ...newBooking, club: e.target.value })}
+                    onChange={(e) =>
+                      setNewBooking({ ...newBooking, club: e.target.value })
+                    }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 text-sm focus:border-rose-500 outline-none transition"
                   />
 
@@ -203,7 +211,9 @@ const ResourceAvailabilityEngine = () => {
             {selectedAsset ? (
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-2">{selectedAsset.name}</h2>
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    {selectedAsset.name}
+                  </h2>
                   <p className="text-gray-400">Owner: {selectedAsset.owner}</p>
                 </div>
 
@@ -215,7 +225,9 @@ const ResourceAvailabilityEngine = () => {
 
                 {/* BOOKINGS LIST */}
                 <div className="mt-8">
-                  <h3 className="text-lg font-bold text-white mb-4">📋 Bookings</h3>
+                  <h3 className="text-lg font-bold text-white mb-4">
+                    📋 Bookings
+                  </h3>
                   {selectedAsset.bookings.length === 0 ? (
                     <p className="text-gray-400">No bookings for this asset</p>
                   ) : (
@@ -229,7 +241,9 @@ const ResourceAvailabilityEngine = () => {
               </div>
             ) : (
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                <p className="text-gray-400 text-lg">Select an asset to view bookings</p>
+                <p className="text-gray-400 text-lg">
+                  Select an asset to view bookings
+                </p>
               </div>
             )}
           </div>
@@ -247,13 +261,16 @@ const TimelineView = ({ bookings }) => {
       <div className="space-y-4">
         {[1, 2, 3, 4, 5].map((week) => (
           <div key={week} className="flex items-center gap-4">
-            <span className="text-gray-400 text-sm font-medium w-20">Week {week}</span>
+            <span className="text-gray-400 text-sm font-medium w-20">
+              Week {week}
+            </span>
             <div className="flex-1 h-10 bg-gray-600 rounded relative overflow-hidden">
               {bookings.map((booking) => {
                 const startDate = new Date(booking.startDate);
                 const endDate = new Date(booking.endDate);
                 const position = ((startDate.getDate() - 1) / 30) * 100;
-                const width = (((endDate.getDate() - startDate.getDate()) / 30) * 100) || 3;
+                const width =
+                  ((endDate.getDate() - startDate.getDate()) / 30) * 100 || 3;
 
                 return (
                   <div
@@ -288,7 +305,10 @@ const CalendarView = ({ bookings }) => {
     <div className="bg-gray-700 rounded-lg p-6">
       <div className="grid grid-cols-7 gap-2 mb-4">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-          <div key={day} className="text-center font-bold text-gray-300 text-sm p-2">
+          <div
+            key={day}
+            className="text-center font-bold text-gray-300 text-sm p-2"
+          >
             {day}
           </div>
         ))}
@@ -302,7 +322,7 @@ const CalendarView = ({ bookings }) => {
 
           const dateStr = `2024-03-${String(date).padStart(2, "0")}`;
           const dayBookings = bookings.filter(
-            (b) => b.startDate <= dateStr && b.endDate >= dateStr
+            (b) => b.startDate <= dateStr && b.endDate >= dateStr,
           );
 
           return (

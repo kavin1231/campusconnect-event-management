@@ -1,41 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { governanceAPI } from "../../services/api";
 
 const EventApproval = () => {
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: "Annual Fest 2024",
-      club: "Arts Club",
-      date: "2024-04-15",
-      venue: "Main Auditorium",
-      expectedAttendees: 500,
-      budget: 50000,
-      description: "Annual cultural festival",
-      status: "pending",
-      submittedDate: "2024-03-20",
-    },
-    {
-      id: 2,
-      title: "Hackathon 2024",
-      club: "Tech Club",
-      date: "2024-04-22",
-      venue: "Tech Lab",
-      expectedAttendees: 200,
-      budget: 30000,
-      description: "24-hour coding competition",
-      status: "pending",
-      submittedDate: "2024-03-19",
-    },
-  ]);
-
+  const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [filterStatus, setFilterStatus] = useState("pending");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEventApprovals();
+  }, []);
+
+  const fetchEventApprovals = async () => {
+    setLoading(true);
+    try {
+      const data = await governanceAPI.getEventApprovals();
+      if (data.success) {
+        setEvents(data.events || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch event approvals:", error);
+    }
+    setLoading(false);
+  };
 
   const handleApprove = (id) => {
     setEvents(
       events.map((event) =>
-        event.id === id ? { ...event, status: "approved" } : event
-      )
+        event.id === id ? { ...event, status: "approved" } : event,
+      ),
     );
     setSelectedEvent(null);
   };
@@ -43,13 +36,17 @@ const EventApproval = () => {
   const handleReject = (id, reason) => {
     setEvents(
       events.map((event) =>
-        event.id === id ? { ...event, status: "rejected", rejectionReason: reason } : event
-      )
+        event.id === id
+          ? { ...event, status: "rejected", rejectionReason: reason }
+          : event,
+      ),
     );
     setSelectedEvent(null);
   };
 
-  const filteredEvents = events.filter((event) => event.status === filterStatus);
+  const filteredEvents = events.filter(
+    (event) => event.status === filterStatus,
+  );
 
   return (
     <div className="event-approval bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
@@ -62,7 +59,9 @@ const EventApproval = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Event Approvals</h1>
-              <p className="text-gray-400 text-sm">Review & approve event submissions</p>
+              <p className="text-gray-400 text-sm">
+                Review & approve event submissions
+              </p>
             </div>
           </div>
 
@@ -78,7 +77,8 @@ const EventApproval = () => {
                     : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                 }`}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)} ({filteredEvents.length})
+                {status.charAt(0).toUpperCase() + status.slice(1)} (
+                {filteredEvents.length})
               </button>
             ))}
           </div>
@@ -93,7 +93,9 @@ const EventApproval = () => {
             <div className="space-y-4">
               {filteredEvents.length === 0 ? (
                 <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                  <p className="text-gray-400 text-lg">No {filterStatus} events</p>
+                  <p className="text-gray-400 text-lg">
+                    No {filterStatus} events
+                  </p>
                 </div>
               ) : (
                 filteredEvents.map((event) => (
@@ -108,9 +110,12 @@ const EventApproval = () => {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-lg font-bold text-white">{event.title}</h3>
+                        <h3 className="text-lg font-bold text-white">
+                          {event.title}
+                        </h3>
                         <p className="text-gray-400 text-sm">
-                          Organized by <span className="text-white">{event.club}</span>
+                          Organized by{" "}
+                          <span className="text-white">{event.club}</span>
                         </p>
                       </div>
                       <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full font-medium">
@@ -129,11 +134,15 @@ const EventApproval = () => {
                       </div>
                       <div>
                         <p className="text-gray-500">👥 Expected</p>
-                        <p className="text-gray-300">{event.expectedAttendees} people</p>
+                        <p className="text-gray-300">
+                          {event.expectedAttendees} people
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-500">💰 Budget</p>
-                        <p className="text-gray-300">₹{event.budget.toLocaleString()}</p>
+                        <p className="text-gray-300">
+                          ₹{event.budget.toLocaleString()}
+                        </p>
                       </div>
                     </div>
 
@@ -150,43 +159,67 @@ const EventApproval = () => {
           <div className="lg:col-span-1">
             {selectedEvent ? (
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 sticky top-24">
-                <h2 className="text-xl font-bold text-white mb-6">Event Details</h2>
+                <h2 className="text-xl font-bold text-white mb-6">
+                  Event Details
+                </h2>
 
                 <div className="space-y-4 mb-8">
                   <div>
-                    <p className="text-gray-400 text-sm font-medium mb-1">Event Title</p>
-                    <p className="text-white font-medium">{selectedEvent.title}</p>
+                    <p className="text-gray-400 text-sm font-medium mb-1">
+                      Event Title
+                    </p>
+                    <p className="text-white font-medium">
+                      {selectedEvent.title}
+                    </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400 text-sm font-medium mb-1">Organizing Club</p>
-                    <p className="text-white font-medium">{selectedEvent.club}</p>
+                    <p className="text-gray-400 text-sm font-medium mb-1">
+                      Organizing Club
+                    </p>
+                    <p className="text-white font-medium">
+                      {selectedEvent.club}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-gray-400 text-sm font-medium mb-1">Date</p>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Date
+                      </p>
                       <p className="text-white">{selectedEvent.date}</p>
                     </div>
                     <div>
-                      <p className="text-gray-400 text-sm font-medium mb-1">Venue</p>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Venue
+                      </p>
                       <p className="text-white">{selectedEvent.venue}</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-gray-400 text-sm font-medium mb-1">Expected Attendees</p>
-                      <p className="text-white">{selectedEvent.expectedAttendees}</p>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Expected Attendees
+                      </p>
+                      <p className="text-white">
+                        {selectedEvent.expectedAttendees}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-gray-400 text-sm font-medium mb-1">Budget</p>
-                      <p className="text-white">₹{selectedEvent.budget.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Budget
+                      </p>
+                      <p className="text-white">
+                        ₹{selectedEvent.budget.toLocaleString()}
+                      </p>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">Description</p>
+                    <p className="text-gray-400 text-sm font-medium mb-2">
+                      Description
+                    </p>
                     <p className="text-gray-300 text-sm bg-gray-700 p-3 rounded">
                       {selectedEvent.description}
                     </p>
@@ -194,10 +227,22 @@ const EventApproval = () => {
 
                   {/* RISK ASSESSMENT */}
                   <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-blue-400 font-semibold mb-2">📋 Risk Assessment</p>
+                    <p className="text-blue-400 font-semibold mb-2">
+                      📋 Risk Assessment
+                    </p>
                     <ul className="text-blue-200 text-sm space-y-1">
-                      <li>• Budget: {selectedEvent.budget > 40000 ? "🟡 High" : "🟢 Moderate"}</li>
-                      <li>• Attendance: {selectedEvent.expectedAttendees > 300 ? "🟡 High" : "🟢 Moderate"}</li>
+                      <li>
+                        • Budget:{" "}
+                        {selectedEvent.budget > 40000
+                          ? "🟡 High"
+                          : "🟢 Moderate"}
+                      </li>
+                      <li>
+                        • Attendance:{" "}
+                        {selectedEvent.expectedAttendees > 300
+                          ? "🟡 High"
+                          : "🟢 Moderate"}
+                      </li>
                       <li>• Duration: Plan & execute feasibility verified</li>
                     </ul>
                   </div>
@@ -226,7 +271,9 @@ const EventApproval = () => {
 
                 {selectedEvent.status === "rejected" && (
                   <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <p className="text-red-400 text-sm font-medium mb-2">Rejection Reason:</p>
+                    <p className="text-red-400 text-sm font-medium mb-2">
+                      Rejection Reason:
+                    </p>
                     <p className="text-red-200 text-sm">
                       {selectedEvent.rejectionReason || "No reason provided"}
                     </p>

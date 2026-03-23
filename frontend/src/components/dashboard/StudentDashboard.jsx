@@ -1,11 +1,34 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
 import { dashboardAPI } from "../../services/api";
 import "./StudentDashboard.css";
 
+// ── Filter options ──────────────────────────────────────────────
+const FILTERS = [
+  { key: "all", label: "All Events" },
+  { key: "registered", label: "Registered" },
+  { key: "upcoming", label: "Upcoming" },
+  { key: "past", label: "Past Events" },
+  { key: "explore", label: "Explore" },
+  { key: "study", label: "Study Materials" },
+];
+
+const CATEGORIES = [
+  "All",
+  "Tech",
+  "Sports",
+  "Arts",
+  "Music",
+  "Cultural",
+  "Academic",
+  "Other",
+];
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     registered: 0,
@@ -16,7 +39,7 @@ const StudentDashboard = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState(() => searchParams.get("filter") || "all");
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -89,6 +112,14 @@ const StudentDashboard = () => {
     }
   }, [user, fetchStats, fetchEvents]);
 
+  // ── Sync filter with URL ────────────────────────────────────────
+  useEffect(() => {
+    const urlFilter = searchParams.get("filter") || "all";
+    if (urlFilter !== filter) {
+      setFilter(urlFilter);
+    }
+  }, [searchParams, filter]);
+
   // ── Debounced search ─────────────────────────────────────────────
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
@@ -115,15 +146,14 @@ const StudentDashboard = () => {
 
   // ── Register / Unregister ────────────────────────────────────────
   const toggleRegistration = async (event) => {
-    const token = localStorage.getItem("token");
     setActionLoading((prev) => ({ ...prev, [event.id]: true }));
     try {
-      const method = event.isRegistered ? "DELETE" : "POST";
-      const res = await fetch(`${API}/api/dashboard/register/${event.id}`, {
-        method,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      let data;
+      if (event.isRegistered) {
+        data = await dashboardAPI.unregisterEvent(event.id);
+      } else {
+        data = await dashboardAPI.registerEvent(event.id);
+      }
       if (data.success) {
         showToast(data.message);
         await fetchStats();
@@ -182,8 +212,10 @@ const StudentDashboard = () => {
 
   // ── Render ───────────────────────────────────────────────────────
   return (
-    <div className="sd-layout">
-      <Sidebar activePage="dashboard" />
+    <>
+      <Header />
+      <div className="sd-layout">
+        <Sidebar activePage="dashboard" />
 
       {/* ── Main Wrapper ── */}
       <div className="sd-content-wrapper">
@@ -225,111 +257,6 @@ const StudentDashboard = () => {
             {toastMsg}
           </div>
         )}
-
-        {/* ── Top Navbar ── */}
-        <nav className="sd-navbar">
-          <div className="sd-nav-left">
-            <h2 className="sd-nav-page-title">Dashboard</h2>
-          </div>
-
-          <div className="sd-nav-right">
-            {/* search */}
-            <div className="sd-search-bar">
-              <svg
-                className="sd-search-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search events…"
-                value={searchInput}
-                onChange={handleSearchChange}
-              />
-            </div>
-
-            {/* avatar */}
-            <div className="sd-profile-container" ref={profileRef}>
-              <button
-                className="sd-profile-btn"
-                onClick={() => setShowProfileMenu((p) => !p)}
-              >
-                <div className="sd-avatar">{getInitials(user?.name)}</div>
-              </button>
-
-              {showProfileMenu && (
-                <div className="sd-profile-dropdown">
-                  <div className="sd-profile-header">
-                    <div className="sd-avatar-lg">
-                      {getInitials(user?.name)}
-                    </div>
-                    <div>
-                      <h4>{user?.name}</h4>
-                      <p>{user?.email}</p>
-                      <span className="sd-role-badge">STUDENT</span>
-                    </div>
-                  </div>
-                  <div className="sd-divider" />
-                  <div className="sd-menu-items">
-                    <Link
-                      to="/profile"
-                      className="sd-menu-item"
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="15"
-                        height="15"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                      My Profile
-                    </Link>
-                  </div>
-                  <div className="sd-divider" />
-                  <button
-                    onClick={handleLogout}
-                    className="sd-menu-item sd-logout"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </nav>
 
         {/* ── Dashboard Header ── */}
         <header className="sd-header">
@@ -406,7 +333,10 @@ const StudentDashboard = () => {
                 <button
                   key={f.key}
                   className={`sd-filter-tab ${filter === f.key ? "sd-filter-active" : ""}`}
-                  onClick={() => setFilter(f.key)}
+                  onClick={() => {
+                    setFilter(f.key);
+                    window.history.replaceState(null, "", `?filter=${f.key}`);
+                  }}
                 >
                   {f.label}
                 </button>
@@ -426,6 +356,8 @@ const StudentDashboard = () => {
           </div>
 
           {/* ── Events grid ── */}
+          {filter !== "study" && (
+            <>
           {loading ? (
             <div className="sd-loading">
               <div className="sd-spinner" />
@@ -633,9 +565,60 @@ const StudentDashboard = () => {
               })}
             </div>
           )}
+            </>
+          )}
         </main>
+
+        {/* ── Study Support Section ── */}
+        {filter === "study" && (
+        <section className="sd-study-support-section">
+          <div className="sd-study-support-container">
+            <div className="sd-study-support-content">
+              <div className="sd-study-support-header">
+                <h2>📚 Study Support & Materials</h2>
+                <p>Access curated study materials, PDFs, and join scheduled study sessions with your peers</p>
+              </div>
+              
+              <div className="sd-study-features">
+                <div className="sd-study-feature-card">
+                  <div className="sd-feature-icon">📖</div>
+                  <h3>Study Materials</h3>
+                  <p>Access organized study PDFs, notes, and resources tailored for your semester</p>
+                </div>
+                
+                <div className="sd-study-feature-card">
+                  <div className="sd-feature-icon">🔗</div>
+                  <h3>Resource Links</h3>
+                  <p>Find curated external resources, tutorials, and reference materials</p>
+                </div>
+                
+                <div className="sd-study-feature-card">
+                  <div className="sd-feature-icon">👥</div>
+                  <h3>Study Sessions</h3>
+                  <p>Join scheduled study sessions and collaborate with other students</p>
+                </div>
+                
+                <div className="sd-study-feature-card">
+                  <div className="sd-feature-icon">🎓</div>
+                  <h3>Semester Specific</h3>
+                  <p>Get materials tailored to your current academic year and semester</p>
+                </div>
+              </div>
+
+              <Link to="/study-materials" className="sd-btn-study-support">
+                <span>Explore Study Materials</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </Link>
+            </div>
+            <div className="sd-study-support-visual">
+              <div className="sd-study-icon-large">📚</div>
+            </div>
+          </div>
+        </section>
+        )}
       </div>
     </div>
+    </>
   );
 };
 

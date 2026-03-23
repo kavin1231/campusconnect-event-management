@@ -17,6 +17,27 @@
   padding: 0 24px 32px;
 }
 
+.sd-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.sd-logo:hover {
+  opacity: 0.8;
+}
+
+.sd-logo-image {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
 .sd-side-nav {
   flex: 1;
   display: flex;

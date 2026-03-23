@@ -22,6 +22,7 @@ model Student {
   createdAt     DateTime              @default(now())
   registrations StudentEventRegistration[]
   presidentApplications PresidentApplication[]
+  notifications StudentNotification[]
   eventReviews  EventReview[]
 
   @@map("Student")
@@ -60,6 +61,7 @@ model User {
   approvedBookings   AssetBooking[]   @relation("AssetBookingApprovedBy")
   requestedBookings  AssetBooking[]   @relation("AssetBookingRequester")
   approvedApplications PresidentApplication[]
+  notifications      UserNotification[]
 
   // relations for study support
   studyMaterials     StudyMaterial[]  @relation("StudyMaterialCreator")
@@ -117,15 +119,53 @@ model AssetBooking {
 
 // president applications
 model PresidentApplication {
-  id           Int                @id @default(autoincrement())
-  studentId    Int
-  student      Student            @relation(fields: [studentId], references: [id])
-  clubName     String
-  email        String             // email for president account
-  status       ApplicationStatus  @default(PENDING)
-  appliedAt    DateTime           @default(now())
-  approvedById Int?
-  approvedBy   User?              @relation(fields: [approvedById], references: [id])
+  id                    Int                @id @default(autoincrement())
+  studentId             Int
+  student               Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  presidentName         String             // The name to use for president account
+  candidateId           String             // President ID/candidate ID
+  clubOrFacultyType     String             // "CLUB" or "FACULTY"
+  clubOrFacultyName     String             // Name of club or faculty
+  currentQualification  String             // Current qualification/position
+  email                 String             // email for president account
+  status                ApplicationStatus  @default(PENDING)
+  rejectionReason       String?            // Reason for rejection if rejected
+  appliedAt             DateTime           @default(now())
+  approvedRejectAt      DateTime?          // When it was approved/rejected
+  approvedById          Int?
+  approvedBy            User?              @relation(fields: [approvedById], references: [id], onDelete: SetNull)
+}
+
+// Student notifications/alerts
+model StudentNotification {
+  id        Int       @id @default(autoincrement())
+  studentId Int
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type      String    // "PRESIDENT_APPROVED", "PRESIDENT_REJECTED", "PASSWORD_ALERT", etc.
+  title     String
+  message   String
+  data      String?   // JSON string for additional data (e.g., password)
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([studentId])
+  @@index([createdAt])
+}
+
+// User notifications (for admin/president accounts)
+model UserNotification {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String    // "APPLICATION_CREATED", "NEW_REQUEST", etc.
+  title     String
+  message   String
+  data      String?   // JSON string for additional data
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // Study Support and Materials

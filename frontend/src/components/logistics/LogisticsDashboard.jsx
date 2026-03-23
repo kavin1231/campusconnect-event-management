@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const LogisticsDashboard = () => {
@@ -44,50 +45,61 @@ const LogisticsDashboard = () => {
   };
 
   return (
-    <div className="logistics-dashboard bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
-      {/* HEADER */}
-      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
-        <div className="px-8 py-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center text-2xl">
-              📦
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Logistics Hub</h1>
-              <p className="text-gray-400 text-sm">
-                Inter-Club Resource Exchange & Management
-              </p>
-            </div>
-          </div>
+    <div className="flex min-h-screen">
+      <Sidebar isAdmin={true} />
+      <div className="flex-1">
+        <div className="logistics-dashboard bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
+          {/* HEADER */}
+          <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
+            <div className="px-8 py-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center text-2xl">
+                  📦
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">
+                    Logistics Hub
+                  </h1>
+                  <p className="text-gray-400 text-sm">
+                    Inter-Club Resource Exchange & Management
+                  </p>
+                </div>
+              </div>
 
-          {/* TAB NAVIGATION */}
-          <div className="flex gap-2 border-b border-gray-700 mt-6">
-            {["overview", "assets", "requests", "checkout", "analytics"].map(
-              (tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setTabs(tab)}
-                  className={`px-6 py-3 font-semibold transition-all ${
-                    tabs === tab
-                      ? "text-indigo-400 border-b-2 border-indigo-400"
-                      : "text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ),
-            )}
+              {/* TAB NAVIGATION */}
+              <div className="flex gap-2 border-b border-gray-700 mt-6">
+                {[
+                  "overview",
+                  "assets",
+                  "requests",
+                  "checkout",
+                  "analytics",
+                ].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setTabs(tab)}
+                    className={`px-6 py-3 font-semibold transition-all ${
+                      tabs === tab
+                        ? "text-indigo-400 border-b-2 border-indigo-400"
+                        : "text-gray-400 hover:text-gray-300"
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </header>
+
+          {/* MAIN CONTENT */}
+          <div className="px-8 py-8 max-w-7xl mx-auto">
+            {tabs === "overview" && <OverviewTab stats={stats} />}
+            {tabs === "assets" && <AssetsTab />}
+            {tabs === "requests" && <RequestsTab />}
+            {tabs === "checkout" && <CheckoutTab />}
+            {tabs === "analytics" && <AnalyticsTab />}
           </div>
         </div>
-      </header>
-
-      {/* MAIN CONTENT */}
-      <div className="px-8 py-8 max-w-7xl mx-auto">
-        {tabs === "overview" && <OverviewTab stats={stats} />}
-        {tabs === "assets" && <AssetsTab />}
-        {tabs === "requests" && <RequestsTab />}
-        {tabs === "checkout" && <CheckoutTab />}
-        {tabs === "analytics" && <AnalyticsTab />}
       </div>
     </div>
   );

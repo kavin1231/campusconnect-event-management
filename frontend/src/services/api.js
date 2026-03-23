@@ -199,7 +199,7 @@ export const governanceAPI = {
     return response.json();
   },
 
-  // President applications
+  // President applications - Student endpoints
   applyForPresident: async (applicationData) => {
     const response = await fetchWithAuth("/president/apply", {
       method: "POST",
@@ -208,14 +208,19 @@ export const governanceAPI = {
     return response.json();
   },
 
-  getPresidentApplications: async () => {
-    const response = await fetchWithAuth("/president/applications");
+  getApplicationStatus: async () => {
+    const response = await fetchWithAuth("/president/application-status");
     return response.json();
   },
 
-  approvePresidentApplication: async (applicationId) => {
+  getStudentNotifications: async () => {
+    const response = await fetchWithAuth("/president/notifications");
+    return response.json();
+  },
+
+  markNotificationRead: async (notificationId) => {
     const response = await fetchWithAuth(
-      `/president/applications/${applicationId}/approve`,
+      `/president/notifications/${notificationId}/read`,
       {
         method: "PATCH",
       },
@@ -223,11 +228,29 @@ export const governanceAPI = {
     return response.json();
   },
 
-  rejectPresidentApplication: async (applicationId) => {
+  // President applications - Admin endpoints
+  getPresidentApplications: async () => {
+    const response = await fetchWithAuth("/president/applications");
+    return response.json();
+  },
+
+  approvePresidentApplication: async (applicationId, additionalData = {}) => {
+    const response = await fetchWithAuth(
+      `/president/applications/${applicationId}/approve`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(additionalData),
+      },
+    );
+    return response.json();
+  },
+
+  rejectPresidentApplication: async (applicationId, reason = "") => {
     const response = await fetchWithAuth(
       `/president/applications/${applicationId}/reject`,
       {
         method: "PATCH",
+        body: JSON.stringify({ reason }),
       },
     );
     return response.json();

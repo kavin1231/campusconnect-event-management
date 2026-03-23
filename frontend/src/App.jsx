@@ -15,6 +15,8 @@ import {
   ClubOnboarding,
   EventApproval,
   PresidentApplicationManagement,
+  PresidentRegistrationForm,
+  StudentNotifications,
 } from "./components/governance";
 
 // Logistics Components
@@ -58,6 +60,14 @@ function App() {
         <Route
           path="/governance/president-applications"
           element={<PresidentApplicationManagement />}
+        />
+        <Route
+          path="/president-registration"
+          element={<PresidentRegistrationForm />}
+        />
+        <Route
+          path="/student-notifications"
+          element={<StudentNotifications />}
         />
 
         {/* Logistics Routes */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const CheckoutReturnTracking = () => {
@@ -39,213 +40,227 @@ const CheckoutReturnTracking = () => {
   };
 
   return (
-    <div className="checkout-return bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
-      {/* HEADER */}
-      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
-        <div className="px-8 py-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-2xl">
-              🔄
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                Checkout & Returns
-              </h1>
-              <p className="text-gray-400 text-sm">
-                Track resource borrowing & returns
-              </p>
-            </div>
-          </div>
-
-          {/* MODE TABS */}
-          <div className="flex gap-2 border-b border-gray-700 mt-4">
-            {[
-              { id: "active", label: "📦 Active Checkouts", icon: "active" },
-              { id: "overdue", label: "⚠️ Overdue", icon: "overdue" },
-              { id: "history", label: "✓ History", icon: "history" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setMode(tab.id)}
-                className={`px-6 py-3 font-semibold transition-all ${
-                  mode === tab.id
-                    ? "text-blue-400 border-b-2 border-blue-400"
-                    : "text-gray-400 hover:text-gray-300"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      {/* MAIN CONTENT */}
-      <div className="px-8 py-8 max-w-7xl mx-auto">
-        {/* STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <StatBox
-            label="Active Checkouts"
-            value={checkouts.filter((c) => c.status === "active").length}
-            color="blue"
-            icon="📦"
-          />
-          <StatBox
-            label="Overdue Items"
-            value={checkouts.filter((c) => c.status === "overdue").length}
-            color="red"
-            icon="⚠️"
-          />
-          <StatBox
-            label="Returned This Month"
-            value={checkouts.filter((c) => c.status === "returned").length}
-            color="green"
-            icon="✓"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LIST VIEW */}
-          <div className="lg:col-span-2">
-            {filteredCheckouts.length === 0 ? (
-              <div className="bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
-                <p className="text-gray-400 text-lg">No {mode} checkouts</p>
+    <div className="flex min-h-screen">
+      <Sidebar isAdmin={true} />
+      <div className="flex-1">
+        <div className="checkout-return bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
+          {/* HEADER */}
+          <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
+            <div className="px-8 py-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-2xl">
+                  🔄
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">
+                    Checkout & Returns
+                  </h1>
+                  <p className="text-gray-400 text-sm">
+                    Track resource borrowing & returns
+                  </p>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredCheckouts.map((checkout) => (
-                  <CheckoutItem
-                    key={checkout.id}
-                    checkout={checkout}
-                    isSelected={selectedCheckout?.id === checkout.id}
-                    onSelect={() => setSelectedCheckout(checkout)}
-                    daysRemaining={getDaysRemaining(checkout.dueDate)}
-                  />
+
+              {/* MODE TABS */}
+              <div className="flex gap-2 border-b border-gray-700 mt-4">
+                {[
+                  {
+                    id: "active",
+                    label: "📦 Active Checkouts",
+                    icon: "active",
+                  },
+                  { id: "overdue", label: "⚠️ Overdue", icon: "overdue" },
+                  { id: "history", label: "✓ History", icon: "history" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setMode(tab.id)}
+                    className={`px-6 py-3 font-semibold transition-all ${
+                      mode === tab.id
+                        ? "text-blue-400 border-b-2 border-blue-400"
+                        : "text-gray-400 hover:text-gray-300"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          </header>
 
-          {/* DETAIL PANEL */}
-          <div className="lg:col-span-1">
-            {selectedCheckout ? (
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 sticky top-28">
-                <h2 className="text-xl font-bold text-white mb-6">Details</h2>
+          {/* MAIN CONTENT */}
+          <div className="px-8 py-8 max-w-7xl mx-auto">
+            {/* STATS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <StatBox
+                label="Active Checkouts"
+                value={checkouts.filter((c) => c.status === "active").length}
+                color="blue"
+                icon="📦"
+              />
+              <StatBox
+                label="Overdue Items"
+                value={checkouts.filter((c) => c.status === "overdue").length}
+                color="red"
+                icon="⚠️"
+              />
+              <StatBox
+                label="Returned This Month"
+                value={checkouts.filter((c) => c.status === "returned").length}
+                color="green"
+                icon="✓"
+              />
+            </div>
 
-                <div className="space-y-4 mb-6">
-                  <DetailField label="Asset" value={selectedCheckout.asset} />
-                  <DetailField
-                    label="Borrower Club"
-                    value={selectedCheckout.club}
-                  />
-                  <DetailField
-                    label="Contact"
-                    value={selectedCheckout.borrowerContact}
-                  />
-                  <DetailField
-                    label="Checked Out"
-                    value={selectedCheckout.checkedOutDate}
-                  />
-                  <DetailField
-                    label="Due Date"
-                    value={selectedCheckout.dueDate}
-                  />
-
-                  {selectedCheckout.status === "returned" && (
-                    <DetailField
-                      label="Returned"
-                      value={selectedCheckout.returnedDate}
-                    />
-                  )}
-
-                  <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">
-                      Condition
-                    </p>
-                    <span
-                      className={`px-3 py-1 text-sm rounded-full font-medium ${
-                        selectedCheckout.condition === "excellent"
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-yellow-500/20 text-yellow-400"
-                      }`}
-                    >
-                      {selectedCheckout.condition}
-                    </span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* LIST VIEW */}
+              <div className="lg:col-span-2">
+                {filteredCheckouts.length === 0 ? (
+                  <div className="bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
+                    <p className="text-gray-400 text-lg">No {mode} checkouts</p>
                   </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredCheckouts.map((checkout) => (
+                      <CheckoutItem
+                        key={checkout.id}
+                        checkout={checkout}
+                        isSelected={selectedCheckout?.id === checkout.id}
+                        onSelect={() => setSelectedCheckout(checkout)}
+                        daysRemaining={getDaysRemaining(checkout.dueDate)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                  {selectedCheckout.notes && (
-                    <div>
-                      <p className="text-gray-400 text-sm font-medium mb-2">
-                        Notes
-                      </p>
-                      <p className="text-gray-300 text-sm bg-gray-700 p-3 rounded">
-                        {selectedCheckout.notes}
-                      </p>
-                    </div>
-                  )}
-                </div>
+              {/* DETAIL PANEL */}
+              <div className="lg:col-span-1">
+                {selectedCheckout ? (
+                  <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 sticky top-28">
+                    <h2 className="text-xl font-bold text-white mb-6">
+                      Details
+                    </h2>
 
-                {/* ACTION BUTTONS */}
-                {selectedCheckout.status !== "returned" && (
-                  <div className="space-y-2">
-                    {selectedCheckout.status === "overdue" && (
-                      <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg mb-3">
-                        <p className="text-red-400 text-sm font-medium">
-                          🔴 This item is overdue. Contact the borrower
-                          immediately.
+                    <div className="space-y-4 mb-6">
+                      <DetailField
+                        label="Asset"
+                        value={selectedCheckout.asset}
+                      />
+                      <DetailField
+                        label="Borrower Club"
+                        value={selectedCheckout.club}
+                      />
+                      <DetailField
+                        label="Contact"
+                        value={selectedCheckout.borrowerContact}
+                      />
+                      <DetailField
+                        label="Checked Out"
+                        value={selectedCheckout.checkedOutDate}
+                      />
+                      <DetailField
+                        label="Due Date"
+                        value={selectedCheckout.dueDate}
+                      />
+
+                      {selectedCheckout.status === "returned" && (
+                        <DetailField
+                          label="Returned"
+                          value={selectedCheckout.returnedDate}
+                        />
+                      )}
+
+                      <div>
+                        <p className="text-gray-400 text-sm font-medium mb-2">
+                          Condition
                         </p>
+                        <span
+                          className={`px-3 py-1 text-sm rounded-full font-medium ${
+                            selectedCheckout.condition === "excellent"
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-yellow-500/20 text-yellow-400"
+                          }`}
+                        >
+                          {selectedCheckout.condition}
+                        </span>
+                      </div>
+
+                      {selectedCheckout.notes && (
+                        <div>
+                          <p className="text-gray-400 text-sm font-medium mb-2">
+                            Notes
+                          </p>
+                          <p className="text-gray-300 text-sm bg-gray-700 p-3 rounded">
+                            {selectedCheckout.notes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ACTION BUTTONS */}
+                    {selectedCheckout.status !== "returned" && (
+                      <div className="space-y-2">
+                        {selectedCheckout.status === "overdue" && (
+                          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg mb-3">
+                            <p className="text-red-400 text-sm font-medium">
+                              🔴 This item is overdue. Contact the borrower
+                              immediately.
+                            </p>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => setShowReturnModal(true)}
+                          className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
+                        >
+                          ✓ Process Return
+                        </button>
+
+                        {selectedCheckout.status === "overdue" && (
+                          <button className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition">
+                            📞 Send Reminder
+                          </button>
+                        )}
                       </div>
                     )}
 
-                    <button
-                      onClick={() => setShowReturnModal(true)}
-                      className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
-                    >
-                      ✓ Process Return
-                    </button>
-
-                    {selectedCheckout.status === "overdue" && (
-                      <button className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition">
-                        📞 Send Reminder
-                      </button>
+                    {selectedCheckout.status === "returned" && (
+                      <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                        <p className="text-green-400 text-sm font-medium">
+                          ✓ Successfully Returned
+                        </p>
+                        <p className="text-green-200 text-xs mt-1">
+                          Returned on {selectedCheckout.returnedDate}
+                        </p>
+                      </div>
                     )}
                   </div>
-                )}
-
-                {selectedCheckout.status === "returned" && (
-                  <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                    <p className="text-green-400 text-sm font-medium">
-                      ✓ Successfully Returned
-                    </p>
-                    <p className="text-green-200 text-xs mt-1">
-                      Returned on {selectedCheckout.returnedDate}
+                ) : (
+                  <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center sticky top-28">
+                    <p className="text-gray-400">
+                      Select a checkout to view details
                     </p>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center sticky top-28">
-                <p className="text-gray-400">
-                  Select a checkout to view details
-                </p>
-              </div>
-            )}
+            </div>
           </div>
+
+          {/* RETURN MODAL */}
+          {showReturnModal && selectedCheckout && (
+            <ReturnModal
+              checkout={selectedCheckout}
+              onClose={() => setShowReturnModal(false)}
+              onSubmit={() => {
+                alert("Return processed successfully!");
+                setShowReturnModal(false);
+                setSelectedCheckout(null);
+              }}
+            />
+          )}
         </div>
       </div>
-
-      {/* RETURN MODAL */}
-      {showReturnModal && selectedCheckout && (
-        <ReturnModal
-          checkout={selectedCheckout}
-          onClose={() => setShowReturnModal(false)}
-          onSubmit={() => {
-            alert("Return processed successfully!");
-            setShowReturnModal(false);
-            setSelectedCheckout(null);
-          }}
-        />
-      )}
     </div>
   );
 };

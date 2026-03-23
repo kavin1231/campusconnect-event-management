@@ -44,7 +44,7 @@ async function main() {
             {
                 title: "AI & Robotics Workshop",
                 description: "Hands-on session exploring the future of artificial intelligence and autonomous robotics. Perfect for beginners and enthusiasts!",
-                date: new Date("2024-10-24T10:00:00Z"),
+                date: new Date("2026-03-28T10:00:00Z"),
                 category: "TECH",
                 location: "Engineering Block, Hall A",
                 image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800",
@@ -53,7 +53,7 @@ async function main() {
             {
                 title: "Intra-University Sprint Meet",
                 description: "The annual track and field competition. Come witness the fastest sprinters on campus battle for the gold medal.",
-                date: new Date("2024-10-28T09:00:00Z"),
+                date: new Date("2026-04-02T09:00:00Z"),
                 category: "SPORTS",
                 location: "Main Sports Complex",
                 image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=800",
@@ -62,7 +62,7 @@ async function main() {
             {
                 title: "Midnight Canvas: Live Painting",
                 description: "A serene night of art and creativity. Students from all departments are invited to paint live under the stars.",
-                date: new Date("2024-11-02T19:00:00Z"),
+                date: new Date("2026-04-10T19:00:00Z"),
                 category: "ARTS",
                 location: "Central Plaza Garden",
                 image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=800",
@@ -71,7 +71,7 @@ async function main() {
             {
                 title: "Battle of the Bands: Auditions",
                 description: "The music club is looking for the best talent on campus. Auditions for the upcoming annual music festival.",
-                date: new Date("2024-11-05T15:00:00Z"),
+                date: new Date("2026-04-15T15:00:00Z"),
                 category: "MUSIC",
                 location: "Auditorium 2",
                 image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800",
@@ -80,7 +80,7 @@ async function main() {
             {
                 title: "International Relations Mock UN",
                 description: "Debate world issues and represent different nations in this immersive Model United Nations simulation.",
-                date: new Date("2024-11-08T08:00:00Z"),
+                date: new Date("2026-04-20T08:00:00Z"),
                 category: "DEBATE",
                 location: "Humanities Seminar Room",
                 image: "https://images.unsplash.com/photo-1431576901776-e539bd916ba2?auto=format&fit=crop&q=80&w=800",
@@ -89,7 +89,7 @@ async function main() {
             {
                 title: "24h Hackathon: Build for Campus",
                 description: "Team up and build solutions that make university life easier. Food, caffeine, and coding - all provided!",
-                date: new Date("2024-11-12T09:00:00Z"),
+                date: new Date("2026-04-25T09:00:00Z"),
                 category: "TECH",
                 location: "CS Innovation Lab",
                 image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800",

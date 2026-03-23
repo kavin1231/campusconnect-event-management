@@ -92,6 +92,21 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         { label: "User Activity", path: "/analytics/activity", icon: "👥" },
       ],
     },
+    {
+      id: "operations",
+      label: "Operations",
+      icon: "🤝",
+      badge: "6",
+      subItems: [
+        { label: "Operations Hub", path: "/operations", icon: "📊" },
+        { label: "Org Profile", path: "/operations/profile", icon: "🎨" },
+        { label: "Sponsorships", path: "/operations/sponsorships", icon: "💼" },
+        { label: "Budget Tracking", path: "/operations/budgets", icon: "💰" },
+        { label: "Vendor Partners", path: "/operations/vendors", icon: "🍕" },
+        { label: "Stall Management", path: "/operations/stalls", icon: "🛒" },
+        { label: "Intelligence", path: "/operations/intelligence", icon: "🧠" },
+      ],
+    },
   ];
 
   const studentMenuItems = [

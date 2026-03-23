@@ -44,6 +44,7 @@ enum Role {
   EVENT_ORGANIZER
   SYSTEM_ADMIN
   CLUB_PRESIDENT
+  OPERATIONS_MANAGER
 }
 
 model User {
@@ -64,6 +65,13 @@ model User {
   // relations for study support
   studyMaterials     StudyMaterial[]  @relation("StudyMaterialCreator")
   studySessions      StudySession[]   @relation("StudySessionCreator")
+
+  // relations for operations module
+  managedOrganizations Organization[] @relation("OrganizationManager")
+  sponsorshipLeads     SponsorshipLead[] @relation("SponsorshipManagedBy")
+  approvedVendors      VendorPartner[] @relation("VendorApprovedBy")
+  allocatedStalls      StallSlot[] @relation("StallAllocatedBy")
+  createdBudgetEntries OrganizationBudget[] @relation("BudgetCreatedBy")
 
   @@map("User")
 }
@@ -201,4 +209,154 @@ model EventReview {
   @@unique([studentId, eventId])
   @@index([eventId])
   @@map("EventReview")
+}
+
+// Operations and sponsorship models
+model Organization {
+  id            Int      @id @default(autoincrement())
+  name          String
+  faculty       String
+  description   String?
+  contactEmail  String   @unique
+  contactPhone  String?
+  logoUrl       String?
+  themePrimary  String?  @default("#FF6B35")
+  themeAccent   String?  @default("#1E293B")
+  managerId     Int
+  manager       User     @relation("OrganizationManager", fields: [managerId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sponsorshipLeads SponsorshipLead[]
+  budgetEntries    OrganizationBudget[]
+  vendors          VendorPartner[]
+  stallSlots       StallSlot[]
+
+  @@index([managerId])
+}
+
+model SponsorshipLead {
+  id                Int                    @id @default(autoincrement())
+  organizationId    Int
+  sponsorName       String
+  sponsorEmail      String?
+  contactPerson     String?
+  packageTier       SponsorPackageTier?
+  stage             SponsorshipStage       @default(LEAD)
+  expectedValue     Float?
+  confirmedValue    Float?
+  inKindDescription String?
+  benefitsChecklist Json?
+  notes             String?
+  lastMovedAt       DateTime               @default(now())
+  managedById       Int
+  managedBy         User                   @relation("SponsorshipManagedBy", fields: [managedById], references: [id])
+  organization      Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contributions     SponsorContribution[]
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([organizationId])
+  @@index([stage])
+  @@unique([organizationId, sponsorName])
+}
+
+model SponsorContribution {
+  id              Int                 @id @default(autoincrement())
+  sponsorshipId   Int
+  type            ContributionType
+  amount          Float?
+  inKindValue     Float?
+  description     String?
+  paidAt          DateTime            @default(now())
+  sponsorshipLead SponsorshipLead     @relation(fields: [sponsorshipId], references: [id], onDelete: Cascade)
+
+  @@index([sponsorshipId])
+}
+
+model OrganizationBudget {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  eventId        Int?
+  category       String
+  plannedAmount  Float
+  actualAmount   Float    @default(0)
+  notes          String?
+  createdById    Int
+  createdBy      User         @relation("BudgetCreatedBy", fields: [createdById], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([eventId])
+  @@unique([organizationId, category])
+}
+
+model VendorPartner {
+  id                Int                   @id @default(autoincrement())
+  organizationId    Int
+  name              String
+  contactName       String
+  contactPhone      String
+  contactEmail      String?
+  requirements      Json?
+  agreementStatus   VendorAgreementStatus @default(DRAFT)
+  approvedById      Int?
+  approvedBy        User?                 @relation("VendorApprovedBy", fields: [approvedById], references: [id])
+  organization      Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  stallSlots        StallSlot[]
+
+  @@index([organizationId])
+  @@index([agreementStatus])
+  @@unique([organizationId, name])
+}
+
+model StallSlot {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  vendorId       Int?
+  slotCode       String
+  location       String
+  eventDate      DateTime
+  startTime      DateTime
+  endTime        DateTime
+  allocatedById  Int?
+  allocatedBy    User?        @relation("StallAllocatedBy", fields: [allocatedById], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vendor         VendorPartner? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([vendorId])
+  @@unique([organizationId, slotCode, eventDate, startTime])
+}
+
+enum SponsorshipStage {
+  LEAD
+  CONTACTED
+  PROPOSAL
+  NEGOTIATION
+  CONFIRMED
+}
+
+enum SponsorPackageTier {
+  GOLD
+  SILVER
+  BRONZE
+}
+
+enum ContributionType {
+  PAYMENT
+  IN_KIND
+}
+
+enum VendorAgreementStatus {
+  DRAFT
+  UNDER_REVIEW
+  SIGNED
+  EXPIRED
 }

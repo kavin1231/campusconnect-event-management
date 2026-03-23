@@ -26,6 +26,17 @@ import {
   CheckoutReturnTracking,
 } from "./components/logistics";
 
+// Operations Components
+import {
+  OperationsDashboard,
+  OrganizationProfile,
+  SponsorshipPipeline,
+  BudgetTracking,
+  VendorManagement,
+  StallManagement,
+  IntelligenceDashboard,
+} from "./components/operations";
+
 import "./App.css";
 
 function App() {
@@ -73,6 +84,16 @@ function App() {
           path="/logistics/checkout"
           element={<CheckoutReturnTracking />}
         />
+
+        {/* Operations Routes */}
+        <Route path="/operations" element={<OperationsDashboard />} />
+        <Route path="/operations/dashboard" element={<OperationsDashboard />} />
+        <Route path="/operations/profile" element={<OrganizationProfile />} />
+        <Route path="/operations/sponsorships" element={<SponsorshipPipeline />} />
+        <Route path="/operations/budgets" element={<BudgetTracking />} />
+        <Route path="/operations/vendors" element={<VendorManagement />} />
+        <Route path="/operations/stalls" element={<StallManagement />} />
+        <Route path="/operations/intelligence" element={<IntelligenceDashboard />} />
       </Routes>
     </div>
   );

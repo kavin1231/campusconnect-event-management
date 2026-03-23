@@ -257,6 +257,63 @@ export const eventsAPI = {
   },
 };
 
+// ============================================
+// OPERATIONS ENDPOINTS
+// ============================================
+export const operationsAPI = {
+  getOverview: async () => {
+    const response = await fetchWithAuth("/operations/overview");
+    return response.json();
+  },
+
+  getIntelligence: async () => {
+    const response = await fetchWithAuth("/operations/intelligence");
+    return response.json();
+  },
+
+  listOrganizations: async () => {
+    const response = await fetchWithAuth("/operations/organizations");
+    return response.json();
+  },
+
+  createOrganization: async (payload) => {
+    const response = await fetchWithAuth("/operations/organizations", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  listSponsorships: async (stage) => {
+    const query = stage ? `?stage=${encodeURIComponent(stage)}` : "";
+    const response = await fetchWithAuth(`/operations/sponsorships${query}`);
+    return response.json();
+  },
+
+  moveSponsorshipStage: async (id, stage) => {
+    const response = await fetchWithAuth(`/operations/sponsorships/${id}/stage`, {
+      method: "PATCH",
+      body: JSON.stringify({ stage }),
+    });
+    return response.json();
+  },
+
+  listBudgets: async () => {
+    const response = await fetchWithAuth("/operations/budgets");
+    return response.json();
+  },
+
+  listVendors: async () => {
+    const response = await fetchWithAuth("/operations/vendors");
+    return response.json();
+  },
+
+  listStalls: async () => {
+    const response = await fetchWithAuth("/operations/stalls");
+    return response.json();
+  },
+};
+
 export default {
   authAPI,
   dashboardAPI,
@@ -264,4 +321,5 @@ export default {
   governanceAPI,
   chatbotAPI,
   eventsAPI,
+  operationsAPI,
 };

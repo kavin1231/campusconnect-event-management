@@ -8,7 +8,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Student {
@@ -23,6 +22,9 @@ model Student {
   createdAt     DateTime              @default(now())
   registrations StudentEventRegistration[]
   presidentApplications PresidentApplication[]
+  eventReviews  EventReview[]
+
+  @@map("Student")
 }
 
 model StudentEventRegistration {
@@ -34,6 +36,7 @@ model StudentEventRegistration {
   event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, eventId])
+  @@map("StudentRegistration")
 }
 
 enum Role {
@@ -57,6 +60,12 @@ model User {
   approvedBookings   AssetBooking[]   @relation("AssetBookingApprovedBy")
   requestedBookings  AssetBooking[]   @relation("AssetBookingRequester")
   approvedApplications PresidentApplication[]
+
+  // relations for study support
+  studyMaterials     StudyMaterial[]  @relation("StudyMaterialCreator")
+  studySessions      StudySession[]   @relation("StudySessionCreator")
+
+  @@map("User")
 }
 
 model Event {
@@ -70,6 +79,9 @@ model Event {
   registeredCount Int                   @default(0)
   createdAt       DateTime              @default(now())
   registrations   StudentEventRegistration[]
+  reviews         EventReview[]
+
+  @@map("Event")
 }
 
 // Logistics module models
@@ -116,6 +128,34 @@ model PresidentApplication {
   approvedBy   User?              @relation(fields: [approvedById], references: [id])
 }
 
+// Study Support and Materials
+model StudyMaterial {
+  id            Int       @id @default(autoincrement())
+  semester      String    // Y1S1, Y1S2, Y2S1, Y2S2, Y3S1, Y3S2, Y4S1, Y4S2
+  title         String
+  description   String?
+  materialType  String    // pdf, link, video, other
+  contentUrl    String    // URL for links or PDF download
+  uploadedAt    DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  createdBy     Int       // Admin ID
+  creator       User      @relation(name: "StudyMaterialCreator", fields: [createdBy], references: [id])
+}
+
+model StudySession {
+  id            Int       @id @default(autoincrement())
+  semester      String    // Y1S1, Y1S2, Y2S1, Y2S2, Y3S1, Y3S2, Y4S1, Y4S2
+  title         String
+  description   String
+  sessionDate   DateTime
+  sessionLink   String?   // Zoom/Meet link
+  sessionNotes  String?   // Additional notes
+  uploadedAt    DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  createdBy     Int       // Admin ID
+  creator       User      @relation(name: "StudySessionCreator", fields: [createdBy], references: [id])
+}
+
 enum ApplicationStatus {
   PENDING
   APPROVED
@@ -134,4 +174,31 @@ enum BookingStatus {
   CHECKED_OUT
   RETURNED
   DAMAGED
+}
+
+// Reaction Enum for Events
+enum ReactionType {
+  LIKE
+  LOVE
+  WOW
+  FUNNY
+  SAD
+}
+
+// Event Reviews with Reactions
+model EventReview {
+  id        Int           @id @default(autoincrement())
+  eventId   Int
+  studentId Int
+  reaction  ReactionType?  // 👍 Like, ❤️ Love, 😮 Wow, 😂 Funny, 😢 Sad
+  comment   String?        // User comment
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  
+  event     Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  student   Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, eventId])
+  @@index([eventId])
+  @@map("EventReview")
 }

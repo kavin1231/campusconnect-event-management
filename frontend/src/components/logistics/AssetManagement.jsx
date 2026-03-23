@@ -1,31 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { logisticsAPI } from "../../services/api";
 
 const AssetManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [clubAssets, setClubAssets] = useState([
-    {
-      id: 1,
-      name: "Projector Sony",
-      category: "Audio/Visual",
-      quantity: 3,
-      description: "4K Projector for large events",
-      condition: "excellent",
-      lastMaintenance: "2024-03-15",
-      available: 2,
-      isAvailable: true,
-    },
-    {
-      id: 2,
-      name: "Speaker System",
-      category: "Audio",
-      quantity: 2,
-      description: "Portable sound system with microphones",
-      condition: "good",
-      lastMaintenance: "2024-03-10",
-      available: 1,
-      isAvailable: true,
-    },
-  ]);
+  const [clubAssets, setClubAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [newAsset, setNewAsset] = useState({
     name: "",
@@ -35,26 +14,47 @@ const AssetManagement = () => {
     condition: "excellent",
   });
 
-  const handleAddAsset = () => {
+  useEffect(() => {
+    fetchAssets();
+  }, []);
+
+  const fetchAssets = async () => {
+    setLoading(true);
+    try {
+      const data = await logisticsAPI.listAssets();
+      if (data.success) {
+        setClubAssets(data.assets || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+    }
+    setLoading(false);
+  };
+
+  const handleAddAsset = async () => {
     if (newAsset.name && newAsset.quantity > 0) {
-      setClubAssets([
-        ...clubAssets,
-        {
+      try {
+        const response = await logisticsAPI.createAsset({
           ...newAsset,
-          id: clubAssets.length + 1,
-          available: newAsset.quantity,
-          isAvailable: true,
-          lastMaintenance: new Date().toISOString().split("T")[0],
-        },
-      ]);
-      setNewAsset({
-        name: "",
-        category: "Audio/Visual",
-        quantity: 1,
-        description: "",
-        condition: "excellent",
-      });
-      setShowAddModal(false);
+          quantity: parseInt(newAsset.quantity),
+        });
+
+        if (response.success) {
+          // Refresh assets list
+          fetchAssets();
+          setNewAsset({
+            name: "",
+            category: "Audio/Visual",
+            quantity: 1,
+            description: "",
+            condition: "excellent",
+          });
+          setShowAddModal(false);
+        }
+      } catch (error) {
+        console.error("Failed to add asset:", error);
+        alert("Failed to add asset");
+      }
     }
   };
 
@@ -70,7 +70,9 @@ const AssetManagement = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">My Assets</h1>
-                <p className="text-gray-400 text-sm">Manage resources available for sharing</p>
+                <p className="text-gray-400 text-sm">
+                  Manage resources available for sharing
+                </p>
               </div>
             </div>
             <button
@@ -87,7 +89,11 @@ const AssetManagement = () => {
       <div className="px-8 py-8 max-w-7xl mx-auto">
         {/* SUMMARY CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <SummaryCard label="Total Assets" value={clubAssets.length} icon="📦" />
+          <SummaryCard
+            label="Total Assets"
+            value={clubAssets.length}
+            icon="📦"
+          />
           <SummaryCard
             label="Total Items"
             value={clubAssets.reduce((sum, a) => sum + a.quantity, 0)}
@@ -100,7 +106,10 @@ const AssetManagement = () => {
           />
           <SummaryCard
             label="Checked Out"
-            value={clubAssets.reduce((sum, a) => sum + (a.quantity - a.available), 0)}
+            value={clubAssets.reduce(
+              (sum, a) => sum + (a.quantity - a.available),
+              0,
+            )}
             icon="🔄"
           />
         </div>
@@ -108,7 +117,12 @@ const AssetManagement = () => {
         {/* ASSETS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {clubAssets.map((asset) => (
-            <AssetCard key={asset.id} asset={asset} onEdit={() => {}} onDelete={() => {}} />
+            <AssetCard
+              key={asset.id}
+              asset={asset}
+              onEdit={() => {}}
+              onDelete={() => {}}
+            />
           ))}
         </div>
 
@@ -129,25 +143,35 @@ const AssetManagement = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Add New Asset</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Add New Asset
+            </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-300 font-medium mb-2">Asset Name *</label>
+                <label className="block text-gray-300 font-medium mb-2">
+                  Asset Name *
+                </label>
                 <input
                   type="text"
                   placeholder="e.g., Projector, Speaker System"
                   value={newAsset.name}
-                  onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewAsset({ ...newAsset, name: e.target.value })
+                  }
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-300 font-medium mb-2">Category *</label>
+                <label className="block text-gray-300 font-medium mb-2">
+                  Category *
+                </label>
                 <select
                   value={newAsset.category}
-                  onChange={(e) => setNewAsset({ ...newAsset, category: e.target.value })}
+                  onChange={(e) =>
+                    setNewAsset({ ...newAsset, category: e.target.value })
+                  }
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-cyan-500 outline-none transition"
                 >
                   <option>Audio/Visual</option>
@@ -161,23 +185,32 @@ const AssetManagement = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-300 font-medium mb-2">Quantity *</label>
+                  <label className="block text-gray-300 font-medium mb-2">
+                    Quantity *
+                  </label>
                   <input
                     type="number"
                     min="1"
                     value={newAsset.quantity}
                     onChange={(e) =>
-                      setNewAsset({ ...newAsset, quantity: parseInt(e.target.value) || 1 })
+                      setNewAsset({
+                        ...newAsset,
+                        quantity: parseInt(e.target.value) || 1,
+                      })
                     }
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-cyan-500 outline-none transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 font-medium mb-2">Condition *</label>
+                  <label className="block text-gray-300 font-medium mb-2">
+                    Condition *
+                  </label>
                   <select
                     value={newAsset.condition}
-                    onChange={(e) => setNewAsset({ ...newAsset, condition: e.target.value })}
+                    onChange={(e) =>
+                      setNewAsset({ ...newAsset, condition: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-cyan-500 outline-none transition"
                   >
                     <option>Excellent</option>
@@ -189,11 +222,15 @@ const AssetManagement = () => {
               </div>
 
               <div>
-                <label className="block text-gray-300 font-medium mb-2">Description</label>
+                <label className="block text-gray-300 font-medium mb-2">
+                  Description
+                </label>
                 <textarea
                   placeholder="Describe your asset..."
                   value={newAsset.description}
-                  onChange={(e) => setNewAsset({ ...newAsset, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewAsset({ ...newAsset, description: e.target.value })
+                  }
                   rows={3}
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition resize-none"
                 ></textarea>
@@ -256,7 +293,9 @@ const AssetCard = ({ asset, onEdit, onDelete }) => (
       </div>
     </div>
 
-    <p className="text-gray-300 text-sm mb-4 line-clamp-2">{asset.description}</p>
+    <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+      {asset.description}
+    </p>
 
     <div className="grid grid-cols-2 gap-3 mb-4">
       <div className="bg-gray-700 rounded-lg p-3">
@@ -279,7 +318,9 @@ const AssetCard = ({ asset, onEdit, onDelete }) => (
       >
         {asset.condition}
       </span>
-      <span className="text-gray-400 text-xs">Last maintenance: {asset.lastMaintenance}</span>
+      <span className="text-gray-400 text-xs">
+        Last maintenance: {asset.lastMaintenance}
+      </span>
     </div>
 
     <button className="w-full py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-sm transition">

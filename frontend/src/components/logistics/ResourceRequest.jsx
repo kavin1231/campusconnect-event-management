@@ -1,68 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { logisticsAPI } from "../../services/api";
 
 const ResourceRequest = () => {
   const [requestMode, setRequestMode] = useState("browse"); // browse or myRequests
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
-
-  const [availableAssets] = useState([
-    {
-      id: 1,
-      name: "Projector Sony",
-      owner: "Arts Club",
-      category: "Audio/Visual",
-      available: 2,
-      total: 3,
-      condition: "excellent",
-      description: "4K Projector for large events",
-      lastAvailable: "2024-03-25",
-    },
-    {
-      id: 2,
-      name: "Speaker System",
-      owner: "Music Club",
-      category: "Audio",
-      available: 1,
-      total: 2,
-      condition: "good",
-      description: "Portable sound system with microphones",
-      lastAvailable: "2024-03-24",
-    },
-    {
-      id: 3,
-      name: "Professional Cameras",
-      owner: "Photography Club",
-      category: "Photography",
-      available: 3,
-      total: 4,
-      condition: "excellent",
-      description: "Canon 5D Mark IV with lenses",
-      lastAvailable: "2024-03-26",
-    },
-  ]);
-
-  const [myRequests] = useState([
-    {
-      id: 1,
-      asset: "Projector Sony",
-      owner: "Arts Club",
-      status: "approved",
-      requestDate: "2024-03-20",
-      neededDate: "2024-03-25",
-      returnDate: "2024-03-26",
-      quantity: 1,
-    },
-    {
-      id: 2,
-      asset: "Speaker System",
-      owner: "Music Club",
-      status: "pending",
-      requestDate: "2024-03-20",
-      neededDate: "2024-03-28",
-      returnDate: "2024-03-30",
-      quantity: 1,
-    },
-  ]);
+  const [availableAssets, setAvailableAssets] = useState([]);
+  const [myRequests, setMyRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [requestForm, setRequestForm] = useState({
     quantity: 1,
@@ -72,17 +17,75 @@ const ResourceRequest = () => {
     contact: "",
   });
 
-  const handleSubmitRequest = () => {
-    if (requestForm.quantity > 0 && requestForm.neededDate && requestForm.returnDate) {
-      alert("Request submitted successfully!");
-      setShowRequestModal(false);
-      setRequestForm({
-        quantity: 1,
-        neededDate: "",
-        returnDate: "",
-        purpose: "",
-        contact: "",
-      });
+  useEffect(() => {
+    if (requestMode === "browse") {
+      fetchAvailableAssets();
+    } else {
+      fetchMyRequests();
+    }
+  }, [requestMode]);
+
+  const fetchAvailableAssets = async () => {
+    setLoading(true);
+    try {
+      const data = await logisticsAPI.listAssets();
+      if (data.success) {
+        setAvailableAssets(data.assets?.filter((a) => a.available > 0) || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch available assets:", error);
+    }
+    setLoading(false);
+  };
+
+  const fetchMyRequests = async () => {
+    setLoading(true);
+    try {
+      const data = await logisticsAPI.listRequests();
+      if (data.success) {
+        setMyRequests(data.requests || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch requests:", error);
+    }
+    setLoading(false);
+  };
+
+  const handleSubmitRequest = async () => {
+    if (
+      requestForm.quantity > 0 &&
+      requestForm.neededDate &&
+      requestForm.returnDate &&
+      selectedAsset
+    ) {
+      try {
+        const response = await logisticsAPI.requestAsset(selectedAsset.id, {
+          quantity: parseInt(requestForm.quantity),
+          neededDate: requestForm.neededDate,
+          returnDate: requestForm.returnDate,
+          purpose: requestForm.purpose,
+          contact: requestForm.contact,
+        });
+
+        if (response.success) {
+          setShowRequestModal(false);
+          setRequestForm({
+            quantity: 1,
+            neededDate: "",
+            returnDate: "",
+            purpose: "",
+            contact: "",
+          });
+          setSelectedAsset(null);
+          alert("Request submitted successfully!");
+          fetchAvailableAssets();
+        }
+      } catch (error) {
+        console.error("Failed to submit request:", error);
+        alert("Failed to submit request");
+      }
+    } else {
+      alert("Please fill in all required fields");
     }
   };
 
@@ -96,8 +99,12 @@ const ResourceRequest = () => {
               🔍
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Resource Requests</h1>
-              <p className="text-gray-400 text-sm">Browse & request resources from other clubs</p>
+              <h1 className="text-2xl font-bold text-white">
+                Resource Requests
+              </h1>
+              <p className="text-gray-400 text-sm">
+                Browse & request resources from other clubs
+              </p>
             </div>
           </div>
 
@@ -160,7 +167,8 @@ const BrowseMode = ({ assets, onRequest }) => {
     const matchesSearch =
       asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.owner.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || asset.category === filterCategory;
+    const matchesCategory =
+      filterCategory === "all" || asset.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -193,8 +201,11 @@ const BrowseMode = ({ assets, onRequest }) => {
         {/* AVAILABILITY STATUS */}
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
           <p className="text-gray-400 text-sm">
-            💡 Showing <span className="text-white font-bold">{filteredAssets.length}</span> available
-            resource{filteredAssets.length !== 1 ? "s" : ""}
+            💡 Showing{" "}
+            <span className="text-white font-bold">
+              {filteredAssets.length}
+            </span>{" "}
+            available resource{filteredAssets.length !== 1 ? "s" : ""}
           </p>
         </div>
       </div>
@@ -203,7 +214,9 @@ const BrowseMode = ({ assets, onRequest }) => {
       {filteredAssets.length === 0 ? (
         <div className="bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
           <p className="text-gray-400 text-lg">No resources found</p>
-          <p className="text-gray-500 text-sm mt-2">Try adjusting your search or filters</p>
+          <p className="text-gray-500 text-sm mt-2">
+            Try adjusting your search or filters
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -230,7 +243,9 @@ const ResourceCard = ({ asset, onRequest }) => (
 
     {/* CONTENT */}
     <div className="p-6">
-      <p className="text-gray-300 text-sm mb-4 line-clamp-2">{asset.description}</p>
+      <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+        {asset.description}
+      </p>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-gray-700 rounded-lg p-3">
@@ -253,7 +268,9 @@ const ResourceCard = ({ asset, onRequest }) => (
         >
           {asset.condition}
         </span>
-        <span className="text-gray-400">Available until {asset.lastAvailable}</span>
+        <span className="text-gray-400">
+          Available until {asset.lastAvailable}
+        </span>
       </div>
 
       <button
@@ -303,7 +320,9 @@ const MyRequestsMode = ({ requests }) => (
 
           {request.status === "pending" && (
             <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-              <p className="text-yellow-300 text-sm">⏳ Awaiting approval from {request.owner}</p>
+              <p className="text-yellow-300 text-sm">
+                ⏳ Awaiting approval from {request.owner}
+              </p>
             </div>
           )}
 
@@ -334,24 +353,34 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
     <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-8">
       <h2 className="text-2xl font-bold text-white mb-2">Request Resource</h2>
-      <p className="text-gray-400 mb-6">{asset.name} from {asset.owner}</p>
+      <p className="text-gray-400 mb-6">
+        {asset.name} from {asset.owner}
+      </p>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-gray-300 font-medium mb-2">Quantity *</label>
+          <label className="block text-gray-300 font-medium mb-2">
+            Quantity *
+          </label>
           <input
             type="number"
             min="1"
             max={asset.available}
             value={form.quantity}
-            onChange={(e) => setForm({ ...form, quantity: parseInt(e.target.value) || 1 })}
+            onChange={(e) =>
+              setForm({ ...form, quantity: parseInt(e.target.value) || 1 })
+            }
             className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-emerald-500 outline-none transition"
           />
-          <p className="text-gray-400 text-xs mt-1">Max available: {asset.available}</p>
+          <p className="text-gray-400 text-xs mt-1">
+            Max available: {asset.available}
+          </p>
         </div>
 
         <div>
-          <label className="block text-gray-300 font-medium mb-2">Needed Date *</label>
+          <label className="block text-gray-300 font-medium mb-2">
+            Needed Date *
+          </label>
           <input
             type="date"
             value={form.neededDate}
@@ -361,7 +390,9 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
         </div>
 
         <div>
-          <label className="block text-gray-300 font-medium mb-2">Return Date *</label>
+          <label className="block text-gray-300 font-medium mb-2">
+            Return Date *
+          </label>
           <input
             type="date"
             value={form.returnDate}
@@ -371,7 +402,9 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
         </div>
 
         <div>
-          <label className="block text-gray-300 font-medium mb-2">Purpose</label>
+          <label className="block text-gray-300 font-medium mb-2">
+            Purpose
+          </label>
           <textarea
             placeholder="Describe how you'll use this resource..."
             value={form.purpose}
@@ -382,7 +415,9 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
         </div>
 
         <div>
-          <label className="block text-gray-300 font-medium mb-2">Contact Info *</label>
+          <label className="block text-gray-300 font-medium mb-2">
+            Contact Info *
+          </label>
           <input
             type="text"
             placeholder="Your phone or email"

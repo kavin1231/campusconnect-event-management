@@ -1,15 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { logisticsAPI } from "../../services/api";
 
 const LogisticsDashboard = () => {
   const [stats, setStats] = useState({
-    totalAssets: 48,
-    availableAssets: 35,
-    checkedOut: 10,
-    pendingRequests: 5,
-    overdue: 3,
+    totalAssets: 0,
+    availableAssets: 0,
+    checkedOut: 0,
+    pendingRequests: 0,
+    overdue: 0,
   });
-
+  const [loading, setLoading] = useState(true);
   const [tabs, setTabs] = useState("overview");
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const [assetsData, requestsData] = await Promise.all([
+        logisticsAPI.listAssets(),
+        logisticsAPI.listRequests(),
+      ]);
+
+      if (assetsData.success && requestsData.success) {
+        const assets = assetsData.assets || [];
+        const requests = requestsData.requests || [];
+
+        setStats({
+          totalAssets: assets.length,
+          availableAssets: assets.filter((a) => a.available > 0).length,
+          checkedOut: requests.filter((r) => r.status === "checked_out").length,
+          pendingRequests: requests.filter((r) => r.status === "pending")
+            .length,
+          overdue: requests.filter((r) => r.status === "overdue").length,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch logistics stats:", error);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="logistics-dashboard bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
@@ -22,25 +54,29 @@ const LogisticsDashboard = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Logistics Hub</h1>
-              <p className="text-gray-400 text-sm">Inter-Club Resource Exchange & Management</p>
+              <p className="text-gray-400 text-sm">
+                Inter-Club Resource Exchange & Management
+              </p>
             </div>
           </div>
 
           {/* TAB NAVIGATION */}
           <div className="flex gap-2 border-b border-gray-700 mt-6">
-            {["overview", "assets", "requests", "checkout", "analytics"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setTabs(tab)}
-                className={`px-6 py-3 font-semibold transition-all ${
-                  tabs === tab
-                    ? "text-indigo-400 border-b-2 border-indigo-400"
-                    : "text-gray-400 hover:text-gray-300"
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
+            {["overview", "assets", "requests", "checkout", "analytics"].map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setTabs(tab)}
+                  className={`px-6 py-3 font-semibold transition-all ${
+                    tabs === tab
+                      ? "text-indigo-400 border-b-2 border-indigo-400"
+                      : "text-gray-400 hover:text-gray-300"
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ),
+            )}
           </div>
         </div>
       </header>
@@ -59,11 +95,36 @@ const LogisticsDashboard = () => {
 
 const OverviewTab = ({ stats }) => {
   const statCards = [
-    { label: "Total Assets", value: stats.totalAssets, icon: "📦", color: "indigo" },
-    { label: "Available", value: stats.availableAssets, icon: "✓", color: "green" },
-    { label: "Checked Out", value: stats.checkedOut, icon: "🔄", color: "blue" },
-    { label: "Pending Requests", value: stats.pendingRequests, icon: "⏳", color: "yellow" },
-    { label: "Overdue Returns", value: stats.overdue, icon: "⚠️", color: "red" },
+    {
+      label: "Total Assets",
+      value: stats.totalAssets,
+      icon: "📦",
+      color: "indigo",
+    },
+    {
+      label: "Available",
+      value: stats.availableAssets,
+      icon: "✓",
+      color: "green",
+    },
+    {
+      label: "Checked Out",
+      value: stats.checkedOut,
+      icon: "🔄",
+      color: "blue",
+    },
+    {
+      label: "Pending Requests",
+      value: stats.pendingRequests,
+      icon: "⏳",
+      color: "yellow",
+    },
+    {
+      label: "Overdue Returns",
+      value: stats.overdue,
+      icon: "⚠️",
+      color: "red",
+    },
   ];
 
   return (
@@ -76,7 +137,9 @@ const OverviewTab = ({ stats }) => {
             className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:border-gray-600 transition"
           >
             <div className="text-3xl mb-3">{stat.icon}</div>
-            <p className="text-gray-400 text-sm font-medium mb-2">{stat.label}</p>
+            <p className="text-gray-400 text-sm font-medium mb-2">
+              {stat.label}
+            </p>
             <p className="text-3xl font-bold text-white">{stat.value}</p>
           </div>
         ))}
@@ -86,7 +149,9 @@ const OverviewTab = ({ stats }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* MOST REQUESTED ASSETS */}
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
-          <h2 className="text-xl font-bold text-white mb-6">🔥 Most Requested Assets</h2>
+          <h2 className="text-xl font-bold text-white mb-6">
+            🔥 Most Requested Assets
+          </h2>
           <div className="space-y-3">
             {[
               { asset: "Projectors", count: 12, icon: "🎬" },
@@ -113,7 +178,9 @@ const OverviewTab = ({ stats }) => {
 
         {/* RECENT TRANSACTIONS */}
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
-          <h2 className="text-xl font-bold text-white mb-6">📋 Recent Transactions</h2>
+          <h2 className="text-xl font-bold text-white mb-6">
+            📋 Recent Transactions
+          </h2>
           <div className="space-y-3">
             {[
               {
@@ -152,8 +219,8 @@ const OverviewTab = ({ stats }) => {
                       item.color === "green"
                         ? "bg-green-500/20 text-green-400"
                         : item.color === "yellow"
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : "bg-blue-500/20 text-blue-400"
+                          ? "bg-yellow-500/20 text-yellow-400"
+                          : "bg-blue-500/20 text-blue-400"
                     }`}
                   >
                     {item.action}
@@ -214,18 +281,35 @@ const AssetsTab = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-900 border-b border-gray-700">
-                <th className="px-6 py-4 text-left text-gray-400 font-semibold">Asset Name</th>
-                <th className="px-6 py-4 text-left text-gray-400 font-semibold">Owner Club</th>
-                <th className="px-6 py-4 text-left text-gray-400 font-semibold">Category</th>
-                <th className="px-6 py-4 text-center text-gray-400 font-semibold">Available</th>
-                <th className="px-6 py-4 text-center text-gray-400 font-semibold">Condition</th>
-                <th className="px-6 py-4 text-center text-gray-400 font-semibold">Action</th>
+                <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                  Asset Name
+                </th>
+                <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                  Owner Club
+                </th>
+                <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                  Category
+                </th>
+                <th className="px-6 py-4 text-center text-gray-400 font-semibold">
+                  Available
+                </th>
+                <th className="px-6 py-4 text-center text-gray-400 font-semibold">
+                  Condition
+                </th>
+                <th className="px-6 py-4 text-center text-gray-400 font-semibold">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody>
               {assets.map((asset) => (
-                <tr key={asset.id} className="border-b border-gray-700 hover:bg-gray-750 transition">
-                  <td className="px-6 py-4 text-white font-medium">{asset.name}</td>
+                <tr
+                  key={asset.id}
+                  className="border-b border-gray-700 hover:bg-gray-750 transition"
+                >
+                  <td className="px-6 py-4 text-white font-medium">
+                    {asset.name}
+                  </td>
                   <td className="px-6 py-4 text-gray-300">{asset.owner}</td>
                   <td className="px-6 py-4 text-gray-300">{asset.category}</td>
                   <td className="px-6 py-4 text-center">
@@ -281,16 +365,29 @@ const RequestsTab = () => {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-900 border-b border-gray-700">
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Club</th>
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Asset</th>
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Status</th>
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Needed Date</th>
-              <th className="px-6 py-4 text-center text-gray-400 font-semibold">Action</th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Club
+              </th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Asset
+              </th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Status
+              </th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Needed Date
+              </th>
+              <th className="px-6 py-4 text-center text-gray-400 font-semibold">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
             {requests.map((req) => (
-              <tr key={req.id} className="border-b border-gray-700 hover:bg-gray-750 transition">
+              <tr
+                key={req.id}
+                className="border-b border-gray-700 hover:bg-gray-750 transition"
+              >
                 <td className="px-6 py-4 text-white font-medium">{req.club}</td>
                 <td className="px-6 py-4 text-gray-300">{req.asset}</td>
                 <td className="px-6 py-4">
@@ -356,20 +453,39 @@ const CheckoutTab = () => {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-900 border-b border-gray-700">
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Asset</th>
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Checked By</th>
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Checked Out</th>
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Due Date</th>
-              <th className="px-6 py-4 text-left text-gray-400 font-semibold">Status</th>
-              <th className="px-6 py-4 text-center text-gray-400 font-semibold">Action</th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Asset
+              </th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Checked By
+              </th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Checked Out
+              </th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Due Date
+              </th>
+              <th className="px-6 py-4 text-left text-gray-400 font-semibold">
+                Status
+              </th>
+              <th className="px-6 py-4 text-center text-gray-400 font-semibold">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
             {checkedOut.map((item) => (
-              <tr key={item.id} className="border-b border-gray-700 hover:bg-gray-750 transition">
-                <td className="px-6 py-4 text-white font-medium">{item.asset}</td>
+              <tr
+                key={item.id}
+                className="border-b border-gray-700 hover:bg-gray-750 transition"
+              >
+                <td className="px-6 py-4 text-white font-medium">
+                  {item.asset}
+                </td>
                 <td className="px-6 py-4 text-gray-300">{item.club}</td>
-                <td className="px-6 py-4 text-gray-300">{item.checkedOutDate}</td>
+                <td className="px-6 py-4 text-gray-300">
+                  {item.checkedOutDate}
+                </td>
                 <td className="px-6 py-4 text-gray-300">{item.dueDate}</td>
                 <td className="px-6 py-4">
                   <span
@@ -377,11 +493,12 @@ const CheckoutTab = () => {
                       item.status === "on-time"
                         ? "bg-green-500/20 text-green-400"
                         : item.status === "warning"
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : "bg-red-500/20 text-red-400"
+                          ? "bg-yellow-500/20 text-yellow-400"
+                          : "bg-red-500/20 text-red-400"
                     }`}
                   >
-                    {item.status === "overdue" && "🔴 "} {item.status.replace("-", " ").toUpperCase()}
+                    {item.status === "overdue" && "🔴 "}{" "}
+                    {item.status.replace("-", " ").toUpperCase()}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">
@@ -402,7 +519,9 @@ const AnalyticsTab = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
-        <h3 className="text-lg font-bold text-white mb-6">📊 Asset Utilization</h3>
+        <h3 className="text-lg font-bold text-white mb-6">
+          📊 Asset Utilization
+        </h3>
         <div className="space-y-4">
           {[
             { asset: "Projectors", utilization: 75 },
@@ -413,7 +532,9 @@ const AnalyticsTab = () => {
             <div key={item.asset}>
               <div className="flex justify-between mb-2">
                 <span className="text-gray-300">{item.asset}</span>
-                <span className="text-white font-bold">{item.utilization}%</span>
+                <span className="text-white font-bold">
+                  {item.utilization}%
+                </span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div
@@ -432,7 +553,9 @@ const AnalyticsTab = () => {
           <div className="inline-block">
             <div className="text-5xl font-bold text-indigo-400">247</div>
             <p className="text-gray-400 mt-2">Total Requests (This Month)</p>
-            <p className="text-green-400 text-sm mt-3">↑ 23% increase from last month</p>
+            <p className="text-green-400 text-sm mt-3">
+              ↑ 23% increase from last month
+            </p>
           </div>
         </div>
       </div>

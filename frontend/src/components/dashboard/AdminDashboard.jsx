@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../common/Sidebar";
+import { logisticsAPI } from "../../services/api";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -21,7 +25,57 @@ const AdminDashboard = () => {
     } catch (e) {
       navigate("/login");
     }
+
+    // Fetch logistics stats
+    fetchStats();
   }, [navigate]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const [assetsResponse, requestsResponse] = await Promise.all([
+        logisticsAPI.listAssets(),
+        logisticsAPI.listRequests(),
+      ]);
+
+      const assets = assetsResponse || [];
+      const requests = requestsResponse || [];
+
+      // Calculate stats
+      const availableAssets = assets.filter(
+        (a) => a.status === "available",
+      ).length;
+      const activeRequests = requests.filter(
+        (r) => r.status === "pending",
+      ).length;
+      const inTransit = requests.filter(
+        (r) => r.status === "checked_out",
+      ).length;
+      const overdueReturns = requests.filter(
+        (r) =>
+          r.status === "overdue" ||
+          (r.dueDate && new Date(r.dueDate) < new Date()),
+      ).length;
+
+      setStats({
+        availableAssets,
+        activeRequests,
+        inTransit,
+        overdueReturns,
+      });
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+      // Keep default values
+      setStats({
+        availableAssets: 0,
+        activeRequests: 0,
+        inTransit: 0,
+        overdueReturns: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -32,8 +86,12 @@ const AdminDashboard = () => {
   if (!user) return <div className="p-10 text-white">Loading...</div>;
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
-      <div className="flex flex-col min-h-screen">
+    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex">
+      {/* ================= SIDEBAR ================= */}
+      <Sidebar isAdmin={true} />
+
+      {/* ================= MAIN CONTENT ================= */}
+      <div className="flex flex-col min-h-screen flex-1">
         {/* ================= HEADER ================= */}
         <header className="flex items-center justify-between px-8 py-4 border-b border-neutral-border bg-background-dark">
           {/* LEFT */}
@@ -88,6 +146,16 @@ const AdminDashboard = () => {
 
           {/* RIGHT */}
           <div className="flex items-center gap-6">
+            {/* User Info */}
+            <div className="hidden sm:flex flex-col items-end">
+              <p className="text-sm font-semibold text-white">
+                {user?.name || "Admin User"}
+              </p>
+              <p className="text-xs text-slate-400">
+                {user?.role || "Administrator"}
+              </p>
+            </div>
+
             {/* Add Asset */}
             <button className="hidden md:flex items-center gap-2 rounded-xl px-5 h-11 bg-primary text-white text-sm font-semibold shadow-lg hover:scale-105 transition">
               <span className="material-symbols-outlined text-lg">add</span>
@@ -141,25 +209,25 @@ const AdminDashboard = () => {
             {[
               {
                 title: "Available Assets",
-                value: "1,247",
+                value: stats?.availableAssets || "0",
                 icon: "inventory",
                 color: "text-emerald-400",
               },
               {
                 title: "Active Requests",
-                value: "23",
+                value: stats?.activeRequests || "0",
                 icon: "pending_actions",
                 color: "text-blue-400",
               },
               {
                 title: "In Transit",
-                value: "45",
+                value: stats?.inTransit || "0",
                 icon: "local_shipping",
                 color: "text-yellow-400",
               },
               {
                 title: "Overdue Returns",
-                value: "7",
+                value: stats?.overdueReturns || "0",
                 icon: "warning",
                 color: "text-red-400",
               },
@@ -177,7 +245,7 @@ const AdminDashboard = () => {
                   </p>
                 </div>
                 <p className="text-3xl font-black text-white mt-3">
-                  {card.value}
+                  {loading ? "..." : card.value}
                 </p>
               </div>
             ))}

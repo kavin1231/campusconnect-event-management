@@ -1,40 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./ClubOnboarding.css";
 
 const ClubOnboarding = () => {
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      clubName: "Drama Club",
-      president: "John Doe",
-      email: "john@university.edu",
-      members: 45,
-      description: "We perform theatrical productions",
-      status: "pending",
-      submittedDate: "2024-03-20",
-      documents: ["constitution", "budget_proposal"],
-    },
-    {
-      id: 2,
-      clubName: "Robotics Club",
-      president: "Jane Smith",
-      email: "jane@university.edu",
-      members: 32,
-      description: "Innovation through robotics",
-      status: "pending",
-      submittedDate: "2024-03-19",
-      documents: ["constitution", "budget_proposal", "curriculum"],
-    },
-  ]);
-
+  const [applications, setApplications] = useState([]);
   const [selectedApp, setSelectedApp] = useState(null);
   const [filterStatus, setFilterStatus] = useState("pending");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchClubApplications();
+  }, []);
+
+  const fetchClubApplications = async () => {
+    setLoading(true);
+    try {
+      // Fetch from backend when available
+      // const data = await clubOnboardingAPI.getApplications();
+      // For now, use mock data
+      const mockApplications = [
+        {
+          id: 1,
+          clubName: "Drama Club",
+          president: "John Doe",
+          email: "john@university.edu",
+          members: 45,
+          description: "We perform theatrical productions",
+          status: "pending",
+          submittedDate: "2024-03-20",
+          documents: ["constitution", "budget_proposal"],
+        },
+        {
+          id: 2,
+          clubName: "Robotics Club",
+          president: "Jane Smith",
+          email: "jane@university.edu",
+          members: 32,
+          description: "Innovation through robotics",
+          status: "pending",
+          submittedDate: "2024-03-19",
+          documents: ["constitution", "budget_proposal", "curriculum"],
+        },
+      ];
+      setApplications(mockApplications);
+    } catch (error) {
+      console.error("Failed to fetch club applications:", error);
+    }
+    setLoading(false);
+  };
 
   const handleApprove = (id) => {
     setApplications(
       applications.map((app) =>
-        app.id === id ? { ...app, status: "approved" } : app
-      )
+        app.id === id ? { ...app, status: "approved" } : app,
+      ),
     );
     setSelectedApp(null);
   };
@@ -42,13 +60,17 @@ const ClubOnboarding = () => {
   const handleReject = (id, reason) => {
     setApplications(
       applications.map((app) =>
-        app.id === id ? { ...app, status: "rejected", rejectionReason: reason } : app
-      )
+        app.id === id
+          ? { ...app, status: "rejected", rejectionReason: reason }
+          : app,
+      ),
     );
     setSelectedApp(null);
   };
 
-  const filteredApps = applications.filter((app) => app.status === filterStatus);
+  const filteredApps = applications.filter(
+    (app) => app.status === filterStatus,
+  );
 
   return (
     <div className="club-onboarding bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
@@ -61,7 +83,9 @@ const ClubOnboarding = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Club Onboarding</h1>
-              <p className="text-gray-400 text-sm">Review & approve club applications</p>
+              <p className="text-gray-400 text-sm">
+                Review & approve club applications
+              </p>
             </div>
           </div>
 
@@ -77,7 +101,8 @@ const ClubOnboarding = () => {
                     : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                 }`}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)} ({filteredApps.length})
+                {status.charAt(0).toUpperCase() + status.slice(1)} (
+                {filteredApps.length})
               </button>
             ))}
           </div>
@@ -92,7 +117,9 @@ const ClubOnboarding = () => {
             <div className="space-y-4">
               {filteredApps.length === 0 ? (
                 <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                  <p className="text-gray-400 text-lg">No {filterStatus} applications</p>
+                  <p className="text-gray-400 text-lg">
+                    No {filterStatus} applications
+                  </p>
                 </div>
               ) : (
                 filteredApps.map((app) => (
@@ -107,12 +134,16 @@ const ClubOnboarding = () => {
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-lg font-bold text-white">{app.clubName}</h3>
+                        <h3 className="text-lg font-bold text-white">
+                          {app.clubName}
+                        </h3>
                         <p className="text-gray-400 text-sm mt-1">
-                          President: <span className="text-white">{app.president}</span>
+                          President:{" "}
+                          <span className="text-white">{app.president}</span>
                         </p>
                         <p className="text-gray-400 text-sm">
-                          Members: <span className="text-white">{app.members}</span>
+                          Members:{" "}
+                          <span className="text-white">{app.members}</span>
                         </p>
                       </div>
                       <span
@@ -120,8 +151,8 @@ const ClubOnboarding = () => {
                           app.status === "pending"
                             ? "bg-yellow-500/20 text-yellow-400"
                             : app.status === "approved"
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-red-500/20 text-red-400"
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-red-500/20 text-red-400"
                         }`}
                       >
                         {app.status.toUpperCase()}
@@ -156,15 +187,22 @@ const ClubOnboarding = () => {
           <div className="lg:col-span-1">
             {selectedApp ? (
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 sticky top-24">
-                <h2 className="text-xl font-bold text-white mb-6">Application Details</h2>
+                <h2 className="text-xl font-bold text-white mb-6">
+                  Application Details
+                </h2>
 
                 <div className="space-y-4 mb-8">
                   <DetailRow label="Club Name" value={selectedApp.clubName} />
                   <DetailRow label="President" value={selectedApp.president} />
                   <DetailRow label="Email" value={selectedApp.email} />
-                  <DetailRow label="Members" value={selectedApp.members.toString()} />
+                  <DetailRow
+                    label="Members"
+                    value={selectedApp.members.toString()}
+                  />
                   <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">Description</p>
+                    <p className="text-gray-400 text-sm font-medium mb-2">
+                      Description
+                    </p>
                     <p className="text-gray-300 text-sm bg-gray-700 p-3 rounded">
                       {selectedApp.description}
                     </p>
@@ -194,7 +232,9 @@ const ClubOnboarding = () => {
 
                 {selectedApp.status === "rejected" && (
                   <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <p className="text-red-400 text-sm font-medium mb-2">Rejection Reason:</p>
+                    <p className="text-red-400 text-sm font-medium mb-2">
+                      Rejection Reason:
+                    </p>
                     <p className="text-red-200 text-sm">
                       {selectedApp.rejectionReason || "No reason provided"}
                     </p>
@@ -203,7 +243,9 @@ const ClubOnboarding = () => {
               </div>
             ) : (
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center">
-                <p className="text-gray-400">Select an application to view details</p>
+                <p className="text-gray-400">
+                  Select an application to view details
+                </p>
               </div>
             )}
           </div>

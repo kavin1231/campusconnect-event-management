@@ -1,57 +1,222 @@
-import { Link, useNavigate } from 'react-router-dom';
-import './Sidebar.css';
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import "./Sidebar.css";
+import { useState } from "react";
 
-const Sidebar = ({ activePage }) => {
-    const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+const Sidebar = ({ activePage, isAdmin = false }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const [expandedMenu, setExpandedMenu] = useState(null);
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/');
-    };
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
-    return (
-        <aside className="sd-sidebar">
-            <div className="sd-side-header">
-                <Link to="/" className="sd-logo">
-                    <div className="sd-logo-icon">🚀</div>
-                    <span>NEXORA</span>
-                </Link>
-            </div>
-            <div className="sd-side-nav">
-                <Link
-                    to={user.role === 'SYSTEM_ADMIN' ? "/admin-dashboard" : "/dashboard"}
-                    className={`sd-side-link ${activePage === 'dashboard' || activePage === 'admin-dashboard' ? 'sd-side-active' : ''}`}
+  const isActive = (path) => location.pathname === path;
+
+  const toggleMenu = (menu) => {
+    setExpandedMenu(expandedMenu === menu ? null : menu);
+  };
+
+  const adminMenuItems = [
+    {
+      id: "governance",
+      label: "Governance",
+      icon: "⚙️",
+      badge: "5",
+      subItems: [
+        { label: "Hub Dashboard", path: "/governance", icon: "📊" },
+        {
+          label: "Club Onboarding",
+          path: "/governance/club-onboarding",
+          icon: "🏢",
+          badge: "3",
+        },
+        {
+          label: "Event Approvals",
+          path: "/governance/event-approval",
+          icon: "📅",
+          badge: "12",
+        },
+        {
+          label: "President Management",
+          path: "/governance/president-applications",
+          icon: "👑",
+        },
+      ],
+    },
+    {
+      id: "logistics",
+      label: "Logistics",
+      icon: "📦",
+      badge: "3",
+      subItems: [
+        { label: "Logistics Hub", path: "/logistics", icon: "📊" },
+        { label: "Asset Management", path: "/logistics/assets", icon: "🏷️" },
+        {
+          label: "Resource Requests",
+          path: "/logistics/requests",
+          icon: "📋",
+          badge: "5",
+        },
+        {
+          label: "Checkout Tracking",
+          path: "/logistics/checkout",
+          icon: "🔄",
+          badge: "3",
+        },
+        {
+          label: "Availability Engine",
+          path: "/logistics/availability",
+          icon: "⚙️",
+        },
+      ],
+    },
+    {
+      id: "analytics",
+      label: "Analytics",
+      icon: "📈",
+      subItems: [
+        { label: "Platform Overview", path: "/analytics/overview", icon: "📊" },
+        { label: "Usage Reports", path: "/analytics/reports", icon: "📑" },
+        { label: "User Activity", path: "/analytics/activity", icon: "👥" },
+      ],
+    },
+  ];
+
+  const studentMenuItems = [
+    { label: "Dashboard", path: "/dashboard", icon: "📊" },
+    { label: "My Events", path: "/events", icon: "📅" },
+    { label: "Resources", path: "/resources", icon: "📦" },
+    { label: "My Profile", path: "/profile", icon: "👤" },
+  ];
+
+  const menuItems = isAdmin ? adminMenuItems : studentMenuItems;
+
+  return (
+    <aside className="sd-sidebar">
+      {/* SIDEBAR HEADER */}
+      <div className="sd-side-header">
+        <Link
+          to={isAdmin ? "/admin-dashboard" : "/dashboard"}
+          className="sd-logo"
+        >
+          <div className="sd-logo-icon">🚀</div>
+          <span>NEXORA</span>
+        </Link>
+      </div>
+
+      {/* SIDEBAR NAVIGATION */}
+      <div className="sd-side-nav">
+        {isAdmin ? (
+          // ADMIN MENU
+          <>
+            {menuItems.map((section) => (
+              <div key={section.id}>
+                <div
+                  onClick={() => toggleMenu(section.id)}
+                  className="sd-menu-item"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
-                    <span>Dashboard</span>
-                </Link>
-                <Link to="/profile" className={`sd-side-link ${activePage === 'profile' ? 'sd-side-active' : ''}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                    <span>My Profile</span>
-                </Link>
-            </div>
-            <div className="sd-side-footer">
-                <div className="sd-side-user">
-                    <div className="sd-side-avatar">
-                        {user.profileImage ? (
-                            <img src={user.profileImage} alt={user.name} />
-                        ) : (
-                            user.name?.charAt(0).toUpperCase() || 'U'
-                        )}
-                    </div>
-                    <div className="sd-side-user-info">
-                        <span className="sd-side-user-name">{user.name}</span>
-                        <span className="sd-side-user-role">{user.role}</span>
-                    </div>
+                  <div className="sd-menu-item-left">
+                    <span className="sd-menu-icon">{section.icon}</span>
+                    <span className="sd-menu-label">{section.label}</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    {section.badge && (
+                      <span className="sd-menu-badge">{section.badge}</span>
+                    )}
+                    <span
+                      className={`sd-menu-toggle ${expandedMenu === section.id ? "sd-expanded" : ""}`}
+                    >
+                      ⌄
+                    </span>
+                  </div>
                 </div>
-                <button onClick={handleLogout} className="sd-side-logout-btn" title="Sign Out">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                </button>
-            </div>
-        </aside>
-    );
+
+                <div
+                  className={`sd-submenu ${expandedMenu === section.id ? "sd-submenu-active" : ""}`}
+                >
+                  {section.subItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`sd-submenu-item ${isActive(item.path) ? "sd-active" : ""}`}
+                    >
+                      <span className="sd-submenu-icon">{item.icon}</span>
+                      <span>{item.label}</span>
+                      {item.badge && (
+                        <span className="sd-submenu-badge">{item.badge}</span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          // STUDENT MENU
+          <>
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sd-side-link ${isActive(item.path) ? "sd-side-active" : ""}`}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </>
+        )}
+      </div>
+
+      {/* SIDEBAR FOOTER */}
+      <div className="sd-side-footer">
+        <div className="sd-side-user">
+          <div className="sd-side-avatar">
+            {user.profileImage ? (
+              <img src={user.profileImage} alt={user.name} />
+            ) : (
+              user.name?.charAt(0).toUpperCase() || "U"
+            )}
+          </div>
+          <div className="sd-side-user-info">
+            <span className="sd-side-user-name">{user.name}</span>
+            <span className="sd-side-user-role">{user.role}</span>
+          </div>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="sd-side-logout-btn"
+          title="Sign Out"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </aside>
+  );
 };
 
 export default Sidebar;

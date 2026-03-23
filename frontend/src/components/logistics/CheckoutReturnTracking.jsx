@@ -1,47 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { logisticsAPI } from "../../services/api";
 
 const CheckoutReturnTracking = () => {
   const [mode, setMode] = useState("active"); // active, history, overdue
-
-  const [checkouts] = useState([
-    {
-      id: 1,
-      asset: "Projector Sony",
-      club: "Drama Club",
-      checkedOutDate: "2024-03-18",
-      dueDate: "2024-03-25",
-      status: "active",
-      condition: "excellent",
-      borrowerContact: "9876543210",
-      notes: "Event on 25th March",
-    },
-    {
-      id: 2,
-      asset: "Cameras (2)",
-      club: "Photography Club",
-      checkedOutDate: "2024-03-17",
-      dueDate: "2024-03-22",
-      status: "overdue",
-      condition: "good",
-      borrowerContact: "9876543211",
-      notes: "Photo session extended",
-    },
-    {
-      id: 3,
-      asset: "Speaker System",
-      club: "Music Club",
-      checkedOutDate: "2024-03-12",
-      dueDate: "2024-03-20",
-      status: "returned",
-      condition: "excellent",
-      borrowerContact: "9876543212",
-      notes: "Used for concert",
-      returnedDate: "2024-03-20",
-    },
-  ]);
-
+  const [checkouts, setCheckouts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCheckout, setSelectedCheckout] = useState(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
+
+  useEffect(() => {
+    fetchCheckouts();
+  }, []);
+
+  const fetchCheckouts = async () => {
+    setLoading(true);
+    try {
+      const data = await logisticsAPI.listRequests();
+      if (data.success) {
+        setCheckouts(data.requests || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch checkouts:", error);
+    }
+    setLoading(false);
+  };
 
   const filteredCheckouts = checkouts.filter((c) => {
     if (mode === "active") return ["active", "overdue"].includes(c.status);
@@ -66,8 +48,12 @@ const CheckoutReturnTracking = () => {
               🔄
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Checkout & Returns</h1>
-              <p className="text-gray-400 text-sm">Track resource borrowing & returns</p>
+              <h1 className="text-2xl font-bold text-white">
+                Checkout & Returns
+              </h1>
+              <p className="text-gray-400 text-sm">
+                Track resource borrowing & returns
+              </p>
             </div>
           </div>
 
@@ -148,17 +134,34 @@ const CheckoutReturnTracking = () => {
 
                 <div className="space-y-4 mb-6">
                   <DetailField label="Asset" value={selectedCheckout.asset} />
-                  <DetailField label="Borrower Club" value={selectedCheckout.club} />
-                  <DetailField label="Contact" value={selectedCheckout.borrowerContact} />
-                  <DetailField label="Checked Out" value={selectedCheckout.checkedOutDate} />
-                  <DetailField label="Due Date" value={selectedCheckout.dueDate} />
+                  <DetailField
+                    label="Borrower Club"
+                    value={selectedCheckout.club}
+                  />
+                  <DetailField
+                    label="Contact"
+                    value={selectedCheckout.borrowerContact}
+                  />
+                  <DetailField
+                    label="Checked Out"
+                    value={selectedCheckout.checkedOutDate}
+                  />
+                  <DetailField
+                    label="Due Date"
+                    value={selectedCheckout.dueDate}
+                  />
 
                   {selectedCheckout.status === "returned" && (
-                    <DetailField label="Returned" value={selectedCheckout.returnedDate} />
+                    <DetailField
+                      label="Returned"
+                      value={selectedCheckout.returnedDate}
+                    />
                   )}
 
                   <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">Condition</p>
+                    <p className="text-gray-400 text-sm font-medium mb-2">
+                      Condition
+                    </p>
                     <span
                       className={`px-3 py-1 text-sm rounded-full font-medium ${
                         selectedCheckout.condition === "excellent"
@@ -172,7 +175,9 @@ const CheckoutReturnTracking = () => {
 
                   {selectedCheckout.notes && (
                     <div>
-                      <p className="text-gray-400 text-sm font-medium mb-2">Notes</p>
+                      <p className="text-gray-400 text-sm font-medium mb-2">
+                        Notes
+                      </p>
                       <p className="text-gray-300 text-sm bg-gray-700 p-3 rounded">
                         {selectedCheckout.notes}
                       </p>
@@ -186,7 +191,8 @@ const CheckoutReturnTracking = () => {
                     {selectedCheckout.status === "overdue" && (
                       <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg mb-3">
                         <p className="text-red-400 text-sm font-medium">
-                          🔴 This item is overdue. Contact the borrower immediately.
+                          🔴 This item is overdue. Contact the borrower
+                          immediately.
                         </p>
                       </div>
                     )}
@@ -208,7 +214,9 @@ const CheckoutReturnTracking = () => {
 
                 {selectedCheckout.status === "returned" && (
                   <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                    <p className="text-green-400 text-sm font-medium">✓ Successfully Returned</p>
+                    <p className="text-green-400 text-sm font-medium">
+                      ✓ Successfully Returned
+                    </p>
                     <p className="text-green-200 text-xs mt-1">
                       Returned on {selectedCheckout.returnedDate}
                     </p>
@@ -217,7 +225,9 @@ const CheckoutReturnTracking = () => {
               </div>
             ) : (
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center sticky top-28">
-                <p className="text-gray-400">Select a checkout to view details</p>
+                <p className="text-gray-400">
+                  Select a checkout to view details
+                </p>
               </div>
             )}
           </div>
@@ -288,8 +298,8 @@ const CheckoutItem = ({ checkout, isSelected, onSelect, daysRemaining }) => {
           {checkout.status === "returned"
             ? "✓ Returned"
             : checkout.status === "overdue"
-            ? "⚠️ Overdue"
-            : "📦 Active"}
+              ? "⚠️ Overdue"
+              : "📦 Active"}
         </span>
       </div>
 
@@ -309,11 +319,15 @@ const CheckoutItem = ({ checkout, isSelected, onSelect, daysRemaining }) => {
               checkout.status === "returned"
                 ? "text-green-400"
                 : checkout.status === "overdue"
-                ? "text-red-400"
-                : "text-white"
+                  ? "text-red-400"
+                  : "text-white"
             }`}
           >
-            {checkout.status === "returned" ? "—" : checkout.status === "overdue" ? "Overdue" : getDaysRemaining(checkout.dueDate) + " days"}
+            {checkout.status === "returned"
+              ? "—"
+              : checkout.status === "overdue"
+                ? "Overdue"
+                : getDaysRemaining(checkout.dueDate) + " days"}
           </p>
         </div>
       </div>
@@ -360,10 +374,14 @@ const ReturnModal = ({ checkout, onClose, onSubmit }) => {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-gray-300 font-medium mb-2">Return Condition *</label>
+            <label className="block text-gray-300 font-medium mb-2">
+              Return Condition *
+            </label>
             <select
               value={returnData.condition}
-              onChange={(e) => setReturnData({ ...returnData, condition: e.target.value })}
+              onChange={(e) =>
+                setReturnData({ ...returnData, condition: e.target.value })
+              }
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-blue-500 outline-none transition"
             >
               <option value="excellent">Excellent - No damage</option>
@@ -373,24 +391,32 @@ const ReturnModal = ({ checkout, onClose, onSubmit }) => {
             </select>
           </div>
 
-          {returnData.condition !== "excellent" && returnData.condition !== "good" && (
-            <div>
-              <label className="block text-gray-300 font-medium mb-2">Damage Report</label>
-              <textarea
-                placeholder="Describe the damage..."
-                value={returnData.damageReport}
-                onChange={(e) =>
-                  setReturnData({ ...returnData, damageReport: e.target.value })
-                }
-                rows={3}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 outline-none transition resize-none"
-              ></textarea>
-            </div>
-          )}
+          {returnData.condition !== "excellent" &&
+            returnData.condition !== "good" && (
+              <div>
+                <label className="block text-gray-300 font-medium mb-2">
+                  Damage Report
+                </label>
+                <textarea
+                  placeholder="Describe the damage..."
+                  value={returnData.damageReport}
+                  onChange={(e) =>
+                    setReturnData({
+                      ...returnData,
+                      damageReport: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 outline-none transition resize-none"
+                ></textarea>
+              </div>
+            )}
 
           {returnData.condition === "poor" && (
             <div>
-              <label className="block text-gray-300 font-medium mb-2">Penalty Amount (₹)</label>
+              <label className="block text-gray-300 font-medium mb-2">
+                Penalty Amount (₹)
+              </label>
               <input
                 type="number"
                 value={returnData.penalty}
@@ -406,11 +432,15 @@ const ReturnModal = ({ checkout, onClose, onSubmit }) => {
           )}
 
           <div>
-            <label className="block text-gray-300 font-medium mb-2">Additional Notes</label>
+            <label className="block text-gray-300 font-medium mb-2">
+              Additional Notes
+            </label>
             <textarea
               placeholder="Any other notes..."
               value={returnData.notes}
-              onChange={(e) => setReturnData({ ...returnData, notes: e.target.value })}
+              onChange={(e) =>
+                setReturnData({ ...returnData, notes: e.target.value })
+              }
               rows={2}
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 outline-none transition resize-none"
             ></textarea>

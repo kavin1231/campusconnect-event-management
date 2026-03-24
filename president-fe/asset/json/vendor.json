@@ -1,0 +1,37 @@
+[
+  {
+    "name": "KFC Sri Lanka",
+    "stall_id": 2,
+    "contact_number": "+94 76 234 5678",
+    "event_name": "Nexora Street Fest 2026",
+    "fee": 25000
+  },
+  {
+    "name": "Barista Sri Lanka",
+    "stall_id": 5,
+    "contact_number": "+94 77 123 4567",
+    "event_name": "Colombo Food Festival 2026",
+    "fee": 15000
+  },
+  {
+    "name": "Burger King Colombo",
+    "stall_id": 8,
+    "contact_number": "+94 75 345 6789",
+    "event_name": "Colombo Food Festival 2026",
+    "fee": 22000
+  },
+  {
+    "name": "Java Lounge",
+    "stall_id": 11,
+    "contact_number": "+94 71 456 7890",
+    "event_name": "Campus Night Market 2026",
+    "fee": 18000
+  },
+  {
+    "name": "Perera & Sons",
+    "stall_id": 14,
+    "contact_number": "+94 72 567 8901",
+    "event_name": "Nexora Street Fest 2026",
+    "fee": 12000
+  }
+]

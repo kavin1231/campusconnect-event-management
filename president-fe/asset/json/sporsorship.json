@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Dialog Axiata PLC",
+    "amount": 500000,
+    "event_name": "Colombo Food Festival 2026",
+    "contact": "+94 77 100 2000",
+    "date": "2026-02-15",
+    "remark": "Main telecom partner"
+  },
+  {
+    "name": "Coca-Cola Sri Lanka",
+    "amount": 750000,
+    "event_name": "Colombo Food Festival 2026",
+    "contact": "+94 11 245 6789",
+    "date": "2026-01-28",
+    "remark": "Beverage sponsor"
+  },
+  {
+    "name": "Commercial Bank of Ceylon",
+    "amount": 600000,
+    "event_name": "Colombo Food Festival 2026",
+    "contact": "+94 11 235 3353",
+    "date": "2026-03-10",
+    "remark": "Official banking partner"
+  },
+  {
+    "name": "SriLankan Airlines",
+    "amount": 900000,
+    "event_name": "Colombo Food Festival 2026",
+    "contact": "+94 11 777 7777",
+    "date": "2026-02-05",
+    "remark": "Travel and logistics support"
+  },
+  {
+    "name": "Anchor Newdale",
+    "amount": 300000,
+    "event_name": "Colombo Food Festival 2026",
+    "contact": "+94 11 555 4444",
+    "date": "2026-03-01",
+    "remark": "Dairy product sponsor"
+  }
+]

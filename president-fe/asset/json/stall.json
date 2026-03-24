@@ -1,0 +1,31 @@
+[
+  { "id": 1, "stall_name": "S1A", "availability": true },
+  { "id": 2, "stall_name": "S1B", "availability": false },
+
+  { "id": 3, "stall_name": "S2A", "availability": true },
+  { "id": 4, "stall_name": "S2B", "availability": true },
+
+  { "id": 5, "stall_name": "S3A", "availability": false },
+  { "id": 6, "stall_name": "S3B", "availability": true },
+
+  { "id": 7, "stall_name": "S4A", "availability": true },
+  { "id": 8, "stall_name": "S4B", "availability": false },
+
+  { "id": 9, "stall_name": "S5A", "availability": true },
+  { "id": 10, "stall_name": "S5B", "availability": true },
+
+  { "id": 11, "stall_name": "S6A", "availability": false },
+  { "id": 12, "stall_name": "S6B", "availability": true },
+
+  { "id": 13, "stall_name": "S7A", "availability": true },
+  { "id": 14, "stall_name": "S7B", "availability": false },
+
+  { "id": 15, "stall_name": "S8A", "availability": true },
+  { "id": 16, "stall_name": "S8B", "availability": true },
+
+  { "id": 17, "stall_name": "S9A", "availability": false },
+  { "id": 18, "stall_name": "S9B", "availability": true },
+
+  { "id": 19, "stall_name": "S10A", "availability": true },
+  { "id": 20, "stall_name": "S10B", "availability": false }
+]

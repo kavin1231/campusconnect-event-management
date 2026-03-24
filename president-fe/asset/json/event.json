@@ -1,0 +1,172 @@
+[
+  {
+    "event_name": "Colombo Food Festival 2026",
+    "date": "2026-03-15",
+    "start_time": "10:00",
+    "end_time": "22:00",
+    "sponsors": [
+      { "name": "Dialog Axiata PLC", "amount": 500000, "profit_share": 200000 },
+      { "name": "Coca-Cola Sri Lanka", "amount": 750000, "profit_share": 350000 },
+      { "name": "Commercial Bank of Ceylon", "amount": 600000, "profit_share": 250000 }
+    ],
+    "vendors": [
+      { "name": "Barista Sri Lanka", "stall_id": 3, "fee": 15000, "profit": 12000 },
+      { "name": "KFC Sri Lanka", "stall_id": 12, "fee": 25000, "profit": 20000 },
+      { "name": "Burger King Colombo", "stall_id": 7, "fee": 22000, "profit": 18000 }
+    ],
+    "expenses": {
+      "lighting": 50000,
+      "sound": 60000,
+      "costumes": 25000,
+      "miscellaneous": 15000
+    },
+    "merchandise_income": 80000,
+    "total_income": 2125000,
+    "total_expenses": 150000,
+    "total_profit": 1975000
+  },
+  {
+    "event_name": "Kandy Cultural Fest 2026",
+    "date": "2026-04-10",
+    "start_time": "09:00",
+    "end_time": "21:00",
+    "sponsors": [
+      { "name": "SriLankan Airlines", "amount": 900000, "profit_share": 400000 },
+      { "name": "Anchor Newdale", "amount": 300000, "profit_share": 120000 }
+    ],
+    "vendors": [
+      { "name": "Java Lounge", "stall_id": 18, "fee": 18000, "profit": 15000 },
+      { "name": "Perera & Sons", "stall_id": 25, "fee": 12000, "profit": 10000 }
+    ],
+    "expenses": {
+      "lighting": 45000,
+      "sound": 55000,
+      "costumes": 35000,
+      "miscellaneous": 20000
+    },
+    "merchandise_income": 60000,
+    "total_income": 1540000,
+    "total_expenses": 155000,
+    "total_profit": 1385000
+  },
+  {
+    "event_name": "Galle Maritime Expo 2026",
+    "date": "2026-05-05",
+    "start_time": "10:00",
+    "end_time": "20:00",
+    "sponsors": [
+      { "name": "Nestle Lanka", "amount": 400000, "profit_share": 160000 },
+      { "name": "Dialog Axiata PLC", "amount": 300000, "profit_share": 120000 }
+    ],
+    "vendors": [
+      { "name": "KFC Sri Lanka", "stall_id": 12, "fee": 25000, "profit": 20000 },
+      { "name": "Barista Sri Lanka", "stall_id": 3, "fee": 15000, "profit": 12000 }
+    ],
+    "expenses": {
+      "lighting": 40000,
+      "sound": 45000,
+      "costumes": 20000,
+      "miscellaneous": 10000
+    },
+    "merchandise_income": 50000,
+    "total_income": 1240000,
+    "total_expenses": 115000,
+    "total_profit": 1125000
+  },
+  {
+    "event_name": "Negombo Seafood Carnival 2026",
+    "date": "2026-06-12",
+    "start_time": "11:00",
+    "end_time": "22:00",
+    "sponsors": [
+      { "name": "Coca-Cola Sri Lanka", "amount": 500000, "profit_share": 200000 },
+      { "name": "Anchor Newdale", "amount": 250000, "profit_share": 100000 }
+    ],
+    "vendors": [
+      { "name": "Burger King Colombo", "stall_id": 7, "fee": 22000, "profit": 18000 },
+      { "name": "Java Lounge", "stall_id": 18, "fee": 18000, "profit": 15000 }
+    ],
+    "expenses": {
+      "lighting": 60000,
+      "sound": 50000,
+      "costumes": 30000,
+      "miscellaneous": 20000
+    },
+    "merchandise_income": 70000,
+    "total_income": 1140000,
+    "total_expenses": 160000,
+    "total_profit": 980000
+  },
+  {
+    "event_name": "Jaffna Heritage Festival 2026",
+    "date": "2026-07-08",
+    "start_time": "09:00",
+    "end_time": "21:00",
+    "sponsors": [
+      { "name": "Commercial Bank of Ceylon", "amount": 600000, "profit_share": 250000 },
+      { "name": "SriLankan Airlines", "amount": 700000, "profit_share": 300000 }
+    ],
+    "vendors": [
+      { "name": "Perera & Sons", "stall_id": 25, "fee": 12000, "profit": 10000 },
+      { "name": "Barista Sri Lanka", "stall_id": 3, "fee": 15000, "profit": 12000 }
+    ],
+    "expenses": {
+      "lighting": 50000,
+      "sound": 55000,
+      "costumes": 30000,
+      "miscellaneous": 15000
+    },
+    "merchandise_income": 60000,
+    "total_income": 2180000,
+    "total_expenses": 150000,
+    "total_profit": 2030000
+  },
+  {
+    "event_name": "Trincomalee Beach Festival 2026",
+    "date": "2026-08-20",
+    "start_time": "10:00",
+    "end_time": "22:00",
+    "sponsors": [
+      { "name": "Dialog Axiata PLC", "amount": 400000, "profit_share": 160000 },
+      { "name": "Coca-Cola Sri Lanka", "amount": 500000, "profit_share": 200000 }
+    ],
+    "vendors": [
+      { "name": "KFC Sri Lanka", "stall_id": 12, "fee": 25000, "profit": 20000 },
+      { "name": "Burger King Colombo", "stall_id": 7, "fee": 22000, "profit": 18000 }
+    ],
+    "expenses": {
+      "lighting": 45000,
+      "sound": 50000,
+      "costumes": 25000,
+      "miscellaneous": 20000
+    },
+    "merchandise_income": 75000,
+    "total_income": 1370000,
+    "total_expenses": 140000,
+    "total_profit": 1230000
+  },
+  {
+    "event_name": "Anuradhapura Cultural Parade 2026",
+    "date": "2026-09-15",
+    "start_time": "08:00",
+    "end_time": "20:00",
+    "sponsors": [
+      { "name": "Anchor Newdale", "amount": 350000, "profit_share": 140000 },
+      { "name": "SriLankan Airlines", "amount": 600000, "profit_share": 240000 }
+    ],
+    "vendors": [
+      { "name": "Java Lounge", "stall_id": 18, "fee": 18000, "profit": 15000 },
+      { "name": "Perera & Sons", "stall_id": 25, "fee": 12000, "profit": 10000 }
+    ],
+    "expenses": {
+      "lighting": 40000,
+      "sound": 45000,
+      "costumes": 30000,
+      "miscellaneous": 15000
+    },
+    "merchandise_income": 50000,
+    "total_income": 1340000,
+    "total_expenses": 130000,
+    "total_profit": 1210000
+  }
+]

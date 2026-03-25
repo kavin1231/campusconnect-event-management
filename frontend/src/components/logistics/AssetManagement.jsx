@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const SummaryCard = ({ label, value, icon }) => (
@@ -74,6 +73,7 @@ const AssetCard = ({ asset, onEdit, onDelete }) => (
 );
 
 const AssetManagement = () => {
+  const [user, setUser] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [clubAssets, setClubAssets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,6 +85,18 @@ const AssetManagement = () => {
     description: "",
     condition: "excellent",
   });
+
+  // Get user role from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchAssets();
@@ -132,7 +144,6 @@ const AssetManagement = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar isAdmin={true} />
       <div className="flex-1">
         <div className="asset-management bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
           {/* HEADER */}

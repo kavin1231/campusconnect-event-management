@@ -71,10 +71,10 @@ function App() {
         />
 
         {/* Logistics Routes */}
-        <Route path="/logistics" element={<LogisticsDashboard />} />
-        <Route path="/logistics/dashboard" element={<LogisticsDashboard />} />
+        <Route path="/logistics" element={<ResourceRequest />} />
+        <Route path="/logistics/browse" element={<ResourceRequest />} />
+        <Route path="/logistics/admin" element={<LogisticsDashboard />} />
         <Route path="/logistics/assets" element={<AssetManagement />} />
-        <Route path="/logistics/requests" element={<ResourceRequest />} />
         <Route
           path="/logistics/availability"
           element={<ResourceAvailabilityEngine />}

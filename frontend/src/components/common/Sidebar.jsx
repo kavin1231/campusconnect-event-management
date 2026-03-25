@@ -35,20 +35,28 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       icon: "⚙️",
       badge: "5",
       subItems: [
-        { label: "Hub Dashboard", path: "/governance", icon: "📊" },
         {
+          id: "hub-dashboard",
+          label: "Hub Dashboard",
+          path: "/governance",
+          icon: "📊",
+        },
+        {
+          id: "club-onboarding",
           label: "Club Onboarding",
           path: "/governance/club-onboarding",
           icon: "🏢",
           badge: "3",
         },
         {
+          id: "event-approvals",
           label: "Event Approvals",
           path: "/governance/event-approval",
           icon: "📅",
           badge: "12",
         },
         {
+          id: "president-management",
           label: "President Management",
           path: "/governance/president-applications",
           icon: "👑",
@@ -61,21 +69,34 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       icon: "📦",
       badge: "3",
       subItems: [
-        { label: "Logistics Hub", path: "/logistics", icon: "📊" },
-        { label: "Asset Management", path: "/logistics/assets", icon: "🏷️" },
         {
+          id: "logistics-hub",
+          label: "Logistics Hub",
+          path: "/logistics",
+          icon: "📊",
+        },
+        {
+          id: "asset-management",
+          label: "Asset Management",
+          path: "/logistics/assets",
+          icon: "🏷️",
+        },
+        {
+          id: "resource-requests",
           label: "Resource Requests",
           path: "/logistics/requests",
           icon: "📋",
           badge: "5",
         },
         {
+          id: "checkout-tracking",
           label: "Checkout Tracking",
           path: "/logistics/checkout",
           icon: "🔄",
           badge: "3",
         },
         {
+          id: "availability-engine",
           label: "Availability Engine",
           path: "/logistics/availability",
           icon: "⚙️",
@@ -87,19 +108,41 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       label: "Analytics",
       icon: "📈",
       subItems: [
-        { label: "Platform Overview", path: "/analytics/overview", icon: "📊" },
-        { label: "Usage Reports", path: "/analytics/reports", icon: "📑" },
-        { label: "User Activity", path: "/analytics/activity", icon: "👥" },
+        {
+          id: "platform-overview",
+          label: "Platform Overview",
+          path: "/analytics/overview",
+          icon: "📊",
+        },
+        {
+          id: "usage-reports",
+          label: "Usage Reports",
+          path: "/analytics/reports",
+          icon: "📑",
+        },
+        {
+          id: "user-activity",
+          label: "User Activity",
+          path: "/analytics/activity",
+          icon: "👥",
+        },
       ],
     },
   ];
 
   const studentMenuItems = [
-    { label: "Dashboard", path: "/dashboard", icon: "📊" },
-    { label: "My Events", path: "/events", icon: "📅" },
-    { label: "Resources", path: "/resources", icon: "📦" },
-    { label: "Study Materials", path: "/dashboard", icon: "📚", query: "?filter=study" },
-    { label: "My Profile", path: "/profile", icon: "👤" },
+    { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
+    { id: "my-events", label: "My Events", path: "/events", icon: "📅" },
+    { id: "logistics", label: "Logistics", path: "/logistics", icon: "📦" },
+    { id: "resources", label: "Resources", path: "/resources", icon: "📦" },
+    {
+      id: "study-materials",
+      label: "Study Materials",
+      path: "/dashboard",
+      icon: "📚",
+      query: "?filter=study",
+    },
+    { id: "profile", label: "My Profile", path: "/profile", icon: "👤" },
   ];
 
   const menuItems = isAdmin ? adminMenuItems : studentMenuItems;
@@ -146,7 +189,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                 >
                   {section.subItems.map((item) => (
                     <Link
-                      key={item.path}
+                      key={item.id}
                       to={item.path}
                       className={`sd-submenu-item ${isActive(item.path) ? "sd-active" : ""}`}
                     >
@@ -166,7 +209,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           <>
             {menuItems.map((item) => (
               <Link
-                key={item.path}
+                key={item.id}
                 to={item.query ? `${item.path}${item.query}` : item.path}
                 className={`sd-side-link ${isActive(item.path, item.query) ? "sd-side-active" : ""}`}
               >

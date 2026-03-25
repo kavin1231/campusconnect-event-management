@@ -114,7 +114,6 @@ const StudentNotifications = () => {
 
   return (
     <div className="sn-container">
-      <Sidebar />
       <div className="sn-content">
         <div className="sn-header">
           <h1>🔔 My Notifications</h1>

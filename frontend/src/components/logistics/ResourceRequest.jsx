@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const ResourceRequest = () => {
+  const [user, setUser] = useState(null);
   const [requestMode, setRequestMode] = useState("browse"); // browse or myRequests
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
@@ -17,6 +17,18 @@ const ResourceRequest = () => {
     purpose: "",
     contact: "",
   });
+
+  // Get user role from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (requestMode === "browse") {
@@ -92,7 +104,6 @@ const ResourceRequest = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar isAdmin={true} />
       <div className="flex-1">
         <div className="resource-request bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
           {/* HEADER */}
@@ -241,55 +252,95 @@ const BrowseMode = ({ assets, onRequest }) => {
   );
 };
 
-const ResourceCard = ({ asset, onRequest }) => (
-  <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden hover:border-emerald-500/50 transition group">
-    {/* HEADER */}
-    <div className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 p-6 border-b border-gray-700">
-      <h3 className="text-lg font-bold text-white mb-1">{asset.name}</h3>
-      <p className="text-gray-400 text-sm">From: {asset.owner}</p>
-    </div>
+const ResourceCard = ({ asset, onRequest }) => {
+  const [showImageGallery, setShowImageGallery] = useState(false);
 
-    {/* CONTENT */}
-    <div className="p-6">
-      <p className="text-gray-300 text-sm mb-4 line-clamp-2">
-        {asset.description}
-      </p>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-gray-700 rounded-lg p-3">
-          <p className="text-gray-400 text-xs mb-1">Available</p>
-          <p className="text-emerald-400 font-bold">{asset.available}</p>
-        </div>
-        <div className="bg-gray-700 rounded-lg p-3">
-          <p className="text-gray-400 text-xs mb-1">Category</p>
-          <p className="text-white text-sm font-medium">{asset.category}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-4 text-sm">
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
-            asset.condition === "excellent"
-              ? "bg-green-500/20 text-green-400"
-              : "bg-yellow-500/20 text-yellow-400"
-          }`}
-        >
-          {asset.condition}
-        </span>
-        <span className="text-gray-400">
-          Available until {asset.lastAvailable}
-        </span>
-      </div>
-
-      <button
-        onClick={onRequest}
-        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition group-hover:shadow-lg"
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden hover:border-emerald-500/50 transition group">
+      {/* IMAGE SECTION */}
+      <div
+        className="relative bg-gray-900 aspect-video overflow-hidden cursor-pointer group"
+        onClick={() => setShowImageGallery(true)}
       >
-        Request Resource
-      </button>
+        {asset.thumbnail ? (
+          <img
+            src={asset.thumbnail}
+            alt={asset.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+            <span className="text-4xl text-gray-700">🖼️</span>
+          </div>
+        )}
+        {/* IMAGE GALLERY BADGE */}
+        {asset.images && asset.images.length > 0 && (
+          <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur">
+            📸 {asset.images.length} photos
+          </div>
+        )}
+        {/* HOVER OVERLAY */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+          <span className="text-white text-sm font-semibold">View Gallery</span>
+        </div>
+      </div>
+
+      {/* HEADER */}
+      <div className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 p-4 border-b border-gray-700">
+        <h3 className="text-lg font-bold text-white mb-1">{asset.name}</h3>
+        <p className="text-gray-400 text-sm">From: {asset.owner}</p>
+      </div>
+
+      {/* CONTENT */}
+      <div className="p-4">
+        <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+          {asset.description}
+        </p>
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-gray-700 rounded-lg p-3">
+            <p className="text-gray-400 text-xs mb-1">Available</p>
+            <p className="text-emerald-400 font-bold">{asset.available}</p>
+          </div>
+          <div className="bg-gray-700 rounded-lg p-3">
+            <p className="text-gray-400 text-xs mb-1">Category</p>
+            <p className="text-white text-sm font-medium">{asset.category}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mb-4 text-sm">
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${
+              asset.condition === "excellent"
+                ? "bg-green-500/20 text-green-400"
+                : "bg-yellow-500/20 text-yellow-400"
+            }`}
+          >
+            {asset.condition}
+          </span>
+          <span className="text-gray-400 text-xs">
+            Available until {asset.lastAvailable}
+          </span>
+        </div>
+
+        <button
+          onClick={onRequest}
+          className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition group-hover:shadow-lg"
+        >
+          📦 Request Resource
+        </button>
+      </div>
+
+      {/* IMAGE GALLERY MODAL */}
+      {showImageGallery && (
+        <ImageGalleryModal
+          asset={asset}
+          onClose={() => setShowImageGallery(false)}
+        />
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const MyRequestsMode = ({ requests }) => (
   <div className="space-y-4">
@@ -453,5 +504,137 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
     </div>
   </div>
 );
+
+const ImageGalleryModal = ({ asset, onClose }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = asset.images || [];
+  const displayImages =
+    images.length > 0 ? images : asset.thumbnail ? [asset.thumbnail] : [];
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % displayImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex(
+      (prev) => (prev - 1 + displayImages.length) % displayImages.length,
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-gray-900 border border-gray-700 rounded-2xl max-w-3xl w-full overflow-hidden">
+        {/* MAIN IMAGE */}
+        <div className="relative bg-black aspect-video flex items-center justify-center overflow-hidden">
+          {displayImages.length > 0 ? (
+            <>
+              <img
+                src={displayImages[currentImageIndex]}
+                alt={`${asset.name} - ${currentImageIndex + 1}`}
+                className="w-full h-full object-contain"
+              />
+              {/* NAVIGATION ARROWS */}
+              {displayImages.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition z-10"
+                  >
+                    ◀
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition z-10"
+                  >
+                    ▶
+                  </button>
+                  {/* IMAGE COUNTER */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-semibold backdrop-blur">
+                    {currentImageIndex + 1} / {displayImages.length}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div className="text-gray-500 text-center">
+              <span className="text-6xl block mb-4">📸</span>
+              <p>No images available</p>
+            </div>
+          )}
+        </div>
+
+        {/* ASSET INFO */}
+        <div className="p-6 border-t border-gray-700">
+          <div className="mb-4">
+            <h3 className="text-2xl font-bold text-white mb-2">{asset.name}</h3>
+            <p className="text-gray-400">{asset.description}</p>
+          </div>
+
+          {/* THUMBNAILS GRID */}
+          {displayImages.length > 1 && (
+            <div className="mb-6">
+              <p className="text-gray-400 text-sm mb-3">All photos:</p>
+              <div className="grid grid-cols-4 gap-3 max-h-24 overflow-y-auto">
+                {displayImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIndex(idx)}
+                    className={`relative rounded-lg overflow-hidden border-2 transition ${
+                      currentImageIndex === idx
+                        ? "border-emerald-500"
+                        : "border-gray-600 hover:border-gray-500"
+                    }`}
+                  >
+                    <img
+                      src={img}
+                      alt={`Thumbnail ${idx + 1}`}
+                      className="w-full h-16 object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ASSET DETAILS */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Quantity Available</p>
+              <p className="text-white font-bold text-lg">{asset.available}</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Category</p>
+              <p className="text-white font-bold">{asset.category}</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Condition</p>
+              <span
+                className={`px-2 py-1 rounded text-xs font-semibold ${
+                  asset.condition === "excellent"
+                    ? "bg-green-500/20 text-green-400"
+                    : "bg-yellow-500/20 text-yellow-400"
+                }`}
+              >
+                {asset.condition}
+              </span>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">From Club</p>
+              <p className="text-white font-bold">{asset.owner}</p>
+            </div>
+          </div>
+
+          {/* CLOSE BUTTON */}
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
+          >
+            Close Gallery
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default ResourceRequest;

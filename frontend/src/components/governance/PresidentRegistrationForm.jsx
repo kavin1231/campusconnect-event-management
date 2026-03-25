@@ -166,7 +166,6 @@ const PresidentRegistrationForm = () => {
 
   return (
     <div className="prf-container">
-      <Sidebar />
       <div className="prf-content">
         <div className="prf-header">
           <h1>🎓 President Registration</h1>

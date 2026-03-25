@@ -8,6 +8,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Student {
@@ -47,25 +48,115 @@ enum Role {
   CLUB_PRESIDENT
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role
-  profileImage String?
-  createdAt DateTime @default(now())
+enum ClubStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
+}
 
-  // relations for logistics module
-  assets             Asset[]          @relation("AssetOwner")
-  approvedBookings   AssetBooking[]   @relation("AssetBookingApprovedBy")
-  requestedBookings  AssetBooking[]   @relation("AssetBookingRequester")
+enum ClubRole {
+  PRESIDENT
+  VICE_PRESIDENT
+  TREASURER
+  MEMBER
+}
+
+enum AssetStatus {
+  AVAILABLE
+  UNAVAILABLE
+  MAINTENANCE
+  DAMAGED
+  ARCHIVED
+}
+
+enum AssetCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+}
+
+enum AssetCategory {
+  EQUIPMENT
+  FURNITURE
+  TECHNOLOGY
+  SPORTS
+  SOUND_SYSTEM
+  DECORATION
+  VEHICLES
+  OTHER
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHECKED_OUT
+  RETURNED
+  CANCELLED
+  DAMAGED
+}
+
+enum DamageType {
+  PHYSICAL
+  MECHANICAL
+  ELECTRONIC
+  STRUCTURAL
+  OTHER
+}
+
+enum DamageSeverity {
+  MINOR
+  MODERATE
+  MAJOR
+  CRITICAL
+}
+
+enum DamageStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RESOLVED
+  IN_PROGRESS
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id               Int      @id @default(autoincrement())
+  name             String
+  email            String   @unique
+  password         String
+  role             Role
+  profileImage     String?
+  
+  // Club relations  
+  clubId           Int?
+  club             Club?    @relation("ClubMembers", fields: [clubId], references: [id], onDelete: SetNull)
+  clubRole         ClubRole?
+  presidingClub    Club?    @relation("ClubPresident")
+  
+  // relationships for logistics module
+  approvedBookings AssetBooking[]   @relation("AssetBookingApprovedBy")
+  requestedBookings AssetBooking[]  @relation("AssetBookingRequester")
+  approvedReturns  AssetBooking[]   @relation("ReturnApprovedBy")
+  damageReports    DamageReport[]
+  damageApprovals  DamageReport[]   @relation("DamageApprovedBy")
+  
   approvedApplications PresidentApplication[]
-  notifications      UserNotification[]
+  notifications    UserNotification[]
 
   // relations for study support
-  studyMaterials     StudyMaterial[]  @relation("StudyMaterialCreator")
-  studySessions      StudySession[]   @relation("StudySessionCreator")
+  studyMaterials   StudyMaterial[]  @relation("StudyMaterialCreator")
+  studySessions    StudySession[]   @relation("StudySessionCreator")
+  
+  createdAt        DateTime @default(now())
 
   @@map("User")
 }
@@ -86,35 +177,155 @@ model Event {
   @@map("Event")
 }
 
-// Logistics module models
+// ========== CLUB MANAGEMENT ==========
+model Club {
+  id                Int                @id @default(autoincrement())
+  name              String             @unique
+  description       String?
+  clubType          String             // "ACADEMIC", "SOCIAL", "SPORTS", "CULTURAL"
+  logo              String?            // Image URL
+  members           User[]             @relation("ClubMembers")
+  president         User?              @relation("ClubPresident", fields: [presidentId], references: [id])
+  presidentId       Int?               @unique
+  status            ClubStatus         @default(ACTIVE)
+  
+  // Assets and logistics
+  assets            Asset[]            @relation("ClubAssets")
+  requestsSent      AssetBooking[]     @relation("RequestingClub")
+  requestsReceived  AssetBooking[]     @relation("OwningClub")
+  damageReports     DamageReport[]
+  
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([status])
+  @@map("Club")
+}
+
+// ========== ENHANCED LOGISTICS MODELS ==========
 model Asset {
-  id          Int          @id @default(autoincrement())
-  name        String
-  description String?
-  ownerId     Int
-  owner       User         @relation(name: "AssetOwner", fields: [ownerId], references: [id])
-  status      AssetStatus  @default(AVAILABLE)
-  bookings    AssetBooking[]
-  createdAt   DateTime     @default(now())
+  id               Int                 @id @default(autoincrement())
+  name             String
+  description      String?
+  category         AssetCategory
+  quantity         Int                 @default(1)
+  availableQty     Int                 @default(1)
+  condition        AssetCondition      @default(GOOD)
+  
+  // Owner club
+  clubId           Int
+  club             Club                @relation(name: "ClubAssets", fields: [clubId], references: [id], onDelete: Cascade)
+  
+  // Images
+  images           String[]            // Array of image URLs
+  thumbnail        String?
+  
+  // Metadata
+  value            Float?              // Asset value for insurance
+  status           AssetStatus         @default(AVAILABLE)
+  
+  // Relationships
+  bookings         AssetBooking[]
+  damageReports    DamageReport[]
+  
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([clubId])
+  @@index([status])
+  @@index([category])
+  @@map("Asset")
 }
 
 model AssetBooking {
-  id           Int           @id @default(autoincrement())
-  assetId      Int
-  requesterId  Int
-  startDate    DateTime
-  endDate      DateTime
-  status       BookingStatus @default(PENDING)
-  damageReport String?
-  penalty      Float?
-  approvedById Int?
-  approvedBy   User?         @relation(name: "AssetBookingApprovedBy", fields: [approvedById], references: [id])
+  id                  Int                @id @default(autoincrement())
+  assetId             Int
+  asset               Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  // Requesting club details
+  requestingClubId    Int
+  requestingClub      Club               @relation(name: "RequestingClub", fields: [requestingClubId], references: [id], onDelete: Cascade)
+  
+  // Asset owner club
+  owningClubId        Int
+  owningClub          Club               @relation(name: "OwningClub", fields: [owningClubId], references: [id], onDelete: Cascade)
+  
+  // User who requested
+  requesterId         Int
+  requester           User               @relation(name: "AssetBookingRequester", fields: [requesterId], references: [id])
+  
+  // Booking details
+  quantityRequested   Int                @default(1)
+  startDate           DateTime
+  endDate             DateTime
+  purpose             String?
+  
+  // Approval
+  status              BookingStatus      @default(PENDING)
+  approvedById        Int?
+  approvedBy          User?              @relation(name: "AssetBookingApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt          DateTime?
+  rejectionReason     String?
+  
+  // Return tracking
+  checkedOutAt        DateTime?
+  returnedAt          DateTime?
+  approvedReturnBy    Int?
+  approvedReturnUser  User?              @relation(name: "ReturnApprovedBy", fields: [approvedReturnBy], references: [id], onDelete: SetNull)
+  
+  // Damage & penalties
+  damageReport        DamageReport?
+  penalty             Float?             @default(0)
+  
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
-  asset        Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  requester    User          @relation(name: "AssetBookingRequester", fields: [requesterId], references: [id])
+  @@unique([assetId, requestingClubId, startDate, endDate])
+  @@index([assetId])
+  @@index([requestingClubId])
+  @@index([owningClubId])
+  @@index([requesterId])
+  @@index([status])
+  @@map("AssetBooking")
+}
+
+model DamageReport {
+  id              Int                @id @default(autoincrement())
+  bookingId       Int?               @unique
+  booking         AssetBooking?      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  assetId         Int
+  asset           Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  clubId          Int
+  club            Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  reportedBy      Int
+  reporter        User               @relation(fields: [reportedBy], references: [id])
+  
+  title           String
+  description     String
+  damageType      DamageType
+  severity        DamageSeverity
+  
+  images          String[]           // Damage photos
+  estimatedCost   Float?
+  actualCost      Float?
+  
+  status          DamageStatus       @default(PENDING)
+  approvedById    Int?
+  approvedBy      User?              @relation(name: "DamageApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  
+  penalty         Float?
+  resolutionNotes String?
+  
+  createdAt       DateTime           @default(now())
+  resolvedAt      DateTime?
 
   @@index([assetId])
-  @@index([requesterId])
+  @@index([clubId])
+  @@index([status])
+  @@map("DamageReport")
 }
 
 // president applications
@@ -194,26 +405,6 @@ model StudySession {
   updatedAt     DateTime  @updatedAt
   createdBy     Int       // Admin ID
   creator       User      @relation(name: "StudySessionCreator", fields: [createdBy], references: [id])
-}
-
-enum ApplicationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum AssetStatus {
-  AVAILABLE
-  UNAVAILABLE
-}
-
-enum BookingStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CHECKED_OUT
-  RETURNED
-  DAMAGED
 }
 
 // Reaction Enum for Events

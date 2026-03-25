@@ -3,6 +3,7 @@ import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const LogisticsDashboard = () => {
+  const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     totalAssets: 0,
     availableAssets: 0,
@@ -12,6 +13,18 @@ const LogisticsDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [tabs, setTabs] = useState("overview");
+
+  // Get user role from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchStats();
@@ -46,7 +59,12 @@ const LogisticsDashboard = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar isAdmin={true} />
+      <Sidebar
+        isAdmin={
+          user?.role &&
+          (user.role.includes("ADMIN") || user.role.includes("admin"))
+        }
+      />
       <div className="flex-1">
         <div className="logistics-dashboard bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
           {/* HEADER */}

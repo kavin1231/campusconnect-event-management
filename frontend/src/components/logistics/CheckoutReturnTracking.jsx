@@ -3,11 +3,24 @@ import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const CheckoutReturnTracking = () => {
+  const [user, setUser] = useState(null);
   const [mode, setMode] = useState("active"); // active, history, overdue
   const [checkouts, setCheckouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCheckout, setSelectedCheckout] = useState(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
+
+  // Get user role from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchCheckouts();
@@ -41,7 +54,6 @@ const CheckoutReturnTracking = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar isAdmin={true} />
       <div className="flex-1">
         <div className="checkout-return bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
           {/* HEADER */}

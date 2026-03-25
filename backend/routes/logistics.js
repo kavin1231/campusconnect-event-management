@@ -4,53 +4,127 @@ import { verifyToken, requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// assets
-router.get("/assets", verifyToken, LogisticsController.listAssets);
+// ========== CLUB MANAGEMENT ROUTES ==========
+
+// Get all clubs
+router.get("/clubs", verifyToken, LogisticsController.getAllClubs);
+
+// Get club by ID
+router.get("/clubs/:clubId", verifyToken, LogisticsController.getClubById);
+
+// Create club (Admin only)
+router.post(
+  "/clubs",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN"),
+  LogisticsController.createClub,
+);
+
+// Update club (Club president or admin)
+router.patch("/clubs/:clubId", verifyToken, LogisticsController.updateClub);
+
+// ========== ASSET MANAGEMENT ROUTES ==========
+
+// Get all assets with filters
+router.get("/assets", verifyToken, LogisticsController.getAllAssets);
+
+// Create asset (Club president or admin)
 router.post(
   "/assets",
   verifyToken,
-  requireRole("EVENT_ORGANIZER", "SYSTEM_ADMIN"),
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT", "EVENT_ORGANIZER"),
   LogisticsController.createAsset,
 );
-router.get("/assets/:id", verifyToken, LogisticsController.getAsset);
 
-// booking requests
+// Update asset
+router.patch("/assets/:assetId", verifyToken, LogisticsController.updateAsset);
+
+// Delete asset
+router.delete("/assets/:assetId", verifyToken, LogisticsController.deleteAsset);
+
+// ========== AVAILABILITY ENGINE ==========
+
+// Check asset availability for date range
 router.post(
-  "/assets/:id/request",
+  "/availability/check",
   verifyToken,
-  LogisticsController.requestAsset,
-);
-router.get("/requests", verifyToken, LogisticsController.listRequests);
-
-// owner actions
-router.patch(
-  "/requests/:id/approve",
-  verifyToken,
-  requireRole("EVENT_ORGANIZER", "SYSTEM_ADMIN"),
-  LogisticsController.approveRequest,
-);
-router.patch(
-  "/requests/:id/reject",
-  verifyToken,
-  requireRole("EVENT_ORGANIZER", "SYSTEM_ADMIN"),
-  LogisticsController.rejectRequest,
+  LogisticsController.checkAvailability,
 );
 
-// lifecycle updates
+// ========== BOOKING MANAGEMENT ROUTES ==========
+
+// Create booking request
+router.post("/bookings", verifyToken, LogisticsController.createBooking);
+
+// Get all bookings (with filters)
+router.get("/bookings", verifyToken, LogisticsController.getAllBookings);
+
+// Approve booking request (Owning club president)
 router.patch(
-  "/requests/:id/checkout",
+  "/bookings/:bookingId/approve",
   verifyToken,
-  LogisticsController.checkOutAsset,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT", "EVENT_ORGANIZER"),
+  LogisticsController.approveBooking,
 );
+
+// Reject booking request
 router.patch(
-  "/requests/:id/return",
+  "/bookings/:bookingId/reject",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT", "EVENT_ORGANIZER"),
+  LogisticsController.rejectBooking,
+);
+
+// Checkout asset (Mark as checked out)
+router.patch(
+  "/bookings/:bookingId/checkout",
+  verifyToken,
+  LogisticsController.checkoutAsset,
+);
+
+// Return asset
+router.patch(
+  "/bookings/:bookingId/return",
   verifyToken,
   LogisticsController.returnAsset,
 );
-router.patch(
-  "/requests/:id/damage",
+
+// ========== DAMAGE REPORTING ==========
+
+// Report damage
+router.post("/damage-reports", verifyToken, LogisticsController.reportDamage);
+
+// Get damage reports
+router.get(
+  "/damage-reports",
   verifyToken,
-  LogisticsController.reportDamage,
+  LogisticsController.getDamageReports,
+);
+
+// Approve damage report and set penalty (Admin only)
+router.patch(
+  "/damage-reports/:reportId/approve",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN"),
+  LogisticsController.approveDamageReport,
+);
+
+// Reject damage report
+router.patch(
+  "/damage-reports/:reportId/reject",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN"),
+  LogisticsController.rejectDamageReport,
+);
+
+// ========== ADMIN ANALYTICS ==========
+
+// Get logistics statistics
+router.get(
+  "/admin/stats",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN"),
+  LogisticsController.getLogisticsStats,
 );
 
 export default router;

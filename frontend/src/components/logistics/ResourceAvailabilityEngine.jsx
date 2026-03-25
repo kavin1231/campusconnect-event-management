@@ -3,6 +3,7 @@ import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const ResourceAvailabilityEngine = () => {
+  const [user, setUser] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [viewMode, setViewMode] = useState("timeline"); // timeline or calendar
   const [assets, setAssets] = useState([]);
@@ -14,6 +15,18 @@ const ResourceAvailabilityEngine = () => {
     startDate: "",
     endDate: "",
   });
+
+  // Get user role from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchAssets();
@@ -66,7 +79,6 @@ const ResourceAvailabilityEngine = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar isAdmin={true} />
       <div className="flex-1">
         <div className="availability-engine bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
           {/* HEADER */}

@@ -30,46 +30,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   const adminMenuItems = [
     {
-      id: "core",
-      label: "Core Responsibilities",
-      icon: "🎯",
-      subItems: [
-        {
-          label: "Club & Faculty Onboarding",
-          path: "/governance/club-onboarding",
-          icon: "🏢",
-        },
-        {
-          label: "Event Approval",
-          path: "/governance/event-approval",
-          icon: "📅",
-        },
-        {
-          label: "Role Management",
-          path: "/admin/roles",
-          icon: "👥",
-        },
-        {
-          label: "President Registration",
-          path: "/governance/president-applications",
-          icon: "👑",
-        },
-        {
-          label: "Logistics Module",
-          path: "/logistics",
-          icon: "📦",
-        },
-        {
-          label: "Student Management",
-          path: "/admin/students",
-          icon: "👥",
-        },
-      ],
-    },
-
-    {
       id: "governance",
-
       label: "Governance",
       icon: "⚙️",
       badge: "5",

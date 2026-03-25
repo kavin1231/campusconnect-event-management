@@ -263,6 +263,40 @@ export const eventsAPI = {
   },
 };
 
+// ============================================
+// SPORTS ENDPOINTS
+// ============================================
+export const sportsAPI = {
+  getAllSports: async () => {
+    const response = await fetchWithAuth("/sports");
+    return response.json();
+  },
+
+  createSport: async (sportData) => {
+    const response = await fetchWithAuth("/sports", {
+      method: "POST",
+      body: JSON.stringify(sportData),
+    });
+    return response.json();
+  },
+
+  updateSport: async (id, sportData) => {
+    const response = await fetchWithAuth(`/sports/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(sportData),
+    });
+    return response.json();
+  },
+
+  deleteSport: async (id) => {
+    const response = await fetchWithAuth(`/sports/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
+};
+
+
 export default {
   authAPI,
   dashboardAPI,
@@ -270,4 +304,6 @@ export default {
   governanceAPI,
   chatbotAPI,
   eventsAPI,
+  sportsAPI,
 };
+

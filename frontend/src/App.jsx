@@ -10,6 +10,25 @@ import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
 import StudentManagement from "./components/admin/StudentManagement";
+import SportsManagement from "./components/admin/SportsManagement";
+import SportsList from "./components/sports/SportsList";
+import Sidebar from "./components/common/Sidebar";
+
+// Placeholder for Analytics
+const AnalyticsPlaceholder = ({ title }) => (
+  <div className="sd-layout">
+    <Sidebar activePage="analytics" isAdmin={true} />
+    <div className="sd-content-wrapper">
+      <div style={{ padding: "30px", color: "#fff" }}>
+        <h1>📈 {title}</h1>
+        <p>This module is currently under development. Stay tuned for advanced insights!</p>
+      </div>
+    </div>
+  </div>
+);
+
+
+
 
 
 
@@ -52,6 +71,9 @@ function App() {
         <Route path="/admin/study-support" element={<StudySupportAdmin />} />
         <Route path="/admin/roles" element={<RoleManagement />} />
         <Route path="/admin/students" element={<StudentManagement />} />
+        <Route path="/admin/sports" element={<SportsManagement />} />
+        <Route path="/sports" element={<SportsList />} />
+
 
 
 
@@ -81,7 +103,13 @@ function App() {
           path="/logistics/checkout"
           element={<CheckoutReturnTracking />}
         />
+
+        {/* Analytics Routes (Placeholders) */}
+        <Route path="/analytics/overview" element={<AnalyticsPlaceholder title="Platform Overview" />} />
+        <Route path="/analytics/reports" element={<AnalyticsPlaceholder title="Usage Reports" />} />
+        <Route path="/analytics/activity" element={<AnalyticsPlaceholder title="User Activity" />} />
       </Routes>
+
     </div>
   );
 }

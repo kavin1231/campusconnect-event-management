@@ -1,0 +1,328 @@
+/* ================================================================
+   EventPermissionForm.css — Event Permission Request Form styles
+   ================================================================ */
+
+.epf-wrapper {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
+  min-height: 100vh;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---------- Header ---------- */
+.epf-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 760px;
+}
+
+.epf-header-icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+}
+
+.epf-header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.epf-header-subtitle {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0.25rem 0 0;
+}
+
+/* ---------- Form card ---------- */
+.epf-form {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Alert ---------- */
+.epf-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.epf-alert-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.epf-alert-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+/* ---------- Field ---------- */
+.epf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.epf-field-full {
+  width: 100%;
+}
+
+/* ---------- Two-column row ---------- */
+.epf-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .epf-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Labels ---------- */
+.epf-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #d1d5db;
+}
+
+.epf-required {
+  color: #f87171;
+}
+
+/* ---------- Inputs ---------- */
+.epf-input,
+.epf-textarea,
+.epf-select {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  color: #f9fafb;
+  font-size: 0.9rem;
+  padding: 0.625rem 0.875rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.epf-input:focus,
+.epf-textarea:focus,
+.epf-select:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.epf-input::placeholder,
+.epf-textarea::placeholder {
+  color: #6b7280;
+}
+
+.epf-input-error {
+  border-color: #ef4444 !important;
+}
+
+.epf-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.epf-textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.epf-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+.epf-select option {
+  background: #1f2937;
+}
+
+/* ---------- Error message ---------- */
+.epf-error-msg {
+  color: #f87171;
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+/* ---------- Risk preview ---------- */
+.epf-risk-preview {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 0.625rem;
+  padding: 0.875rem 1rem;
+}
+
+.epf-risk-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #93c5fd;
+  margin: 0 0 0.5rem;
+}
+
+.epf-risk-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.epf-risk-badge {
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.epf-risk-moderate {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.epf-risk-high {
+  background: rgba(234, 179, 8, 0.15);
+  color: #fde047;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+/* ---------- Actions ---------- */
+.epf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* ---------- Buttons ---------- */
+.epf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  border: none;
+}
+
+.epf-btn:active {
+  transform: scale(0.98);
+}
+
+.epf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.epf-btn-primary {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+
+.epf-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+}
+
+.epf-btn-secondary {
+  background: #374151;
+  color: #d1d5db;
+  border: 1px solid #4b5563;
+}
+
+.epf-btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+/* ---------- Spinner ---------- */
+.epf-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: epf-spin 0.6s linear infinite;
+}
+
+@keyframes epf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Success state ---------- */
+.epf-success-state {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.epf-success-icon {
+  font-size: 4rem;
+  margin-bottom: 1.25rem;
+}
+
+.epf-success-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.75rem;
+}
+
+.epf-success-msg {
+  color: #9ca3af;
+  font-size: 1rem;
+  max-width: 440px;
+  line-height: 1.6;
+  margin: 0 0 2rem;
+}
+
+.epf-success-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}

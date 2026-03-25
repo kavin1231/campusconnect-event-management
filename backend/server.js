@@ -8,6 +8,7 @@ import eventRoutes from "./routes/events.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import logisticsRoutes from "./routes/logistics.js";
 import presidentRoutes from "./routes/president.js";
+import eventPermissionRoutes from "./routes/eventPermission.js";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/logistics", logisticsRoutes);
 app.use("/api/president", presidentRoutes);
+app.use("/api/event-permissions", eventPermissionRoutes);
 
 // test database connection
 app.get("/db-test", async (req, res) => {

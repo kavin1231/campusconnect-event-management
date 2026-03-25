@@ -57,6 +57,10 @@ model User {
   approvedBookings   AssetBooking[]   @relation("AssetBookingApprovedBy")
   requestedBookings  AssetBooking[]   @relation("AssetBookingRequester")
   approvedApplications PresidentApplication[]
+
+  // relations for event permission module
+  submittedPermissions  EventPermissionRequest[] @relation("EventPermissionRequester")
+  reviewedPermissions   EventPermissionRequest[] @relation("EventPermissionReviewer")
 }
 
 model Event {
@@ -134,4 +138,34 @@ enum BookingStatus {
   CHECKED_OUT
   RETURNED
   DAMAGED
+}
+
+// Event permission request model
+model EventPermissionRequest {
+  id                Int                    @id @default(autoincrement())
+  title             String
+  description       String
+  eventDate         DateTime
+  venue             String
+  expectedAttendees Int
+  budget            Float
+  category          String
+  organizingClub    String
+  contactEmail      String
+  requesterId       Int
+  requester         User                   @relation(name: "EventPermissionRequester", fields: [requesterId], references: [id])
+  status            EventPermissionStatus  @default(PENDING)
+  rejectionReason   String?
+  submittedAt       DateTime               @default(now())
+  reviewedById      Int?
+  reviewedBy        User?                  @relation(name: "EventPermissionReviewer", fields: [reviewedById], references: [id])
+
+  @@index([requesterId])
+  @@index([status])
+}
+
+enum EventPermissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

@@ -38,6 +38,8 @@ import {
   ClubOnboarding,
   EventApproval,
   PresidentApplicationManagement,
+  PresidentRegistrationForm,
+  StudentNotifications,
 } from "./components/governance";
 
 // Logistics Components
@@ -100,12 +102,20 @@ function App() {
           path="/governance/president-applications"
           element={<PresidentApplicationManagement />}
         />
+        <Route
+          path="/president-registration"
+          element={<PresidentRegistrationForm />}
+        />
+        <Route
+          path="/student-notifications"
+          element={<StudentNotifications />}
+        />
 
         {/* Logistics Routes */}
-        <Route path="/logistics" element={<LogisticsDashboard />} />
-        <Route path="/logistics/dashboard" element={<LogisticsDashboard />} />
+        <Route path="/logistics" element={<ResourceRequest />} />
+        <Route path="/logistics/browse" element={<ResourceRequest />} />
+        <Route path="/logistics/admin" element={<LogisticsDashboard />} />
         <Route path="/logistics/assets" element={<AssetManagement />} />
-        <Route path="/logistics/requests" element={<ResourceRequest />} />
         <Route
           path="/logistics/availability"
           element={<ResourceAvailabilityEngine />}
@@ -115,7 +125,6 @@ function App() {
           element={<CheckoutReturnTracking />}
         />
 
-<<<<<<< HEAD
         {/* Operations Routes */}
         <Route path="/operations" element={<OperationsDashboard />} />
         <Route path="/operations/dashboard" element={<OperationsDashboard />} />
@@ -125,12 +134,11 @@ function App() {
         <Route path="/operations/vendors" element={<VendorManagement />} />
         <Route path="/operations/stalls" element={<StallManagement />} />
         <Route path="/operations/intelligence" element={<IntelligenceDashboard />} />
-=======
+
         {/* Analytics Routes (Placeholders) */}
         <Route path="/analytics/overview" element={<AnalyticsPlaceholder title="Platform Overview" />} />
         <Route path="/analytics/reports" element={<AnalyticsPlaceholder title="Usage Reports" />} />
         <Route path="/analytics/activity" element={<AnalyticsPlaceholder title="User Activity" />} />
->>>>>>> origin/dev-backup
       </Routes>
 
     </div>

@@ -168,7 +168,6 @@ const AdminDashboard = () => {
             />
           </div>
         </header>
-
         {/* ================= MAIN ================= */}
         <main className="flex-1 py-10 px-6 sm:px-10 max-w-[1200px] mx-auto w-full">
           {/* Title */}

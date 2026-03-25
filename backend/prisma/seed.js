@@ -25,7 +25,6 @@ async function main() {
 
         console.log(`System Admin created with email: ${admin.email}`);
 
-<<<<<<< HEAD
         // 3. Seed Operations Manager
         const operationsEmail = 'operations@nexora.edu';
         const operationsPassword = await bcrypt.hash('admin123', saltRounds);
@@ -43,10 +42,6 @@ async function main() {
         console.log(`Operations Manager created with email: ${operationsManager.email}`);
 
         // 4. Seed Sample Events
-=======
-        // 3. Seed Sample Events
-
->>>>>>> origin/dev-backup
         const sampleEvents = [
             {
                 title: "AI & Robotics Workshop",

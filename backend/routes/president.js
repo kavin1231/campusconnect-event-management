@@ -12,6 +12,30 @@ router.post(
   PresidentController.apply,
 );
 
+// student gets their application status
+router.get(
+  "/application-status",
+  verifyToken,
+  requireRole("STUDENT"),
+  PresidentController.getApplicationStatus,
+);
+
+// student gets their notifications
+router.get(
+  "/notifications",
+  verifyToken,
+  requireRole("STUDENT"),
+  PresidentController.getStudentNotifications,
+);
+
+// student marks notification as read
+router.patch(
+  "/notifications/:notificationId/read",
+  verifyToken,
+  requireRole("STUDENT"),
+  PresidentController.markNotificationRead,
+);
+
 // admin views all applications
 router.get(
   "/applications",

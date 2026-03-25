@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 
 const ResourceAvailabilityEngine = () => {
+  const [user, setUser] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [viewMode, setViewMode] = useState("timeline"); // timeline or calendar
   const [assets, setAssets] = useState([]);
@@ -13,6 +15,18 @@ const ResourceAvailabilityEngine = () => {
     startDate: "",
     endDate: "",
   });
+
+  // Get user role from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchAssets();
@@ -64,188 +78,203 @@ const ResourceAvailabilityEngine = () => {
   );
 
   return (
-    <div className="availability-engine bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
-      {/* HEADER */}
-      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
-        <div className="px-8 py-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-lg flex items-center justify-center text-2xl">
-              🚫
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                Resource Availability Engine
-              </h1>
-              <p className="text-gray-400 text-sm">
-                Prevent double bookings & manage schedules
-              </p>
-            </div>
-          </div>
+    <div className="flex min-h-screen">
+      <div className="flex-1">
+        <div className="availability-engine bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
+          {/* HEADER */}
+          <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
+            <div className="px-8 py-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-lg flex items-center justify-center text-2xl">
+                  🚫
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">
+                    Resource Availability Engine
+                  </h1>
+                  <p className="text-gray-400 text-sm">
+                    Prevent double bookings & manage schedules
+                  </p>
+                </div>
+              </div>
 
-          {/* VIEW MODE TOGGLE */}
-          <div className="flex gap-2 mt-4">
-            {["timeline", "calendar"].map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`px-6 py-2 rounded-lg font-medium transition ${
-                  viewMode === mode
-                    ? "bg-rose-600 text-white"
-                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                }`}
-              >
-                {mode === "timeline" ? "📊 Timeline" : "📅 Calendar"}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      {/* MAIN CONTENT */}
-      <div className="px-8 py-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* LEFT SIDEBAR - ASSET SELECTION */}
-          <div className="lg:col-span-1">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 sticky top-28">
-              <h2 className="text-lg font-bold text-white mb-4">📦 Assets</h2>
-              <div className="space-y-2">
-                {assets.map((asset) => (
+              {/* VIEW MODE TOGGLE */}
+              <div className="flex gap-2 mt-4">
+                {["timeline", "calendar"].map((mode) => (
                   <button
-                    key={asset.id}
-                    onClick={() => setSelectedAsset(asset)}
-                    className={`w-full text-left p-4 rounded-lg transition ${
-                      selectedAsset?.id === asset.id
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`px-6 py-2 rounded-lg font-medium transition ${
+                      viewMode === mode
                         ? "bg-rose-600 text-white"
                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                     }`}
                   >
-                    <p className="font-medium">{asset.name}</p>
-                    <p className="text-xs mt-1">
-                      {asset.bookings.length} booking
-                      {asset.bookings.length !== 1 ? "s" : ""}
-                    </p>
+                    {mode === "timeline" ? "📊 Timeline" : "📅 Calendar"}
                   </button>
                 ))}
               </div>
+            </div>
+          </header>
 
-              {/* BOOKING FORM */}
-              <div className="mt-6 pt-6 border-t border-gray-700">
-                <h3 className="text-sm font-bold text-white mb-3">
-                  New Booking
-                </h3>
-                <div className="space-y-3">
-                  <select
-                    value={newBooking.assetId || ""}
-                    onChange={(e) =>
-                      setNewBooking({
-                        ...newBooking,
-                        assetId: parseInt(e.target.value) || null,
-                      })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
-                  >
-                    <option value="">Select Asset</option>
+          {/* MAIN CONTENT */}
+          <div className="px-8 py-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* LEFT SIDEBAR - ASSET SELECTION */}
+              <div className="lg:col-span-1">
+                <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 sticky top-28">
+                  <h2 className="text-lg font-bold text-white mb-4">
+                    📦 Assets
+                  </h2>
+                  <div className="space-y-2">
                     {assets.map((asset) => (
-                      <option key={asset.id} value={asset.id}>
-                        {asset.name}
-                      </option>
+                      <button
+                        key={asset.id}
+                        onClick={() => setSelectedAsset(asset)}
+                        className={`w-full text-left p-4 rounded-lg transition ${
+                          selectedAsset?.id === asset.id
+                            ? "bg-rose-600 text-white"
+                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
+                      >
+                        <p className="font-medium">{asset.name}</p>
+                        <p className="text-xs mt-1">
+                          {asset.bookings.length} booking
+                          {asset.bookings.length !== 1 ? "s" : ""}
+                        </p>
+                      </button>
                     ))}
-                  </select>
+                  </div>
 
-                  <input
-                    type="date"
-                    value={newBooking.startDate}
-                    onChange={(e) =>
-                      setNewBooking({
-                        ...newBooking,
-                        startDate: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
-                  />
+                  {/* BOOKING FORM */}
+                  <div className="mt-6 pt-6 border-t border-gray-700">
+                    <h3 className="text-sm font-bold text-white mb-3">
+                      New Booking
+                    </h3>
+                    <div className="space-y-3">
+                      <select
+                        value={newBooking.assetId || ""}
+                        onChange={(e) =>
+                          setNewBooking({
+                            ...newBooking,
+                            assetId: parseInt(e.target.value) || null,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
+                      >
+                        <option value="">Select Asset</option>
+                        {assets.map((asset) => (
+                          <option key={asset.id} value={asset.id}>
+                            {asset.name}
+                          </option>
+                        ))}
+                      </select>
 
-                  <input
-                    type="date"
-                    value={newBooking.endDate}
-                    onChange={(e) =>
-                      setNewBooking({ ...newBooking, endDate: e.target.value })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
-                  />
+                      <input
+                        type="date"
+                        value={newBooking.startDate}
+                        onChange={(e) =>
+                          setNewBooking({
+                            ...newBooking,
+                            startDate: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
+                      />
 
-                  <input
-                    type="text"
-                    placeholder="Club name"
-                    value={newBooking.club}
-                    onChange={(e) =>
-                      setNewBooking({ ...newBooking, club: e.target.value })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 text-sm focus:border-rose-500 outline-none transition"
-                  />
+                      <input
+                        type="date"
+                        value={newBooking.endDate}
+                        onChange={(e) =>
+                          setNewBooking({
+                            ...newBooking,
+                            endDate: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
+                      />
 
-                  {newBooking.startDate && newBooking.endDate && (
-                    <div
-                      className={`p-3 rounded-lg text-sm font-medium ${
-                        isSlotAvailable
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-red-500/20 text-red-400"
-                      }`}
-                    >
-                      {isSlotAvailable ? "✓ Slot Available" : "✗ Slot Booked"}
+                      <input
+                        type="text"
+                        placeholder="Club name"
+                        value={newBooking.club}
+                        onChange={(e) =>
+                          setNewBooking({ ...newBooking, club: e.target.value })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 text-sm focus:border-rose-500 outline-none transition"
+                      />
+
+                      {newBooking.startDate && newBooking.endDate && (
+                        <div
+                          className={`p-3 rounded-lg text-sm font-medium ${
+                            isSlotAvailable
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-red-500/20 text-red-400"
+                          }`}
+                        >
+                          {isSlotAvailable
+                            ? "✓ Slot Available"
+                            : "✗ Slot Booked"}
+                        </div>
+                      )}
+
+                      <button
+                        disabled={!isSlotAvailable || !newBooking.club}
+                        className="w-full py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
+                      >
+                        Create Booking
+                      </button>
                     </div>
-                  )}
-
-                  <button
-                    disabled={!isSlotAvailable || !newBooking.club}
-                    className="w-full py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
-                  >
-                    Create Booking
-                  </button>
+                  </div>
                 </div>
+              </div>
+
+              {/* RIGHT CONTENT - BOOKINGS VIEW */}
+              <div className="lg:col-span-3">
+                {selectedAsset ? (
+                  <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-bold text-white mb-2">
+                        {selectedAsset.name}
+                      </h2>
+                      <p className="text-gray-400">
+                        Owner: {selectedAsset.owner}
+                      </p>
+                    </div>
+
+                    {viewMode === "timeline" ? (
+                      <TimelineView bookings={selectedAsset.bookings} />
+                    ) : (
+                      <CalendarView bookings={selectedAsset.bookings} />
+                    )}
+
+                    {/* BOOKINGS LIST */}
+                    <div className="mt-8">
+                      <h3 className="text-lg font-bold text-white mb-4">
+                        📋 Bookings
+                      </h3>
+                      {selectedAsset.bookings.length === 0 ? (
+                        <p className="text-gray-400">
+                          No bookings for this asset
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedAsset.bookings.map((booking) => (
+                            <BookingCard key={booking.id} booking={booking} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
+                    <p className="text-gray-400 text-lg">
+                      Select an asset to view bookings
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-
-          {/* RIGHT CONTENT - BOOKINGS VIEW */}
-          <div className="lg:col-span-3">
-            {selectedAsset ? (
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    {selectedAsset.name}
-                  </h2>
-                  <p className="text-gray-400">Owner: {selectedAsset.owner}</p>
-                </div>
-
-                {viewMode === "timeline" ? (
-                  <TimelineView bookings={selectedAsset.bookings} />
-                ) : (
-                  <CalendarView bookings={selectedAsset.bookings} />
-                )}
-
-                {/* BOOKINGS LIST */}
-                <div className="mt-8">
-                  <h3 className="text-lg font-bold text-white mb-4">
-                    📋 Bookings
-                  </h3>
-                  {selectedAsset.bookings.length === 0 ? (
-                    <p className="text-gray-400">No bookings for this asset</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {selectedAsset.bookings.map((booking) => (
-                        <BookingCard key={booking.id} booking={booking} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                <p className="text-gray-400 text-lg">
-                  Select an asset to view bookings
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

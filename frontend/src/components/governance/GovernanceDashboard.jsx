@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../common/Sidebar";
 import {
   PageContainer,
   PageHeader,
@@ -78,79 +79,84 @@ const GovernanceDashboard = () => {
   if (!user) return <div className="p-10">Loading...</div>;
 
   return (
-    <PageContainer>
-      {/* HEADER */}
-      <PageHeader
-        title="Governance Hub"
-        subtitle="Manage approvals, roles & permissions"
-        icon="⚙️"
-        action={
-          <Button variant="danger" onClick={() => navigate("/login")}>
-            Logout
-          </Button>
-        }
-      />
+    <div className="flex min-h-screen">
+      <Sidebar isAdmin={true} />
+      <div className="flex-1">
+        <PageContainer>
+          {/* HEADER */}
+          <PageHeader
+            title="Governance Hub"
+            subtitle="Manage approvals, roles & permissions"
+            icon="⚙️"
+            action={
+              <Button variant="danger" onClick={() => navigate("/login")}>
+                Logout
+              </Button>
+            }
+          />
 
-      {/* MAIN CONTENT */}
-      <Container>
-        {/* STATS GRID */}
-        <Section className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              icon="🏢"
-              label="Pending Club Approvals"
-              value={stats.pendingClubApprovals}
-              color="blue"
-              trend={10}
-            />
-            <StatCard
-              icon="📅"
-              label="Pending Event Approvals"
-              value={stats.pendingEventApprovals}
-              color="amber"
-              trend={-5}
-            />
-            <StatCard
-              icon="👥"
-              label="Active Clubs"
-              value={stats.activeClubs}
-              color="green"
-              trend={8}
-            />
-            <StatCard
-              icon="🎉"
-              label="Total Events"
-              value={stats.totalEvents}
-              color="indigo"
-              trend={15}
-            />
-          </div>
-        </Section>
+          {/* MAIN CONTENT */}
+          <Container>
+            {/* STATS GRID */}
+            <Section className="mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard
+                  icon="🏢"
+                  label="Pending Club Approvals"
+                  value={stats.pendingClubApprovals}
+                  color="blue"
+                  trend={10}
+                />
+                <StatCard
+                  icon="📅"
+                  label="Pending Event Approvals"
+                  value={stats.pendingEventApprovals}
+                  color="amber"
+                  trend={-5}
+                />
+                <StatCard
+                  icon="👥"
+                  label="Active Clubs"
+                  value={stats.activeClubs}
+                  color="green"
+                  trend={8}
+                />
+                <StatCard
+                  icon="🎉"
+                  label="Total Events"
+                  value={stats.totalEvents}
+                  color="indigo"
+                  trend={15}
+                />
+              </div>
+            </Section>
 
-        {/* TAB NAVIGATION */}
-        <Section title="Dashboard">
-          <div className="flex gap-2 border-b border-gray-200 mb-6">
-            {["overview", "approvals", "permissions"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-3 font-semibold transition-all ${
-                  activeTab === tab
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
+            {/* TAB NAVIGATION */}
+            <Section title="Dashboard">
+              <div className="flex gap-2 border-b border-gray-200 mb-6">
+                {["overview", "approvals", "permissions"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-6 py-3 font-semibold transition-all ${
+                      activeTab === tab
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
 
-          {activeTab === "overview" && <OverviewTab />}
-          {activeTab === "approvals" && <ApprovalsTab />}
-          {activeTab === "permissions" && <PermissionsTab />}
-        </Section>
-      </Container>
-    </PageContainer>
+              {activeTab === "overview" && <OverviewTab />}
+              {activeTab === "approvals" && <ApprovalsTab />}
+              {activeTab === "permissions" && <PermissionsTab />}
+            </Section>
+          </Container>
+        </PageContainer>
+      </div>
+    </div>
   );
 };
 

@@ -101,6 +101,12 @@ const StudentProfile = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showProfileMenu]);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
+
   const handleEdit = () => {
     setEditing(true);
     setSuccessMsg('');
@@ -261,9 +267,8 @@ const StudentProfile = () => {
   return (
     <div className="sd-layout">
       <Sidebar activePage="profile" />
-
       <div className="sd-content-wrapper">
-        {/* ── Profile Header ── */}
+        {/* \u2500\u2500 Profile Header \u2500\u2500 */}
         <header className="sp-header">
           <div className="sp-header-overlay"></div>
           <div className="sp-header-content">
@@ -288,9 +293,9 @@ const StudentProfile = () => {
                 <h1>{profile?.name}</h1>
                 <div className="sp-meta-tags">
                   <span className="sp-role-tag">STUDENT</span>
-                  <span className="sp-meta-sep">•</span>
+                  <span className="sp-meta-sep">\u2022</span>
                   <span>{profile?.department}</span>
-                  <span className="sp-meta-sep">•</span>
+                  <span className="sp-meta-sep">\u2022</span>
                   <span>{getYearLabel(profile?.year)}</span>
                 </div>
               </div>
@@ -309,7 +314,7 @@ const StudentProfile = () => {
           {errorMsg && <div className="sp-toast sp-toast-error">{errorMsg}</div>}
 
           <div className="sp-grid">
-            {/* ── Left Column: Information ── */}
+            {/* \u2500\u2500 Left Column: Information \u2500\u2500 */}
             <div className="sp-main-col">
               <form className="sp-card" onSubmit={handleSave}>
                 <div className="sp-card-header">
@@ -395,7 +400,7 @@ const StudentProfile = () => {
               </div>
             </div>
 
-            {/* ── Right Column: Stats & Meta ── */}
+            {/* \u2500\u2500 Right Column: Stats & Meta \u2500\u2500 */}
             <div className="sp-side-col">
               <div className="sp-card sp-stats-card">
                 <div className="sp-stat-item">
@@ -419,7 +424,7 @@ const StudentProfile = () => {
         </main>
       </div>
 
-      {/* ── Password Modal ── */}
+      {/* \u2500\u2500 Password Modal \u2500\u2500 */}
       <Modal 
         isOpen={showPasswordModal} 
         onClose={() => setShowPasswordModal(false)}
@@ -442,7 +447,7 @@ const StudentProfile = () => {
               name="currentPassword" 
               value={passwordData.currentPassword} 
               onChange={handlePassChange} 
-              placeholder="••••••••"
+              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
             />
           </div>
           <div className="sp-form-group" style={{ marginBottom: '20px' }}>
@@ -452,7 +457,7 @@ const StudentProfile = () => {
               name="newPassword" 
               value={passwordData.newPassword} 
               onChange={handlePassChange} 
-              placeholder="••••••••"
+              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
             />
           </div>
           <div className="sp-form-group">
@@ -462,13 +467,13 @@ const StudentProfile = () => {
               name="confirmPassword" 
               value={passwordData.confirmPassword} 
               onChange={handlePassChange} 
-              placeholder="••••••••"
+              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
             />
           </div>
         </div>
       </Modal>
 
-      {/* ── 2FA Modal ── */}
+      {/* \u2500\u2500 2FA Modal \u2500\u2500 */}
       <Modal
         isOpen={showTwoFactorModal}
         onClose={() => setShowTwoFactorModal(false)}
@@ -478,7 +483,7 @@ const StudentProfile = () => {
         )}
       >
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🛡️</div>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🛡\ufe0f</div>
           <h3 style={{ marginBottom: '12px' }}>Coming Soon!</h3>
           <p style={{ color: '#64748b', lineHeight: '1.6' }}>
             We're working on enhancing your account security with Two-Factor Authentication. 

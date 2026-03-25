@@ -41,7 +41,6 @@ model StudentEventRegistration {
 
 enum Role {
   STUDENT
-  EVENT_ORGANIZER
   SYSTEM_ADMIN
   CLUB_PRESIDENT
   OPERATIONS_MANAGER
@@ -53,6 +52,7 @@ model User {
   email     String   @unique
   password  String
   role      Role
+  clubName  String?
   profileImage String?
   createdAt DateTime @default(now())
 
@@ -210,7 +210,6 @@ model EventReview {
   @@index([eventId])
   @@map("EventReview")
 }
-
 // Operations and sponsorship models
 model Organization {
   id            Int      @id @default(autoincrement())
@@ -359,4 +358,18 @@ enum VendorAgreementStatus {
   UNDER_REVIEW
   SIGNED
   EXPIRED
+}
+
+// Sports Management
+model Sport {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  coachName   String?
+  whatsappLink String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("Sport")
 }

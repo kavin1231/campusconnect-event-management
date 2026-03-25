@@ -43,7 +43,8 @@ export const getUserRole = () => {
 
 export const isAdmin = () => {
   return (
-    getUserRole() === "SYSTEM_ADMIN" || getUserRole() === "EVENT_ORGANIZER"
+    getUserRole() === "SYSTEM_ADMIN"
+
   );
 };
 

@@ -25,10 +25,8 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(data.user));
 
         // Redirect based on role
-        if (
-          data.user.role === "SYSTEM_ADMIN" ||
-          data.user.role === "EVENT_ORGANIZER"
-        ) {
+        if (data.user.role === "SYSTEM_ADMIN") {
+
           navigate("/admin-dashboard");
         } else {
           // Students go to home page

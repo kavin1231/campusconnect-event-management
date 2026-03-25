@@ -15,9 +15,10 @@
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border-color);
     border-radius: 24px;
-    padding: 48px;
+    padding: 40px;
     width: 100%;
-    max-width: 550px;
+    max-width: 850px;
+
     box-shadow: var(--glass-shadow);
     position: relative;
     z-index: 10;
@@ -139,8 +140,9 @@
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 24px;
 }
+
 
 .password-input-wrapper {
     position: relative;

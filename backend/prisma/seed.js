@@ -23,22 +23,9 @@ async function main() {
         });
         console.log(`System Admin created with email: ${admin.email}`);
 
-        // 2. Seed Event Organizer
-        const organizerEmail = 'organizer@nexora.edu';
-        const organizerPassword = await bcrypt.hash('admin123', saltRounds);
+        console.log(`System Admin created with email: ${admin.email}`);
 
-        const organizer = await prisma.user.upsert({
-            where: { email: organizerEmail },
-            update: { password: organizerPassword },
-            create: {
-                email: organizerEmail,
-                name: 'NEXORA Organizer',
-                password: organizerPassword,
-                role: 'EVENT_ORGANIZER',
-            },
-        });
-        console.log(`Event Organizer created with email: ${organizer.email}`);
-
+<<<<<<< HEAD
         // 3. Seed Operations Manager
         const operationsEmail = 'operations@nexora.edu';
         const operationsPassword = await bcrypt.hash('admin123', saltRounds);
@@ -56,6 +43,10 @@ async function main() {
         console.log(`Operations Manager created with email: ${operationsManager.email}`);
 
         // 4. Seed Sample Events
+=======
+        // 3. Seed Sample Events
+
+>>>>>>> origin/dev-backup
         const sampleEvents = [
             {
                 title: "AI & Robotics Workshop",

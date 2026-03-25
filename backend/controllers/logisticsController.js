@@ -133,9 +133,10 @@ class LogisticsController {
       const userId = req.user.id;
       const role = req.user.role;
       let where = {};
-      if (role === "EVENT_ORGANIZER" || role === "SYSTEM_ADMIN") {
+      if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT") {
         // owner can see bookings for their assets
         where = { asset: { ownerId: userId } };
+
       } else {
         // regular user sees only their own requests
         where = { requesterId: userId };

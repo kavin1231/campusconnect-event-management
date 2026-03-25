@@ -106,29 +106,8 @@ const AdminDashboard = () => {
               <h2 className="text-xl font-extrabold tracking-wide">NEXORA</h2>
             </div>
 
-            {/* Navigation */}
-            <nav className="hidden lg:flex items-center gap-8">
-              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
-                Core Responsibilities
-              </button>
-              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
-                Club & Faculty Onboarding
-              </button>
-              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
-                Event Approval
-              </button>
-              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
-                Role Management
-              </button>
-              <button className="text-slate-300 hover:text-primary text-sm font-semibold transition-colors">
-                President Registration
-              </button>
-              <button className="text-primary text-sm font-semibold border-b-2 border-primary pb-1">
-                Logistics Module
-              </button>
-            </nav>
-
             {/* Search */}
+
             <div className="hidden md:flex items-center bg-neutral-dark rounded-xl overflow-hidden h-11 w-72 border border-neutral-border">
               <div className="px-3 text-primary/70">
                 <span className="material-symbols-outlined text-lg">

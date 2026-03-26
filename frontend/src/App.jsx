@@ -357,6 +357,15 @@ function App() {
             />
           }
         />
+        <Route
+          path="/logistics/checkout"
+          element={
+            <ProtectedRoute
+              element={CheckoutReturnTracking}
+              allowedRoles={["EVENT_ORGANIZER", "SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
 
         {/* Analytics Routes */}
         <Route

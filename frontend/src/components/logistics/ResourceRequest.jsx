@@ -1,9 +1,127 @@
-import { useState, useEffect } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, SlidersHorizontal, Sparkles, Star } from "lucide-react";
 import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
+
+const buildSampleImage = (name, category, seed = "") => {
+  const lookup = `${name || ""} ${category || ""}`.toLowerCase();
+
+  let keyword = "equipment";
+  if (lookup.includes("projector")) keyword = "projector";
+  else if (lookup.includes("speaker")) keyword = "speaker";
+  else if (lookup.includes("backdrop")) keyword = "backdrop";
+  else if (lookup.includes("camera")) keyword = "camera";
+  else if (lookup.includes("light")) keyword = "stage-light";
+  else if (lookup.includes("table")) keyword = "table";
+  else if (lookup.includes("microphone")) keyword = "microphone";
+  else if (lookup.includes("banner")) keyword = "banner";
+  else if (lookup.includes("tripod")) keyword = "tripod";
+  else if (lookup.includes("tent")) keyword = "tent";
+  else if (lookup.includes("audio")) keyword = "audio";
+  else if (lookup.includes("photo")) keyword = "photography";
+  else if (lookup.includes("furniture")) keyword = "furniture";
+
+  const seedText = `${name || "resource"}-${category || "item"}-${seed}`;
+  const lock = encodeURIComponent(seedText.toLowerCase().replace(/[^a-z0-9]+/g, "-"));
+  return `https://loremflickr.com/900/600/${keyword}?lock=${lock}`;
+};
+
+const SAMPLE_PRODUCT_TEMPLATES = [
+  {
+    name: "Epson HD Projector",
+    category: "Audio/Visual",
+    value: 3800,
+    description: "Portable HD projector suitable for seminars and screenings.",
+  },
+  {
+    name: "JBL Speaker Pair",
+    category: "Audio",
+    value: 2200,
+    description: "Powered speaker pair for stage talks and indoor events.",
+  },
+  {
+    name: "Backdrop Stand Kit",
+    category: "Decoration",
+    value: 950,
+    description: "Adjustable stand with fabric backdrop for branding booths.",
+  },
+  {
+    name: "Canon Mirrorless Camera",
+    category: "Photography",
+    value: 5200,
+    description: "High quality camera for event coverage and social content.",
+  },
+  {
+    name: "Portable Stage Lights",
+    category: "Audio/Visual",
+    value: 1800,
+    description: "RGB stage lighting kit for performances and ceremonies.",
+  },
+  {
+    name: "Folding Tables Set",
+    category: "Furniture",
+    value: 1200,
+    description: "Durable foldable tables for registration and food counters.",
+  },
+  {
+    name: "Wireless Microphone Kit",
+    category: "Audio",
+    value: 2600,
+    description: "Dual wireless microphones with receiver and carry case.",
+  },
+  {
+    name: "Roll-up Banner Pack",
+    category: "Decoration",
+    value: 800,
+    description:
+      "Reusable roll-up banners for promotions and awareness stalls.",
+  },
+  {
+    name: "Tripod Bundle",
+    category: "Photography",
+    value: 700,
+    description: "Lightweight camera tripods for stable event recordings.",
+  },
+  {
+    name: "Outdoor Canopy Tent",
+    category: "Furniture",
+    value: 3000,
+    description: "Weather-resistant canopy tent for outdoor kiosks.",
+  },
+];
+
+const SAMPLE_OWNER_NAMES = [
+  "Media Club",
+  "Music Society",
+  "Design Guild",
+  "Photography Circle",
+  "Drama Association",
+  "Innovation Club",
+  "Debate Union",
+  "Sports Council",
+];
+
+const SAMPLE_ASSETS = Array.from({ length: 100 }, (_, idx) => {
+  const template =
+    SAMPLE_PRODUCT_TEMPLATES[idx % SAMPLE_PRODUCT_TEMPLATES.length];
+  const ownerName = SAMPLE_OWNER_NAMES[idx % SAMPLE_OWNER_NAMES.length];
+  const serial = String(idx + 1).padStart(3, "0");
+
+  return {
+    id: `sample-${serial}`,
+    name: `${template.name} #${serial}`,
+    category: template.category,
+    availableQty: (idx % 6) + 1,
+    condition: idx % 3 === 0 ? "excellent" : "good",
+    value: template.value + (idx % 5) * 120,
+    owner: { name: ownerName },
+    description: template.description,
+    thumbnail: buildSampleImage(template.name, template.category, serial),
+    isSample: true,
+  };
+});
 
 const ResourceRequest = () => {
   const [user, setUser] = useState(null);
@@ -66,7 +184,9 @@ const ResourceRequest = () => {
           ) || [],
         );
       } else {
-        setErrorMsg(data.message || "Unable to load available resources right now.");
+        setErrorMsg(
+          data.message || "Unable to load available resources right now.",
+        );
       }
     } catch (error) {
       console.error("Failed to fetch available assets:", error);
@@ -241,44 +361,56 @@ const ResourceRequest = () => {
 const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
-  const [priceRange, setPriceRange] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const normalizedSearch = deferredSearchTerm.trim().toLowerCase();
 
-  const getDailyRate = (asset) => {
-    if (asset.pricePerDay) return Number(asset.pricePerDay);
-    const value = Number(asset.value || 0);
-    if (value > 0) return Math.max(20, Math.round(value * 0.025));
-    return 35;
-  };
+  const sourceAssets = useMemo(
+    () => (assets.length > 0 ? assets : SAMPLE_ASSETS),
+    [assets],
+  );
 
-  const filteredAssets = assets.filter((asset) => {
-    const assetName = asset.name || "";
-    const ownerName = (
-      asset.owner?.name ||
-      asset.owningClub?.name ||
-      asset.club ||
-      ""
-    ).toString();
-    const matchesSearch =
-      assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ownerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const assetRate = getDailyRate(asset);
-    const availableQty = Number(asset.availableQty || asset.available || 0);
+  const availableCount = useMemo(
+    () =>
+      sourceAssets.filter((a) => Number(a.availableQty || a.available || 0) > 0)
+        .length,
+    [sourceAssets],
+  );
 
-    const matchesCategory =
-      filterCategory === "all" || asset.category === filterCategory;
-    const matchesAvailability =
-      availabilityFilter === "all" ||
-      (availabilityFilter === "available" && availableQty > 0) ||
-      (availabilityFilter === "limited" && availableQty > 0 && availableQty < 3);
-    const matchesPrice =
-      priceRange === "all" ||
-      (priceRange === "budget" && assetRate <= 50) ||
-      (priceRange === "standard" && assetRate > 50 && assetRate <= 120) ||
-      (priceRange === "premium" && assetRate > 120);
+  const categoryOptions = useMemo(() => {
+    const categories = new Set();
+    sourceAssets.forEach((asset) => {
+      if (asset.category) categories.add(asset.category);
+    });
+    return ["all", ...Array.from(categories).sort((a, b) => a.localeCompare(b))];
+  }, [sourceAssets]);
 
-    return matchesSearch && matchesCategory && matchesAvailability && matchesPrice;
-  });
+  const filteredAssets = useMemo(
+    () =>
+      sourceAssets.filter((asset) => {
+        const assetName = String(asset.name || "").toLowerCase();
+        const ownerName = String(
+          asset.owner?.name || asset.owningClub?.name || asset.club || "",
+        ).toLowerCase();
+        const matchesSearch =
+          normalizedSearch.length === 0 ||
+          assetName.includes(normalizedSearch) ||
+          ownerName.includes(normalizedSearch);
+        const availableQty = Number(asset.availableQty || asset.available || 0);
+
+        const matchesCategory =
+          filterCategory === "all" || asset.category === filterCategory;
+        const matchesAvailability =
+          availabilityFilter === "all" ||
+          (availabilityFilter === "available" && availableQty > 0) ||
+          (availabilityFilter === "limited" &&
+            availableQty > 0 &&
+            availableQty < 3);
+
+        return matchesSearch && matchesCategory && matchesAvailability;
+      }),
+    [sourceAssets, normalizedSearch, filterCategory, availabilityFilter],
+  );
 
   return (
     <div>
@@ -297,12 +429,17 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
       <div className="mb-8 rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-indigo-500/10 to-gray-900 p-5">
         <div className="flex items-center gap-2 mb-4 text-indigo-200">
           <Sparkles size={16} />
-          <p className="text-xs uppercase tracking-[0.18em]">Marketplace Discovery</p>
+          <p className="text-xs uppercase tracking-[0.18em]">
+            Marketplace Discovery
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
           <div className="lg:col-span-5 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+              size={16}
+            />
             <input
               type="text"
               placeholder="Search assets, clubs, or categories..."
@@ -312,32 +449,20 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
             />
           </div>
 
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="relative">
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-indigo-500 outline-none transition"
               >
-                <option value="all">All Categories</option>
-                <option value="Audio/Visual">Audio/Visual</option>
-                <option value="Audio">Audio</option>
-                <option value="Photography">Photography</option>
-                <option value="Decoration">Decoration</option>
-                <option value="Furniture">Furniture</option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category === "all" ? "All Categories" : category}
+                  </option>
+                ))}
               </select>
             </div>
-
-            <select
-              value={priceRange}
-              onChange={(e) => setPriceRange(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-indigo-500 outline-none transition"
-            >
-              <option value="all">Any Price</option>
-              <option value="budget">Budget ({"<="} $50/day)</option>
-              <option value="standard">Standard ($51-$120/day)</option>
-              <option value="premium">Premium ({">"}$120/day)</option>
-            </select>
 
             <motion.button
               type="button"
@@ -365,11 +490,21 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
           <span className="px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-gray-300">
-            Showing <span className="text-white font-semibold">{filteredAssets.length}</span> result{filteredAssets.length !== 1 ? "s" : ""}
+            Showing{" "}
+            <span className="text-white font-semibold">
+              {filteredAssets.length}
+            </span>{" "}
+            result{filteredAssets.length !== 1 ? "s" : ""}
           </span>
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300">
-            {assets.filter((a) => Number(a.availableQty || a.available || 0) > 0).length} in stock
+            {availableCount}{" "}
+            in stock
           </span>
+          {assets.length === 0 && (
+            <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-300">
+              Sample catalog view
+            </span>
+          )}
         </div>
       </div>
 
@@ -381,9 +516,11 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
         </div>
       ) : filteredAssets.length === 0 ? (
         <div className="bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
-          <p className="text-gray-200 text-lg font-semibold">No matching resources</p>
+          <p className="text-gray-200 text-lg font-semibold">
+            No matching resources
+          </p>
           <p className="text-gray-500 text-sm mt-2">
-            Try changing price, availability, or category filters.
+            Try changing availability or category filters.
           </p>
         </div>
       ) : (
@@ -392,7 +529,7 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
             <ResourceCard
               key={asset.id}
               asset={asset}
-              onRequest={() => onRequest(asset)}
+              onRequest={onRequest}
             />
           ))}
         </div>
@@ -401,16 +538,12 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
   );
 };
 
-const ResourceCard = ({ asset, onRequest }) => {
+const ResourceCard = memo(({ asset, onRequest }) => {
   const [showImageGallery, setShowImageGallery] = useState(false);
-  const dailyRate = asset.pricePerDay
-    ? Number(asset.pricePerDay)
-    : Math.max(20, Math.round(Number(asset.value || 1400) * 0.025));
   const rating = ((Number(asset.id || 1) % 5) + 3) / 2;
   const availability = Number(asset.availableQty || asset.available || 0);
   const displayImage =
-    asset.thumbnail ||
-    "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=900&q=80";
+    asset.thumbnail || buildSampleImage(asset.name, asset.category);
 
   return (
     <motion.div
@@ -426,7 +559,17 @@ const ResourceCard = ({ asset, onRequest }) => {
         <img
           src={displayImage}
           alt={asset.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = buildSampleImage(
+              asset.name,
+              asset.category,
+              "fallback",
+            );
+          }}
         />
 
         <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-semibold border bg-black/45 backdrop-blur border-white/15 text-white">
@@ -449,13 +592,14 @@ const ResourceCard = ({ asset, onRequest }) => {
           <h3 className="text-lg font-bold text-white leading-tight">
             {asset.name || "Unnamed"}
           </h3>
-          <p className="text-base font-extrabold text-indigo-300 whitespace-nowrap">
-            ${dailyRate}/day
-          </p>
         </div>
 
         <p className="text-gray-400 text-sm mb-2">
-          From {asset.owner?.name || asset.owningClub?.name || asset.club || "Unknown"}
+          From{" "}
+          {asset.owner?.name ||
+            asset.owningClub?.name ||
+            asset.club ||
+            "Unknown"}
         </p>
 
         <div className="flex items-center gap-1 mb-3 text-amber-300">
@@ -471,9 +615,7 @@ const ResourceCard = ({ asset, onRequest }) => {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-gray-700 rounded-lg p-3">
             <p className="text-gray-400 text-xs mb-1">Availability</p>
-            <p className="text-emerald-400 font-bold">
-              {availability}
-            </p>
+            <p className="text-emerald-400 font-bold">{availability}</p>
           </div>
           <div className="bg-gray-700 rounded-lg p-3">
             <p className="text-gray-400 text-xs mb-1">Category</p>
@@ -493,14 +635,24 @@ const ResourceCard = ({ asset, onRequest }) => {
           >
             {asset.condition || "good"}
           </span>
+          {asset.isSample && (
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/20 text-indigo-300">
+              Sample
+            </span>
+          )}
         </div>
 
         <motion.button
-          onClick={onRequest}
-          className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition group-hover:shadow-lg"
+          onClick={() => onRequest(asset)}
+          disabled={asset.isSample}
+          className={`w-full py-3 text-white rounded-xl font-semibold transition group-hover:shadow-lg ${
+            asset.isSample
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
           whileTap={{ scale: 0.98 }}
         >
-          Request Resource
+          {asset.isSample ? "Sample Product" : "Request Resource"}
         </motion.button>
       </div>
 
@@ -515,7 +667,7 @@ const ResourceCard = ({ asset, onRequest }) => {
       </AnimatePresence>
     </motion.div>
   );
-};
+});
 
 const MyRequestsMode = ({ requests, loading, errorMsg, onRetry }) => (
   <div className="space-y-4">
@@ -630,7 +782,8 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
     >
       <h2 className="text-2xl font-bold text-white mb-2">Request Resource</h2>
       <p className="text-gray-400 mb-6">
-        {asset.name} from {asset.owner?.name || asset.owningClub?.name || asset.club || "Unknown"}
+        {asset.name} from{" "}
+        {asset.owner?.name || asset.owningClub?.name || asset.club || "Unknown"}
       </p>
 
       <div className="space-y-4">
@@ -763,6 +916,14 @@ const ImageGalleryModal = ({ asset, onClose }) => {
                 src={displayImages[currentImageIndex]}
                 alt={`${asset.name} - ${currentImageIndex + 1}`}
                 className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = buildSampleImage(
+                    asset.name,
+                    asset.category,
+                    "fallback",
+                  );
+                }}
               />
               {/* NAVIGATION ARROWS */}
               {displayImages.length > 1 && (
@@ -822,6 +983,14 @@ const ImageGalleryModal = ({ asset, onClose }) => {
                       src={img}
                       alt={`Thumbnail ${idx + 1}`}
                       className="w-full h-16 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = buildSampleImage(
+                          asset.name,
+                          asset.category,
+                          `thumb-fallback-${idx}`,
+                        );
+                      }}
                     />
                   </button>
                 ))}
@@ -833,7 +1002,9 @@ const ImageGalleryModal = ({ asset, onClose }) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div>
               <p className="text-gray-400 text-xs mb-1">Quantity Available</p>
-              <p className="text-white font-bold text-lg">{asset.availableQty || asset.available || 0}</p>
+              <p className="text-white font-bold text-lg">
+                {asset.availableQty || asset.available || 0}
+              </p>
             </div>
             <div>
               <p className="text-gray-400 text-xs mb-1">Category</p>
@@ -853,7 +1024,12 @@ const ImageGalleryModal = ({ asset, onClose }) => {
             </div>
             <div>
               <p className="text-gray-400 text-xs mb-1">From Club</p>
-              <p className="text-white font-bold">{asset.owner?.name || asset.owningClub?.name || asset.club || "Unknown"}</p>
+              <p className="text-white font-bold">
+                {asset.owner?.name ||
+                  asset.owningClub?.name ||
+                  asset.club ||
+                  "Unknown"}
+              </p>
             </div>
           </div>
 

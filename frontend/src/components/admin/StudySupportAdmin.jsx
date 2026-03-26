@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './StudySupportAdmin.css';
 import { Plus, Edit2, Trash2, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import Sidebar from '../common/Sidebar';
 
 const StudySupportAdmin = () => {
     const [activeTab, setActiveTab] = useState('materials'); // materials, sessions, dashboard
@@ -197,17 +198,25 @@ const StudySupportAdmin = () => {
 
     if (loading) {
         return (
-            <div className="admin-container">
-                <div className="loading-state">
-                    <div className="spinner"></div>
-                    <p>Loading study support dashboard...</p>
+            <div className="flex min-h-screen bg-[#0B0F19]">
+                <Sidebar isAdmin={true} />
+                <div className="flex-1 p-5 md:p-8">
+                    <div className="admin-container">
+                        <div className="loading-state">
+                            <div className="spinner"></div>
+                            <p>Loading study support dashboard...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="admin-container">
+        <div className="flex min-h-screen bg-[#0B0F19]">
+            <Sidebar isAdmin={true} />
+            <div className="flex-1 p-5 md:p-8">
+                <div className="admin-container">
             {/* Header */}
             <div className="admin-header">
                 <h1>📚 Study Support Management</h1>
@@ -526,6 +535,8 @@ const StudySupportAdmin = () => {
                     </div>
                 </div>
             )}
+                </div>
+            </div>
         </div>
     );
 };

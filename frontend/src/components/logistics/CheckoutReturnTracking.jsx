@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
+import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
 
 const CheckoutReturnTracking = () => {
   const [user, setUser] = useState(null);
@@ -9,6 +10,8 @@ const CheckoutReturnTracking = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCheckout, setSelectedCheckout] = useState(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [toast, setToast] = useState(null);
 
   // Get user role from localStorage
   useEffect(() => {
@@ -26,36 +29,66 @@ const CheckoutReturnTracking = () => {
     fetchCheckouts();
   }, []);
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2600);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
+
   const fetchCheckouts = async () => {
     setLoading(true);
     try {
       const data = await logisticsAPI.listRequests();
       if (data.success) {
+        setErrorMsg("");
         setCheckouts(data.requests || []);
+      } else {
+        setErrorMsg(data.message || "Unable to load checkout records right now.");
       }
     } catch (error) {
       console.error("Failed to fetch checkouts:", error);
+      setErrorMsg("Unable to load checkout records right now.");
     }
     setLoading(false);
   };
 
   const filteredCheckouts = checkouts.filter((c) => {
-    if (mode === "active") return ["active", "overdue"].includes(c.status);
-    if (mode === "history") return c.status === "returned";
-    if (mode === "overdue") return c.status === "overdue";
+    const status = c.status ? c.status.toLowerCase() : "";
+    if (mode === "active") {
+      return (
+        status === "checked_out" ||
+        (status && !["returned", "pending", "rejected"].includes(status))
+      );
+    }
+    if (mode === "history") return status === "returned";
+    if (mode === "overdue") return status === "overdue";
   });
 
   const getDaysRemaining = (dueDate) => {
-    const due = new Date(dueDate);
-    const today = new Date();
-    const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-    return diff;
+    if (!dueDate) return "—";
+    try {
+      const due = new Date(dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      due.setHours(0, 0, 0, 0);
+      const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+      return Math.max(0, diff);
+    } catch (e) {
+      return "—";
+    }
   };
 
   return (
     <div className="flex min-h-screen">
+      <Sidebar isAdmin={true} />
       <div className="flex-1">
         <div className="checkout-return bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
+          <FeedbackToast toast={toast} onClose={() => setToast(null)} />
+
           {/* HEADER */}
           <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
             <div className="px-8 py-6">
@@ -102,11 +135,25 @@ const CheckoutReturnTracking = () => {
 
           {/* MAIN CONTENT */}
           <div className="px-8 py-8 max-w-7xl mx-auto">
+            {errorMsg && (
+              <div className="mb-6">
+                <FeedbackPanel
+                  type="error"
+                  title="Could not load checkout data"
+                  message={errorMsg}
+                  actionLabel="Try again"
+                  onAction={fetchCheckouts}
+                />
+              </div>
+            )}
+
             {/* STATS */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <StatBox
                 label="Active Checkouts"
-                value={checkouts.filter((c) => c.status === "active").length}
+                value={
+                  checkouts.filter((c) => c.status === "checked_out").length
+                }
                 color="blue"
                 icon="📦"
               />
@@ -127,7 +174,11 @@ const CheckoutReturnTracking = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* LIST VIEW */}
               <div className="lg:col-span-2">
-                {filteredCheckouts.length === 0 ? (
+                {loading ? (
+                  <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
+                    <p className="text-gray-400 text-lg">Loading checkout items...</p>
+                  </div>
+                ) : filteredCheckouts.length === 0 ? (
                   <div className="bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
                     <p className="text-gray-400 text-lg">No {mode} checkouts</p>
                   </div>
@@ -157,29 +208,45 @@ const CheckoutReturnTracking = () => {
                     <div className="space-y-4 mb-6">
                       <DetailField
                         label="Asset"
-                        value={selectedCheckout.asset}
+                        value={selectedCheckout.asset?.name || "Unknown"}
                       />
                       <DetailField
                         label="Borrower Club"
-                        value={selectedCheckout.club}
+                        value={
+                          selectedCheckout.club?.name ||
+                          selectedCheckout.requestingClub?.name ||
+                          "Unknown"
+                        }
                       />
                       <DetailField
-                        label="Contact"
-                        value={selectedCheckout.borrowerContact}
+                        label="Quantity"
+                        value={selectedCheckout.quantity || "—"}
                       />
                       <DetailField
                         label="Checked Out"
-                        value={selectedCheckout.checkedOutDate}
+                        value={
+                          selectedCheckout.checkedOutAt ||
+                          selectedCheckout.startDate ||
+                          "—"
+                        }
                       />
                       <DetailField
                         label="Due Date"
-                        value={selectedCheckout.dueDate}
+                        value={
+                          selectedCheckout.dueDate ||
+                          selectedCheckout.endDate ||
+                          "—"
+                        }
                       />
 
                       {selectedCheckout.status === "returned" && (
                         <DetailField
                           label="Returned"
-                          value={selectedCheckout.returnedDate}
+                          value={
+                            selectedCheckout.returnedAt ||
+                            selectedCheckout.returnedDate ||
+                            "—"
+                          }
                         />
                       )}
 
@@ -194,7 +261,7 @@ const CheckoutReturnTracking = () => {
                               : "bg-yellow-500/20 text-yellow-400"
                           }`}
                         >
-                          {selectedCheckout.condition}
+                          {selectedCheckout.condition || "good"}
                         </span>
                       </div>
 
@@ -265,7 +332,7 @@ const CheckoutReturnTracking = () => {
               checkout={selectedCheckout}
               onClose={() => setShowReturnModal(false)}
               onSubmit={() => {
-                alert("Return processed successfully!");
+                showToast("Return processed successfully.", "success");
                 setShowReturnModal(false);
                 setSelectedCheckout(null);
               }}
@@ -300,7 +367,7 @@ const StatBox = ({ label, value, color, icon }) => {
 const CheckoutItem = ({ checkout, isSelected, onSelect, daysRemaining }) => {
   const getStatusColor = () => {
     if (checkout.status === "overdue") return "from-red-500 to-red-600";
-    if (checkout.status === "active") {
+    if (checkout.status === "checked_out") {
       if (daysRemaining <= 2) return "from-yellow-500 to-yellow-600";
       return "from-blue-500 to-blue-600";
     }
@@ -316,8 +383,13 @@ const CheckoutItem = ({ checkout, isSelected, onSelect, daysRemaining }) => {
     >
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-lg font-bold text-white">{checkout.asset}</h3>
-          <p className="text-gray-400 text-sm">Borrowed by: {checkout.club}</p>
+          <h3 className="text-lg font-bold text-white">
+            {checkout.asset?.name || "Unknown"}
+          </h3>
+          <p className="text-gray-400 text-sm">
+            Borrowed by:{" "}
+            {checkout.club?.name || checkout.requestingClub?.name || "Unknown"}
+          </p>
         </div>
         <span
           className={`px-3 py-1 text-sm rounded-full font-medium text-white bg-gradient-to-r ${getStatusColor()}`}
@@ -326,18 +398,22 @@ const CheckoutItem = ({ checkout, isSelected, onSelect, daysRemaining }) => {
             ? "✓ Returned"
             : checkout.status === "overdue"
               ? "⚠️ Overdue"
-              : "📦 Active"}
+              : "📦 In Transit"}
         </span>
       </div>
 
       <div className="grid grid-cols-3 gap-3 text-sm mb-3">
         <div>
           <p className="text-gray-500 text-xs">Checked Out</p>
-          <p className="text-white font-medium">{checkout.checkedOutDate}</p>
+          <p className="text-white font-medium">
+            {checkout.checkedOutAt || checkout.startDate || "—"}
+          </p>
         </div>
         <div>
           <p className="text-gray-500 text-xs">Due Date</p>
-          <p className="text-white font-medium">{checkout.dueDate}</p>
+          <p className="text-white font-medium">
+            {checkout.dueDate || checkout.endDate || "—"}
+          </p>
         </div>
         <div>
           <p className="text-gray-500 text-xs">Days Remaining</p>
@@ -354,7 +430,9 @@ const CheckoutItem = ({ checkout, isSelected, onSelect, daysRemaining }) => {
               ? "—"
               : checkout.status === "overdue"
                 ? "Overdue"
-                : getDaysRemaining(checkout.dueDate) + " days"}
+                : daysRemaining === "—"
+                  ? "—"
+                  : daysRemaining + " days"}
           </p>
         </div>
       </div>

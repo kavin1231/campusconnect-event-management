@@ -225,21 +225,21 @@ const ClubOnboarding = () => {
 
                     {/* ACTION BUTTONS */}
                     {selectedApp.status === "pending" && (
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleApprove(selectedApp.id)}
-                          className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
+                          className="w-full px-4 py-3 bg-emerald-600/95 hover:bg-emerald-600 text-white rounded-xl font-semibold transition shadow-lg shadow-emerald-900/30"
                         >
-                          ✓ Approve Application
+                          Approve
                         </button>
                         <button
                           onClick={() => {
                             const reason = prompt("Enter rejection reason:");
                             if (reason) handleReject(selectedApp.id, reason);
                           }}
-                          className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+                          className="w-full px-4 py-3 bg-red-600/95 hover:bg-red-600 text-white rounded-xl font-semibold transition shadow-lg shadow-red-900/25"
                         >
-                          ✗ Reject Application
+                          Reject
                         </button>
                       </div>
                     )}

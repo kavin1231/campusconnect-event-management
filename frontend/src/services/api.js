@@ -137,21 +137,31 @@ export const logisticsAPI = {
     return response.json();
   },
 
-  approveRequest: async (requestId) => {
+  approveRequest: async (requestId, approvedById) => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const resolvedApprovedById = approvedById || user?.id;
+    if (!resolvedApprovedById) {
+      return {
+        success: false,
+        message: "Unable to determine approver ID from current session.",
+      };
+    }
     const response = await fetchWithAuth(
       `/logistics/requests/${requestId}/approve`,
       {
         method: "PATCH",
+        body: JSON.stringify({ approvedById: resolvedApprovedById }),
       },
     );
     return response.json();
   },
 
-  rejectRequest: async (requestId) => {
+  rejectRequest: async (requestId, rejectionReason = "") => {
     const response = await fetchWithAuth(
       `/logistics/requests/${requestId}/reject`,
       {
         method: "PATCH",
+        body: JSON.stringify({ rejectionReason }),
       },
     );
     return response.json();
@@ -167,11 +177,20 @@ export const logisticsAPI = {
     return response.json();
   },
 
-  returnAsset: async (requestId) => {
+  returnAsset: async (requestId, approvedReturnBy) => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const resolvedApprovedReturnBy = approvedReturnBy || user?.id;
+    if (!resolvedApprovedReturnBy) {
+      return {
+        success: false,
+        message: "Unable to determine return approver ID from current session.",
+      };
+    }
     const response = await fetchWithAuth(
       `/logistics/requests/${requestId}/return`,
       {
         method: "PATCH",
+        body: JSON.stringify({ approvedReturnBy: resolvedApprovedReturnBy }),
       },
     );
     return response.json();

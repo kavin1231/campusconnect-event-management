@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
+import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
 
 const SummaryCard = ({ label, value, icon }) => (
   <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
@@ -77,6 +79,8 @@ const AssetManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [clubAssets, setClubAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [toast, setToast] = useState(null);
 
   const [newAsset, setNewAsset] = useState({
     name: "",
@@ -102,15 +106,29 @@ const AssetManagement = () => {
     fetchAssets();
   }, []);
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2600);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
+
   const fetchAssets = async () => {
     setLoading(true);
     try {
       const data = await logisticsAPI.listAssets();
       if (data.success) {
+        setErrorMsg("");
         setClubAssets(data.assets || []);
+      } else {
+        setErrorMsg(data.message || "Unable to load assets right now.");
       }
     } catch (error) {
       console.error("Failed to fetch assets:", error);
+      setErrorMsg("Unable to load assets right now.");
     }
     setLoading(false);
   };
@@ -133,19 +151,26 @@ const AssetManagement = () => {
             condition: "excellent",
           });
           setShowAddModal(false);
-          alert("✅ Asset created successfully!");
+          showToast("Asset created successfully.", "success");
+        } else {
+          showToast(response.message || "Failed to create asset.", "error");
         }
       } catch (error) {
         console.error("Failed to create asset:", error);
-        alert("Failed to create asset");
+        showToast("Failed to create asset.", "error");
       }
+    } else {
+      showToast("Please provide asset name and valid quantity.", "warning");
     }
   };
 
   return (
     <div className="flex min-h-screen">
+      <Sidebar isAdmin={true} />
       <div className="flex-1">
         <div className="asset-management bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
+          <FeedbackToast toast={toast} onClose={() => setToast(null)} />
+
           {/* HEADER */}
           <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
             <div className="px-8 py-6">
@@ -173,6 +198,18 @@ const AssetManagement = () => {
 
           {/* MAIN CONTENT */}
           <div className="px-8 py-8 max-w-7xl mx-auto">
+            {errorMsg && (
+              <div className="mb-6">
+                <FeedbackPanel
+                  type="error"
+                  title="Could not load assets"
+                  message={errorMsg}
+                  actionLabel="Try again"
+                  onAction={fetchAssets}
+                />
+              </div>
+            )}
+
             {/* SUMMARY CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
               <SummaryCard
@@ -201,18 +238,34 @@ const AssetManagement = () => {
             </div>
 
             {/* ASSETS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {clubAssets.map((asset) => (
-                <AssetCard
-                  key={asset.id}
-                  asset={asset}
-                  onEdit={() => {}}
-                  onDelete={() => {}}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gray-800 border border-gray-700 rounded-xl p-6 animate-pulse"
+                  >
+                    <div className="h-5 w-2/3 bg-gray-700 rounded mb-3" />
+                    <div className="h-4 w-1/2 bg-gray-700 rounded mb-5" />
+                    <div className="h-12 w-full bg-gray-700 rounded mb-4" />
+                    <div className="h-10 w-full bg-gray-700 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {clubAssets.map((asset) => (
+                  <AssetCard
+                    key={asset.id}
+                    asset={asset}
+                    onEdit={() => {}}
+                    onDelete={() => {}}
+                  />
+                ))}
+              </div>
+            )}
 
-            {clubAssets.length === 0 && (
+            {!loading && clubAssets.length === 0 && (
               <div className="bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
                 <p className="text-gray-400 text-lg mb-4">
                   No assets added yet

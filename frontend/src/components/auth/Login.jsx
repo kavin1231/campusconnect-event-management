@@ -27,12 +27,14 @@ const Login = () => {
         // Redirect based on role
         if (
           data.user.role === "SYSTEM_ADMIN" ||
-          data.user.role === "EVENT_ORGANIZER"
+          data.user.role === "CLUB_PRESIDENT"
         ) {
           navigate("/admin-dashboard");
+        } else if (data.user.role === "EVENT_ORGANIZER") {
+          navigate("/organizer-dashboard");
         } else {
-          // Students go to home page
-          navigate("/");
+          // Students and default fallback
+          navigate("/dashboard");
         }
       } else {
         setError(data.message || "Login failed. Please try again.");

@@ -8,6 +8,7 @@ import eventRoutes from "./routes/events.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import logisticsRoutes from "./routes/logistics.js";
 import presidentRoutes from "./routes/president.js";
+import adminRoutes from "./routes/admin.js";
 // import studySupportRoutes from "./routes/studySupport.js";  // TODO: Convert to ES modules
 
 dotenv.config();
@@ -28,6 +29,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/logistics", logisticsRoutes);
 app.use("/api/president", presidentRoutes);
+app.use("/api/admin", adminRoutes);
 // app.use("/api/study-support", studySupportRoutes);  // TODO: Convert to ES modules
 
 // test database connection

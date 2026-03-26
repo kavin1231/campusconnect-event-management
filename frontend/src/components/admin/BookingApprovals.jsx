@@ -10,6 +10,8 @@ import {
   User,
   MapPin,
 } from "lucide-react";
+import Sidebar from "../common/Sidebar";
+import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
 import "./BookingApprovals.css";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -21,12 +23,24 @@ const BookingApprovals = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchBookings();
     const interval = setInterval(fetchBookings, 20000);
     return () => clearInterval(interval);
   }, [statusFilter]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2600);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
 
   const fetchBookings = async () => {
     try {
@@ -40,9 +54,11 @@ const BookingApprovals = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
       );
+      setErrorMsg("");
       setBookings(response.data.bookings);
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
+      setErrorMsg("Unable to load booking requests right now.");
     } finally {
       setLoading(false);
     }
@@ -57,17 +73,17 @@ const BookingApprovals = () => {
         { approvedById: userId },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      alert("Booking approved successfully");
+      showToast("Booking approved successfully.", "success");
       fetchBookings();
     } catch (error) {
       console.error("Failed to approve booking:", error);
-      alert("Error approving booking");
+      showToast("Error approving booking.", "error");
     }
   };
 
   const handleReject = async (bookingId) => {
     if (!rejectReason.trim()) {
-      alert("Please provide a rejection reason");
+      showToast("Please provide a rejection reason.", "warning");
       return;
     }
     try {
@@ -77,13 +93,13 @@ const BookingApprovals = () => {
         { rejectionReason: rejectReason },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      alert("Booking rejected successfully");
+      showToast("Booking rejected successfully.", "success");
       setShowRejectModal(false);
       setRejectReason("");
       fetchBookings();
     } catch (error) {
       console.error("Failed to reject booking:", error);
-      alert("Error rejecting booking");
+      showToast("Error rejecting booking.", "error");
     }
   };
 
@@ -100,7 +116,12 @@ const BookingApprovals = () => {
   const formatDate = (date) => new Date(date).toLocaleDateString();
 
   return (
-    <div className="booking-approvals">
+    <div className="flex min-h-screen bg-[#0B0F19]">
+      <Sidebar isAdmin={true} />
+      <div className="flex-1 p-5 md:p-8">
+        <div className="booking-approvals">
+          <FeedbackToast toast={toast} onClose={() => setToast(null)} />
+
       <div className="approvals-header">
         <h2>Booking Request Approvals</h2>
         <div className="filter-section">
@@ -116,6 +137,18 @@ const BookingApprovals = () => {
           </select>
         </div>
       </div>
+
+      {errorMsg && (
+        <div style={{ marginBottom: "1rem" }}>
+          <FeedbackPanel
+            type="error"
+            title="Could not load booking requests"
+            message={errorMsg}
+            actionLabel="Try again"
+            onAction={fetchBookings}
+          />
+        </div>
+      )}
 
       {/* Bookings List */}
       <motion.div
@@ -214,21 +247,21 @@ const BookingApprovals = () => {
       </motion.div>
 
       {/* Reject Modal */}
-      <AnimatePresence>
-        {showRejectModal && (
-          <motion.div
-            className="modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="modal-content"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-            >
-              <h3>Reject Booking Request</h3>
+          <AnimatePresence>
+            {showRejectModal && (
+              <motion.div
+                className="modal-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  className="modal-content"
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                >
+                  <h3>Reject Booking Request</h3>
               <p>Please provide a reason for rejection:</p>
               <textarea
                 value={rejectReason}
@@ -255,10 +288,12 @@ const BookingApprovals = () => {
                   Confirm Rejection
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 };

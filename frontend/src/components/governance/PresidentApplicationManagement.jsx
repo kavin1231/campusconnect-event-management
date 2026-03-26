@@ -83,7 +83,8 @@ export default function PresidentApplicationManagement() {
 
   const handleRejectSubmit = async (appId) => {
     if (!rejectReason.trim()) {
-      alert("Please provide a rejection reason");
+      setMessage("Please provide a rejection reason.");
+      setMessageType("error");
       return;
     }
 

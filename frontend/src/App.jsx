@@ -232,6 +232,138 @@ function App() {
             />
           }
         />
+
+        {/* Governance Routes */}
+        <Route
+          path="/governance"
+          element={
+            <ProtectedRoute
+              element={GovernanceDashboard}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/club-onboarding"
+          element={
+            <ProtectedRoute
+              element={ClubOnboarding}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/event-approval"
+          element={
+            <ProtectedRoute
+              element={EventApproval}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/president-applications"
+          element={
+            <ProtectedRoute
+              element={PresidentApplicationManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/president-registration"
+          element={
+            <ProtectedRoute
+              element={PresidentRegistrationForm}
+              allowedRoles={["CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/notifications"
+          element={
+            <ProtectedRoute
+              element={StudentNotifications}
+              allowedRoles={["STUDENT", "SYSTEM_ADMIN"]}
+            />
+          }
+        />
+
+        {/* Logistics Routes */}
+        <Route
+          path="/logistics/admin"
+          element={
+            <ProtectedRoute
+              element={LogisticsDashboard}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/logistics/assets"
+          element={
+            <ProtectedRoute
+              element={AssetManagement}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/logistics/request"
+          element={
+            <ProtectedRoute
+              element={ResourceRequest}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/logistics/availability"
+          element={
+            <ProtectedRoute
+              element={ResourceAvailabilityEngine}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/logistics/checkout-return"
+          element={
+            <ProtectedRoute
+              element={CheckoutReturnTracking}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+
+        {/* Analytics Routes */}
+        <Route
+          path="/analytics/overview"
+          element={
+            <ProtectedRoute
+              element={AnalyticsOverview}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/analytics/reports"
+          element={
+            <ProtectedRoute
+              element={AnalyticsReports}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/analytics/activity"
+          element={
+            <ProtectedRoute
+              element={AnalyticsActivity}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
       </Routes>
 
     </div>

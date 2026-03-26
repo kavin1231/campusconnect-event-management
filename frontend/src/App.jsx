@@ -10,6 +10,7 @@ import MyEventsPage from './components/dashboard/MyEventsPage';
 import PendingEventPage from './components/dashboard/PendingEventPage';
 import EventSetupPage from './components/dashboard/EventSetupPage';
 import PublishedEventPage from './components/dashboard/PublishedEventPage';
+import MerchandiseOrdersPage from './components/dashboard/MerchandiseOrdersPage';
 import EventRequestFormPage from './pages/EventRequestFormPage';
 import { CalendarPage } from './pages/CalendarPage';
 import './App.css';
@@ -29,6 +30,7 @@ function App() {
         <Route path="/my-events/:id/pending" element={<PendingEventPage />} />
         <Route path="/my-events/:id/setup" element={<EventSetupPage />} />
         <Route path="/my-events/:id/published" element={<PublishedEventPage />} />
+        <Route path="/my-events/:id/merchandise" element={<MerchandiseOrdersPage />} />
         <Route path="/create-event" element={<EventRequestFormPage onBack={() => window.history.back()} />} />
         <Route path="/calendar" element={<CalendarPage onBack={() => window.history.back()} />} />
       </Routes>

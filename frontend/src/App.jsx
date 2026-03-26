@@ -56,6 +56,7 @@ import {
 import {
   LogisticsDashboard,
   AssetManagement,
+  BrowseResources,
   ResourceRequest,
   ResourceAvailabilityEngine,
   CheckoutReturnTracking,
@@ -317,6 +318,15 @@ function App() {
             <ProtectedRoute
               element={AssetManagement}
               allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/logistics/browse"
+          element={
+            <ProtectedRoute
+              element={BrowseResources}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
         />

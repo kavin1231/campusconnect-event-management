@@ -151,22 +151,11 @@ class LogisticsController {
 
   static async getAllAssets(req, res) {
     try {
-      const {
-        clubId,
-        category,
-        status,
-        condition,
-        search,
-        page = 1,
-        limit = 10,
-      } = req.query;
+      const { status, search, page = 1, limit = 10 } = req.query;
       const skip = (page - 1) * limit;
 
       const where = {};
-      if (clubId) where.clubId = parseInt(clubId);
-      if (category) where.category = category;
-      if (status) where.status = status;
-      if (condition) where.condition = condition;
+      if (status) where.status = status.toUpperCase();
       if (search) {
         where.OR = [
           { name: { contains: search, mode: "insensitive" } },
@@ -177,8 +166,7 @@ class LogisticsController {
       const assets = await prisma.asset.findMany({
         where,
         include: {
-          club: { select: { id: true, name: true, logo: true } },
-          _count: { select: { bookings: true, damageReports: true } },
+          _count: { select: { bookings: true } },
         },
         skip,
         take: parseInt(limit),
@@ -187,9 +175,19 @@ class LogisticsController {
 
       const total = await prisma.asset.count({ where });
 
+      const formattedAssets = assets.map((asset) => ({
+        id: asset.id,
+        name: asset.name,
+        description: asset.description,
+        ownerId: asset.ownerId,
+        status: asset.status,
+        bookingCount: asset._count.bookings,
+        createdAt: asset.createdAt,
+      }));
+
       res.json({
         success: true,
-        assets,
+        assets: formattedAssets,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -205,33 +203,19 @@ class LogisticsController {
 
   static async createAsset(req, res) {
     try {
-      const {
-        name,
-        description,
-        category,
-        quantity,
-        condition,
-        clubId,
-        images,
-        thumbnail,
-        value,
-      } = req.body;
+      const { name, description, ownerId } = req.body;
+      const userId = req.user?.id || req.userId;
+
+      // Use provided ownerId or fallback to current user
+      const assignedOwnerId = ownerId ? parseInt(ownerId) : userId;
 
       const asset = await prisma.asset.create({
         data: {
           name,
           description,
-          category,
-          quantity: parseInt(quantity),
-          availableQty: parseInt(quantity),
-          condition,
-          clubId: parseInt(clubId),
-          images: images || [],
-          thumbnail,
-          value: value ? parseFloat(value) : null,
+          ownerId: assignedOwnerId,
           status: "AVAILABLE",
         },
-        include: { club: true },
       });
 
       res
@@ -246,30 +230,15 @@ class LogisticsController {
   static async updateAsset(req, res) {
     try {
       const { assetId } = req.params;
-      const {
-        name,
-        description,
-        category,
-        quantity,
-        condition,
-        status,
-        images,
-        value,
-      } = req.body;
+      const { name, description, status } = req.body;
 
       const asset = await prisma.asset.update({
         where: { id: parseInt(assetId) },
         data: {
           ...(name && { name }),
           ...(description && { description }),
-          ...(category && { category }),
-          ...(quantity && { quantity: parseInt(quantity) }),
-          ...(condition && { condition }),
           ...(status && { status }),
-          ...(images && { images }),
-          ...(value && { value: parseFloat(value) }),
         },
-        include: { club: true },
       });
 
       res.json({ success: true, message: "Asset updated successfully", asset });
@@ -301,8 +270,7 @@ class LogisticsController {
       const asset = await prisma.asset.findUnique({
         where: { id: parseInt(assetId) },
         include: {
-          club: { select: { id: true, name: true, logo: true } },
-          _count: { select: { bookings: true, damageReports: true } },
+          _count: { select: { bookings: true } },
         },
       });
 
@@ -396,25 +364,19 @@ class LogisticsController {
 
   static async createBooking(req, res) {
     try {
-      const {
-        assetId,
-        requestingClubId,
-        owningClubId,
-        requesterId,
-        quantityRequested,
-        startDate,
-        endDate,
-        purpose,
-      } = req.body;
+      const { assetId, requesterId, startDate, endDate } = req.body;
+      const userId = req.user?.id;
+
+      // Use provided requesterId or current user
+      const assignedRequesterId = requesterId ? parseInt(requesterId) : userId;
 
       const start = new Date(startDate);
       const end = new Date(endDate);
 
-      if (!assetId || !requestingClubId || !owningClubId || !requesterId) {
+      if (!assetId || !assignedRequesterId) {
         return res.status(400).json({
           success: false,
-          message:
-            "assetId, requestingClubId, owningClubId and requesterId are required",
+          message: "assetId and requesterId are required",
         });
       }
 
@@ -431,44 +393,28 @@ class LogisticsController {
         });
       }
 
-      if (!quantityRequested || parseInt(quantityRequested) <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "quantityRequested must be greater than 0",
-        });
-      }
+      // Verify asset exists
+      const asset = await prisma.asset.findUnique({
+        where: { id: parseInt(assetId) },
+      });
 
-      const availCheck = await this.checkAssetAvailability(
-        parseInt(assetId),
-        start,
-        end,
-        parseInt(quantityRequested),
-      );
-
-      if (!availCheck.isAvailable) {
-        return res.status(400).json({
-          success: false,
-          message: "Asset not available for requested dates",
-        });
+      if (!asset) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Asset not found" });
       }
 
       const booking = await prisma.assetBooking.create({
         data: {
           assetId: parseInt(assetId),
-          requestingClubId: parseInt(requestingClubId),
-          owningClubId: parseInt(owningClubId),
-          requesterId: parseInt(requesterId),
-          quantityRequested: parseInt(quantityRequested),
+          requesterId: assignedRequesterId,
           startDate: start,
           endDate: end,
-          purpose,
           status: "PENDING",
         },
         include: {
-          asset: true,
+          asset: { select: { id: true, name: true, description: true } },
           requester: { select: { id: true, name: true, email: true } },
-          requestingClub: { select: { id: true, name: true } },
-          owningClub: { select: { id: true, name: true } },
         },
       });
 
@@ -659,10 +605,8 @@ class LogisticsController {
       const bookings = await prisma.assetBooking.findMany({
         where,
         include: {
-          asset: true,
+          asset: { select: { id: true, name: true, description: true } },
           requester: { select: { id: true, name: true, email: true } },
-          requestingClub: { select: { id: true, name: true } },
-          owningClub: { select: { id: true, name: true } },
         },
         skip,
         take: parseInt(limit),
@@ -684,19 +628,13 @@ class LogisticsController {
         return {
           id: b.id,
           asset: b.asset.name,
-          owner: b.owningClub?.name || b.requestingClub?.name || "Unknown",
-          club: b.requestingClub?.name || "Unknown",
-          quantity: b.quantityRequested,
+          requester: b.requester.name,
+          quantity: 1,
           status: statusLabel,
-          neededDate: dateToString(b.startDate),
-          returnDate: dateToString(b.endDate),
-          requestDate: dateToString(b.createdAt),
-          dueDate: dateToString(b.endDate),
-          checkedOutDate: dateToString(b.checkedOutAt),
-          returnedDate: dateToString(b.returnedAt),
-          borrowerContact: null,
-          condition: b.asset.condition.toLowerCase(),
-          notes: b.purpose || null,
+          startDate: dateToString(b.startDate),
+          endDate: dateToString(b.endDate),
+          createdAt: dateToString(b.createdAt),
+          approvedAt: dateToString(b.approvedAt),
         };
       });
 
@@ -731,9 +669,8 @@ class LogisticsController {
           approvedAt: new Date(),
         },
         include: {
-          asset: true,
-          requester: true,
-          requestingClub: true,
+          asset: { select: { id: true, name: true, description: true } },
+          requester: { select: { id: true, name: true, email: true } },
         },
       });
 
@@ -747,17 +684,15 @@ class LogisticsController {
   static async rejectBooking(req, res) {
     try {
       const { bookingId } = req.params;
-      const { rejectionReason } = req.body;
 
       const booking = await prisma.assetBooking.update({
         where: { id: parseInt(bookingId) },
         data: {
           status: "REJECTED",
-          rejectionReason,
         },
         include: {
-          asset: true,
-          requester: true,
+          asset: { select: { id: true, name: true, description: true } },
+          requester: { select: { id: true, name: true, email: true } },
         },
       });
 

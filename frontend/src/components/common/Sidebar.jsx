@@ -210,7 +210,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   const studentMenuItems = [
     { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
-    { id: "my-events", label: "My Events", path: "/events", icon: "📅" },
+    { id: "my-events", label: "My Events", path: "/my-events", icon: "📅" },
+    { id: "create-event", label: "Create Event", path: "/create-event", icon: "➕" },
+    { id: "calendar", label: "Calendar", path: "/calendar", icon: "📅" },
     // Students should not see Logistics in the sidebar
     { id: "resources", label: "Resources", path: "/resources", icon: "📦" },
     {
@@ -480,5 +482,4 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     </>
   );
 };
-
 export default Sidebar;

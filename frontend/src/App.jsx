@@ -6,7 +6,7 @@ import EventDetail from "./components/events/EventDetail";
 import StudentProfile from "./components/profile/StudentProfile";
 import StudentDashboard from "./components/dashboard/StudentDashboard";
 import AdminDashboard from "./components/dashboard/AdminDashboard";
-import OrganizerDashboard from "./components/dashboard/OrganizerDashboard";
+import OrganizerDashboard from "./components/dashboard/OrganizerDashboard"; // Original OrganizerDashboard
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
@@ -16,6 +16,15 @@ import SportsList from "./components/sports/SportsList";
 import Sidebar from "./components/common/Sidebar";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Unauthorized from "./components/common/Unauthorized";
+
+// Oshhim Branch Additions
+import OrganizerDashboardV2 from "./components/dashboard/OrganizerDashboard_v2"; // New OrganizerDashboard
+import MyEventsPage from "./components/dashboard/MyEventsPage";
+import PendingEventPage from "./components/dashboard/PendingEventPage";
+import EventSetupPage from "./components/dashboard/EventSetupPage";
+import PublishedEventPage from "./components/dashboard/PublishedEventPage";
+import EventRequestFormPage from "./pages/EventRequestFormPage";
+import { CalendarPage } from "./pages/CalendarPage";
 
 // Placeholder for Analytics
 const AnalyticsPlaceholder = ({ title }) => (
@@ -123,298 +132,61 @@ function App() {
           }
         />
 
-        {/* Study Support Routes */}
-        {/* Study Support Routes */}
+        {/* My Events & Event Management (Oshhim Branch) */}
         <Route
-          path="/study-materials"
+          path="/my-events"
           element={
             <ProtectedRoute
-              element={StudyMaterials}
-              allowedRoles={["STUDENT", "SYSTEM_ADMIN", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+              element={MyEventsPage}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
         />
         <Route
-          path="/admin/study-support"
+          path="/my-events/:id/pending"
           element={
             <ProtectedRoute
-              element={StudySupportAdmin}
-              allowedRoles={["SYSTEM_ADMIN"]}
+              element={PendingEventPage}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
         />
         <Route
-          path="/admin/roles"
+          path="/my-events/:id/setup"
           element={
             <ProtectedRoute
-              element={RoleManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
+              element={EventSetupPage}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
         />
         <Route
-          path="/admin/students"
+          path="/my-events/:id/published"
           element={
             <ProtectedRoute
-              element={StudentManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
+              element={PublishedEventPage}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
         />
         <Route
-          path="/admin/sports"
+          path="/create-event"
           element={
             <ProtectedRoute
-              element={SportsManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
+              element={() => <EventRequestFormPage onBack={() => window.history.back()} />}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
         />
         <Route
-          path="/sports"
+          path="/calendar"
           element={
             <ProtectedRoute
-              element={SportsList}
-              allowedRoles={["STUDENT", "SYSTEM_ADMIN", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+              element={() => <CalendarPage onBack={() => window.history.back()} />}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT", "SYSTEM_ADMIN"]}
             />
           }
         />
-
-        {/* Governance Routes */}
-        <Route
-          path="/governance"
-          element={
-            <ProtectedRoute
-              element={GovernanceDashboard}
-              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
-            />
-          }
-        />
-        <Route
-          path="/governance/dashboard"
-          element={
-            <ProtectedRoute
-              element={GovernanceDashboard}
-              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
-            />
-          }
-        />
-        <Route
-          path="/governance/club-onboarding"
-          element={
-            <ProtectedRoute
-              element={ClubOnboarding}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
-          }
-        />
-        <Route
-          path="/governance/event-approval"
-          element={
-            <ProtectedRoute
-              element={EventApproval}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
-          }
-        />
-        <Route
-          path="/governance/president-applications"
-          element={
-            <ProtectedRoute
-              element={PresidentApplicationManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
-          }
-        />
-        <Route
-          path="/president-registration"
-          element={
-            <ProtectedRoute
-              element={PresidentRegistrationForm}
-              allowedRoles={["STUDENT"]}
-            />
-          }
-        />
-        <Route
-          path="/student-notifications"
-          element={
-            <ProtectedRoute
-              element={StudentNotifications}
-              allowedRoles={["STUDENT"]}
-            />
-          }
-        />
-
-        {/* Logistics Routes */}
-        <Route
-          path="/logistics"
-          element={
-            <ProtectedRoute
-              element={ResourceRequest}
-              allowedRoles={["EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/logistics/browse"
-          element={
-            <ProtectedRoute
-              element={ResourceRequest}
-              allowedRoles={["EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/logistics/admin"
-          element={
-            <ProtectedRoute
-              element={LogisticsDashboard}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
-          }
-        />
-        <Route
-          path="/logistics/assets"
-          element={
-            <ProtectedRoute
-              element={AssetManagement}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/logistics/requests"
-          element={
-            <ProtectedRoute
-              element={ResourceRequest}
-              allowedRoles={["EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/logistics/availability"
-          element={
-            <ProtectedRoute
-              element={ResourceAvailabilityEngine}
-              allowedRoles={["EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/logistics/checkout"
-          element={
-            <ProtectedRoute
-              element={CheckoutReturnTracking}
-              allowedRoles={["EVENT_ORGANIZER"]}
-            />
-          }
-        />
-
-        {/* Operations Routes */}
-        <Route
-          path="/operations"
-          element={
-            <ProtectedRoute
-              element={OperationsDashboard}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/operations/dashboard"
-          element={
-            <ProtectedRoute
-              element={OperationsDashboard}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/operations/profile"
-          element={
-            <ProtectedRoute
-              element={OrganizationProfile}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/operations/sponsorships"
-          element={
-            <ProtectedRoute
-              element={SponsorshipPipeline}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/operations/budgets"
-          element={
-            <ProtectedRoute
-              element={BudgetTracking}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/operations/vendors"
-          element={
-            <ProtectedRoute
-              element={VendorManagement}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/operations/stalls"
-          element={
-            <ProtectedRoute
-              element={StallManagement}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
-          path="/operations/intelligence"
-          element={
-            <ProtectedRoute
-              element={IntelligenceDashboard}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-
-        {/* Analytics Routes */}
-        <Route
-          path="/analytics/overview"
-          element={
-            <ProtectedRoute
-              element={AnalyticsOverview}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
-          }
-        />
-        <Route
-          path="/analytics/reports"
-          element={
-            <ProtectedRoute
-              element={AnalyticsReports}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
-          }
-        />
-        <Route
-          path="/analytics/activity"
-          element={
-            <ProtectedRoute
-              element={AnalyticsActivity}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
-          }
-        />
-
-        {/* Unauthorized */}
-        <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>
 
     </div>

@@ -328,7 +328,6 @@
 }
 
 .sp-btn-outline {
-<<<<<<< HEAD
     padding: 10px 20px;
     background: #fff;
     border: 1.5px solid var(--sp-border);
@@ -350,17 +349,6 @@
 
 .sp-btn-outline:active {
     transform: translateY(0);
-=======
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid var(--sp-border);
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--sp-text-muted);
-  cursor: not-allowed;
-  opacity: 0.6;
->>>>>>> 851fb46abeb784a84819d3d36f92a55697225bee
 }
 
 /* ── Side Column ── */

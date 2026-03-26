@@ -291,7 +291,7 @@ class LogisticsController {
 
   static async checkAvailability(req, res) {
     try {
-      const { assetId, startDate, endDate, quantityNeeded = 1 } = req.body;
+      const { assetId, startDate, endDate } = req.body;
 
       if (!assetId || !startDate || !endDate) {
         return res.status(400).json({
@@ -318,19 +318,6 @@ class LogisticsController {
 
       const asset = await prisma.asset.findUnique({
         where: { id: parseInt(assetId) },
-        include: {
-          bookings: {
-            where: {
-              status: { in: ["APPROVED", "CHECKED_OUT"] },
-              OR: [
-                {
-                  startDate: { lte: new Date(endDate) },
-                  endDate: { gte: new Date(startDate) },
-                },
-              ],
-            },
-          },
-        },
       });
 
       if (!asset) {
@@ -339,20 +326,27 @@ class LogisticsController {
           .json({ success: false, message: "Asset not found" });
       }
 
-      const bookedQuantity = asset.bookings.reduce(
-        (sum, booking) => sum + booking.quantityRequested,
-        0,
-      );
-      const availableQuantity = asset.quantity - bookedQuantity;
-      const isAvailable = availableQuantity >= parseInt(quantityNeeded);
+      // Check for conflicting bookings during the requested timeframe
+      const conflictingBooking = await prisma.assetBooking.findFirst({
+        where: {
+          assetId: parseInt(assetId),
+          status: { in: ["APPROVED", "CHECKED_OUT"] },
+          OR: [
+            {
+              startDate: { lte: new Date(endDate) },
+              endDate: { gte: new Date(startDate) },
+            },
+          ],
+        },
+      });
+
+      const isAvailable = !conflictingBooking;
 
       res.json({
         success: true,
         isAvailable,
-        availableQuantity,
-        totalQuantity: asset.quantity,
-        bookedQuantity,
-        requestedQuantity: parseInt(quantityNeeded),
+        assetId: asset.id,
+        assetName: asset.name,
       });
     } catch (error) {
       console.error("Check availability error:", error);
@@ -901,35 +895,25 @@ class LogisticsController {
 
   // ========== HELPER FUNCTIONS ==========
 
-  static async checkAssetAvailability(
-    assetId,
-    startDate,
-    endDate,
-    quantityNeeded,
-  ) {
+  static async checkAssetAvailability(assetId, startDate, endDate) {
     const asset = await prisma.asset.findUnique({
       where: { id: assetId },
-      include: {
-        bookings: {
-          where: {
-            status: { in: ["APPROVED", "CHECKED_OUT"] },
-            OR: [{ startDate: { lte: endDate }, endDate: { gte: startDate } }],
-          },
-        },
-      },
     });
 
     if (!asset) return { isAvailable: false, reason: "Asset not found" };
 
-    const bookedQuantity = asset.bookings.reduce(
-      (sum, booking) => sum + booking.quantityRequested,
-      0,
-    );
-    const availableQuantity = asset.quantity - bookedQuantity;
+    // Check if there are any conflicting approved or checked out bookings
+    const conflictingBooking = await prisma.assetBooking.findFirst({
+      where: {
+        assetId: assetId,
+        status: { in: ["APPROVED", "CHECKED_OUT"] },
+        OR: [{ startDate: { lte: endDate }, endDate: { gte: startDate } }],
+      },
+    });
 
     return {
-      isAvailable: availableQuantity >= quantityNeeded,
-      availableQuantity,
+      isAvailable: !conflictingBooking,
+      reason: conflictingBooking ? "Asset is already booked for this period" : null,
     };
   }
 
@@ -937,7 +921,6 @@ class LogisticsController {
 
   static async getLogisticsStats(req, res) {
     try {
-      const totalClubs = await prisma.club.count();
       const totalAssets = await prisma.asset.count();
       const pendingRequests = await prisma.assetBooking.count({
         where: { status: "PENDING" },
@@ -948,29 +931,33 @@ class LogisticsController {
       const rejectedRequests = await prisma.assetBooking.count({
         where: { status: "REJECTED" },
       });
-      const totalDamageReports = await prisma.damageReport.count();
-      const totalPenalties = await prisma.damageReport.aggregate({
-        _sum: { penalty: true },
+      const checkedOutRequests = await prisma.assetBooking.count({
+        where: { status: "CHECKED_OUT" },
+      });
+      const returnedRequests = await prisma.assetBooking.count({
+        where: { status: "RETURNED" },
       });
 
       const recentBookings = await prisma.assetBooking.findMany({
         take: 5,
         orderBy: { createdAt: "desc" },
-        include: { asset: true, requestingClub: true, owningClub: true },
+        include: {
+          asset: { select: { id: true, name: true, description: true } },
+          requester: { select: { id: true, name: true, email: true } },
+        },
       });
 
       res.json({
         success: true,
         stats: {
-          totalClubs,
           totalAssets,
           bookingStats: {
             pending: pendingRequests,
             approved: approvedRequests,
             rejected: rejectedRequests,
+            checkedOut: checkedOutRequests,
+            returned: returnedRequests,
           },
-          damageReports: totalDamageReports,
-          totalPenalties: totalPenalties._sum.penalty || 0,
           recentBookings,
         },
       });

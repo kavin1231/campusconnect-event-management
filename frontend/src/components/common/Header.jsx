@@ -55,9 +55,11 @@ export default function Header() {
           <Link to="/dashboard" className="nav-link">
             Dashboard
           </Link>
-          <Link to="/logistics" className="nav-link">
-            Logistics
-          </Link>
+          {user && user.role && user.role.toUpperCase() !== "STUDENT" && (
+            <Link to="/logistics" className="nav-link">
+              Logistics
+            </Link>
+          )}
           <a href="#clubs" className="nav-link">
             Clubs
           </a>

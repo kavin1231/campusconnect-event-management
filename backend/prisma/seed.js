@@ -41,6 +41,40 @@ async function main() {
         });
         console.log(`Operations Manager created with email: ${operationsManager.email}`);
 
+        // 4. Seed Event Organizer (Club President)
+        const organizerEmail = 'organizer@nexora.edu';
+        const organizerPassword = await bcrypt.hash('admin123', saltRounds);
+
+        const organizer = await prisma.user.upsert({
+            where: { email: organizerEmail },
+            update: { password: organizerPassword },
+            create: {
+                email: organizerEmail,
+                name: 'Main Event Organizer',
+                password: organizerPassword,
+                role: 'CLUB_PRESIDENT',
+            },
+        });
+        console.log(`Event Organizer created with email: ${organizer.email}`);
+
+        // 5. Seed Default Student
+        const studentEmail = 'student@nexora.edu';
+        const studentPassword = await bcrypt.hash('admin123', saltRounds);
+
+        const student = await prisma.student.upsert({
+            where: { email: studentEmail },
+            update: { password: studentPassword },
+            create: {
+                email: studentEmail,
+                name: 'Default Student',
+                password: studentPassword,
+                studentId: 'ST12345',
+                department: 'Software Engineering',
+                year: 2,
+            },
+        });
+        console.log(`Default Student created with email: ${student.email}`);
+
         // 4. Seed Sample Events
         const sampleEvents = [
             {

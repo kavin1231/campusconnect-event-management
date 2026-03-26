@@ -196,7 +196,6 @@ export default function PendingEventPage() {
             <h2
               style={{
                 margin: "0 0 20px",
-                fontSize: "14px",
                 fontWeight: "700",
                 color: C.text,
                 textTransform: "uppercase",

@@ -187,6 +187,15 @@ function App() {
             />
           }
         />
+        <Route
+          path="/explore-sports"
+          element={
+            <ProtectedRoute
+              element={SportsList}
+              allowedRoles={["STUDENT", "SYSTEM_ADMIN"]}
+            />
+          }
+        />
       </Routes>
 
     </div>

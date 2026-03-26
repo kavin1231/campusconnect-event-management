@@ -92,6 +92,24 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         { label: "User Activity", path: "/analytics/activity", icon: "👥" },
       ],
     },
+    {
+      id: "services",
+      label: "Student Services",
+      icon: "🎓",
+      subItems: [
+        { label: "Student Records", path: "/admin/students", icon: "👥" },
+        { label: "Study Support", path: "/admin/study-support", icon: "📚" },
+        { label: "Manage Sports", path: "/admin/sports", icon: "⚽" },
+      ],
+    },
+    {
+      id: "system",
+      label: "System Settings",
+      icon: "⚙️",
+      subItems: [
+        { label: "Role Permissions", path: "/admin/roles", icon: "🛡️" },
+      ],
+    },
   ];
 
   const studentMenuItems = [

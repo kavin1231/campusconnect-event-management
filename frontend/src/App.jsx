@@ -196,6 +196,42 @@ function App() {
             />
           }
         />
+        <Route
+          path="/admin/sports"
+          element={
+            <ProtectedRoute
+              element={SportsManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/admin/students"
+          element={
+            <ProtectedRoute
+              element={StudentManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/admin/roles"
+          element={
+            <ProtectedRoute
+              element={RoleManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/admin/study-support"
+          element={
+            <ProtectedRoute
+              element={StudySupportAdmin}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
       </Routes>
 
     </div>

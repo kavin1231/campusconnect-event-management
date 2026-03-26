@@ -23,7 +23,25 @@ async function main() {
         });
         console.log(`System Admin created with email: ${admin.email}`);
 
-        // 2. Seed Event Organizer
+        console.log(`System Admin created with email: ${admin.email}`);
+
+        // 3. Seed Operations Manager
+        const operationsEmail = 'operations@nexora.edu';
+        const operationsPassword = await bcrypt.hash('admin123', saltRounds);
+
+        const operationsManager = await prisma.user.upsert({
+            where: { email: operationsEmail },
+            update: { password: operationsPassword },
+            create: {
+                email: operationsEmail,
+                name: 'NEXORA Operations Manager',
+                password: operationsPassword,
+                role: 'OPERATIONS_MANAGER',
+            },
+        });
+        console.log(`Operations Manager created with email: ${operationsManager.email}`);
+
+        // 4. Seed Event Organizer (Club President)
         const organizerEmail = 'organizer@nexora.edu';
         const organizerPassword = await bcrypt.hash('admin123', saltRounds);
 
@@ -32,14 +50,32 @@ async function main() {
             update: { password: organizerPassword },
             create: {
                 email: organizerEmail,
-                name: 'NEXORA Organizer',
+                name: 'Main Event Organizer',
                 password: organizerPassword,
-                role: 'EVENT_ORGANIZER',
+                role: 'CLUB_PRESIDENT',
             },
         });
         console.log(`Event Organizer created with email: ${organizer.email}`);
 
-        // 3. Seed Sample Events
+        // 5. Seed Default Student
+        const studentEmail = 'student@nexora.edu';
+        const studentPassword = await bcrypt.hash('admin123', saltRounds);
+
+        const student = await prisma.student.upsert({
+            where: { email: studentEmail },
+            update: { password: studentPassword },
+            create: {
+                email: studentEmail,
+                name: 'Default Student',
+                password: studentPassword,
+                studentId: 'ST12345',
+                department: 'Software Engineering',
+                year: 2,
+            },
+        });
+        console.log(`Default Student created with email: ${student.email}`);
+
+        // 4. Seed Sample Events
         const sampleEvents = [
             {
                 title: "AI & Robotics Workshop",
@@ -106,6 +142,137 @@ async function main() {
             });
         }
         console.log('Finished seeding sample events.');
+
+        // 5. Seed sample operations data
+        const organization = await prisma.organization.upsert({
+            where: {
+                contactEmail: 'soc@nexora.edu',
+            },
+            update: {
+                name: 'School of Computing Society',
+                faculty: 'Computing',
+                contactEmail: 'soc@nexora.edu',
+                themePrimary: '#FF6B35',
+                themeAccent: '#1E293B',
+            },
+            create: {
+                name: 'School of Computing Society',
+                faculty: 'Computing',
+                contactEmail: 'soc@nexora.edu',
+                contactPhone: '+94-11-000-0000',
+                description: 'Operations pilot organization for sponsorship and vendor workflows.',
+                themePrimary: '#FF6B35',
+                themeAccent: '#1E293B',
+                managerId: operationsManager.id,
+            },
+        });
+
+        await prisma.sponsorshipLead.upsert({
+            where: {
+                organizationId_sponsorName: {
+                    organizationId: organization.id,
+                    sponsorName: 'TechNova Lanka',
+                },
+            },
+            update: {
+                sponsorName: 'TechNova Lanka',
+                stage: 'PROPOSAL',
+                packageTier: 'GOLD',
+                expectedValue: 2500,
+                managedById: operationsManager.id,
+                organizationId: organization.id,
+            },
+            create: {
+                organizationId: organization.id,
+                sponsorName: 'TechNova Lanka',
+                sponsorEmail: 'partnerships@technova.lk',
+                contactPerson: 'Ari Perera',
+                stage: 'PROPOSAL',
+                packageTier: 'GOLD',
+                expectedValue: 2500,
+                benefitsChecklist: {
+                    logoPlacement: true,
+                    keynoteSlot: false,
+                    socialMentions: true,
+                },
+                managedById: operationsManager.id,
+            },
+        });
+
+        await prisma.vendorPartner.upsert({
+            where: {
+                organizationId_name: {
+                    organizationId: organization.id,
+                    name: 'Campus Pizza Co.',
+                },
+            },
+            update: {
+                name: 'Campus Pizza Co.',
+                agreementStatus: 'UNDER_REVIEW',
+            },
+            create: {
+                organizationId: organization.id,
+                name: 'Campus Pizza Co.',
+                contactName: 'Nimali Fernando',
+                contactPhone: '+94-77-123-4567',
+                contactEmail: 'ops@campuspizza.lk',
+                requirements: {
+                    firePermit: true,
+                    foodSafety: true,
+                    powerNeed: '2kW',
+                },
+                agreementStatus: 'UNDER_REVIEW',
+            },
+        });
+
+        await prisma.organizationBudget.upsert({
+            where: {
+                organizationId_category: {
+                    organizationId: organization.id,
+                    category: 'Event Operations',
+                },
+            },
+            update: {
+                plannedAmount: 1800,
+                actualAmount: 1300,
+            },
+            create: {
+                organizationId: organization.id,
+                category: 'Event Operations',
+                plannedAmount: 1800,
+                actualAmount: 1300,
+                notes: 'Food zone setup and stage logistics',
+                createdById: operationsManager.id,
+            },
+        });
+
+        await prisma.stallSlot.upsert({
+            where: {
+                organizationId_slotCode_eventDate_startTime: {
+                    organizationId: organization.id,
+                    slotCode: 'A-01',
+                    eventDate: new Date('2026-04-25T00:00:00Z'),
+                    startTime: new Date('2026-04-25T08:00:00Z'),
+                },
+            },
+            update: {
+                slotCode: 'A-01',
+                location: 'Main Courtyard',
+                eventDate: new Date('2026-04-25T00:00:00Z'),
+                startTime: new Date('2026-04-25T08:00:00Z'),
+                endTime: new Date('2026-04-25T15:00:00Z'),
+                organizationId: organization.id,
+            },
+            create: {
+                organizationId: organization.id,
+                slotCode: 'A-01',
+                location: 'Main Courtyard',
+                eventDate: new Date('2026-04-25T00:00:00Z'),
+                startTime: new Date('2026-04-25T08:00:00Z'),
+                endTime: new Date('2026-04-25T15:00:00Z'),
+            },
+        });
+        console.log('Finished seeding operations module sample data.');
 
     } catch (error) {
         console.error('Error seeding database:', error);

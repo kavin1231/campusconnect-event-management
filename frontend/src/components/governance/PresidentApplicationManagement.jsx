@@ -12,6 +12,13 @@ export default function PresidentApplicationManagement() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    email: "",
+    clubName: "",
+    password: "",
+  });
   const [actionLoading, setActionLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
@@ -39,6 +46,22 @@ export default function PresidentApplicationManagement() {
       navigate("/login");
     }
   }, [navigate]);
+
+  const AVAILABLE_CLUBS = [
+    "Faculty of Computing",
+    "Faculty of Engineering",
+    "Faculty of Business",
+    "Robotics Club",
+    "FOSS Community",
+    "Mozi Club",
+    "Rotaract Club",
+    "Leo Club",
+    "IEEE Student Branch",
+    "AIESEC",
+    "Gavel Club",
+    "Sports Council",
+    "Arts Society"
+  ];
 
   // Fetch president applications
   const fetchApplications = async () => {
@@ -111,7 +134,24 @@ export default function PresidentApplicationManagement() {
     setActionLoading(false);
   };
 
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await governanceAPI.createPresident(createForm);
+      if (response.success) {
+        setShowCreateModal(false);
+        setCreateForm({ name: "", email: "", clubName: "", password: "" });
+        alert("✅ President created successfully!");
+        fetchApplications(); // If we want to refresh (though this doesn't create an application)
+      }
+    } catch (error) {
+      console.error("Failed to create president:", error);
+      alert(error.message || "Failed to create president");
+    }
+  };
+
   const filteredApplications = applications.filter(
+
     (app) => app.status === filterStatus,
   );
 
@@ -150,7 +190,15 @@ export default function PresidentApplicationManagement() {
       <Sidebar isAdmin={true} />
       <div className="pam-content">
         <div className="pam-header">
-          <h1>👑 President Application Management</h1>
+          <div className="pam-header-title-row">
+            <h1>👑 President Application Management</h1>
+            <button
+              className="pam-btn-create-direct"
+              onClick={() => setShowCreateModal(true)}
+            >
+              ➕ Create President Directly
+            </button>
+          </div>
           <p className="pam-subtitle">
             Review and manage student president applications
           </p>
@@ -442,6 +490,80 @@ export default function PresidentApplicationManagement() {
                   {actionLoading ? "Processing..." : "Confirm Rejection"}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Modal */}
+        {showCreateModal && (
+          <div className="pres-modal-overlay">
+            <div className="pres-modal">
+              <h2>➕ Create Club President</h2>
+              <form onSubmit={handleCreateSubmit}>
+                <div className="pres-form-group">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    value={createForm.name}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="pres-form-group">
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    value={createForm.email}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, email: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="pres-form-group">
+                  <label>Club / Faculty Name</label>
+                  <select
+                    value={createForm.clubName}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, clubName: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="" disabled>Select a Club or Faculty</option>
+                    {AVAILABLE_CLUBS.map((club) => (
+                      <option key={club} value={club}>
+                        {club}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="pres-form-group">
+                  <label>Temporary Password</label>
+                  <input
+                    type="password"
+                    value={createForm.password}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, password: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="pres-modal-actions">
+                  <button
+                    type="button"
+                    className="pres-btn-cancel"
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="pres-btn-confirm-create">
+                    Create Account
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

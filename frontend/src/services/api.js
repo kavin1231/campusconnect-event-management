@@ -67,7 +67,13 @@ export const authAPI = {
     });
     return response.json();
   },
+
+  getAllStudents: async () => {
+    const response = await fetchWithAuth("/auth/students");
+    return response.json();
+  },
 };
+
 
 // ============================================
 // DASHBOARD ENDPOINTS
@@ -299,6 +305,95 @@ export const eventsAPI = {
   },
 };
 
+// ============================================
+// OPERATIONS ENDPOINTS
+// ============================================
+export const operationsAPI = {
+  getOverview: async () => {
+    const response = await fetchWithAuth("/operations/overview");
+    return response.json();
+  },
+
+  getIntelligence: async () => {
+    const response = await fetchWithAuth("/operations/intelligence");
+    return response.json();
+  },
+
+  listOrganizations: async () => {
+    const response = await fetchWithAuth("/operations/organizations");
+    return response.json();
+  },
+
+  createOrganization: async (payload) => {
+    const response = await fetchWithAuth("/operations/organizations", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  listSponsorships: async (stage) => {
+    const query = stage ? `?stage=${encodeURIComponent(stage)}` : "";
+    const response = await fetchWithAuth(`/operations/sponsorships${query}`);
+    return response.json();
+  },
+
+  moveSponsorshipStage: async (id, stage) => {
+    const response = await fetchWithAuth(`/operations/sponsorships/${id}/stage`, {
+      method: "PATCH",
+      body: JSON.stringify({ stage }),
+    });
+    return response.json();
+  },
+
+  listBudgets: async () => {
+    const response = await fetchWithAuth("/operations/budgets");
+    return response.json();
+  },
+
+  listVendors: async () => {
+    const response = await fetchWithAuth("/operations/vendors");
+    return response.json();
+  },
+
+  listStalls: async () => {
+    const response = await fetchWithAuth("/operations/stalls");
+    return response.json();
+  },
+};
+
+// SPORTS ENDPOINTS
+// ============================================
+export const sportsAPI = {
+  getAllSports: async () => {
+    const response = await fetchWithAuth("/sports");
+    return response.json();
+  },
+
+  createSport: async (sportData) => {
+    const response = await fetchWithAuth("/sports", {
+      method: "POST",
+      body: JSON.stringify(sportData),
+    });
+    return response.json();
+  },
+
+  updateSport: async (id, sportData) => {
+    const response = await fetchWithAuth(`/sports/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(sportData),
+    });
+    return response.json();
+  },
+
+  deleteSport: async (id) => {
+    const response = await fetchWithAuth(`/sports/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
+};
+
 export default {
   authAPI,
   dashboardAPI,
@@ -306,4 +401,8 @@ export default {
   governanceAPI,
   chatbotAPI,
   eventsAPI,
+  operationsAPI,
+  sportsAPI,
 };
+
+

@@ -1,6 +1,6 @@
-/* ══════════════════════════════════════════════
-   Student Dashboard – StudentDashboard.css
-   ══════════════════════════════════════════════ */
+﻿/* ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+   Student Dashboard ÔÇô StudentDashboard.css
+   ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ */
 
 .sd-layout {
     display: flex;
@@ -9,21 +9,21 @@
     width: 100%;
 }
 
-/* ── Content Wrapper ─────────────────────────── */
+/* ÔöÇÔöÇ Content Wrapper ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-content-wrapper {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
     /* important for responsive */
-    background: #0b0f19;
+    background: #f8fafc;
 }
 
-/* ── Dashboard Header ── */
+/* ÔöÇÔöÇ Dashboard Header ÔöÇÔöÇ */
 .sd-header {
-    background: linear-gradient(120deg, rgba(99, 102, 241, 0.15), rgba(17, 24, 39, 0.9));
+    background: #fff;
     padding: 40px 48px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .sd-header-content {
@@ -47,12 +47,12 @@
 .sd-header-text h1 {
     font-size: 2rem;
     font-weight: 800;
-    color: #e5e7eb;
+    color: #1e293b;
     margin: 0;
 }
 
 .sd-header-text p {
-    color: #9ca3af;
+    color: var(--text-muted);
     margin: 8px 0 0;
     font-size: 1rem;
 }
@@ -63,8 +63,7 @@
 }
 
 .sd-header-stat {
-    background: rgba(17, 24, 39, 0.7);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: #f1f5f9;
     padding: 16px 24px;
     border-radius: 16px;
     display: flex;
@@ -82,11 +81,11 @@
 .sd-stat-text {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #cbd5e1;
+    color: #64748b;
     text-transform: uppercase;
 }
 
-/* ── Toast ───────────────────────────────────── */
+/* ÔöÇÔöÇ Toast ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-toast {
     position: fixed;
     top: 20px;
@@ -127,7 +126,7 @@
     color: #991b1b;
 }
 
-/* ── Navbar ──────────────────────────────────── */
+/* ÔöÇÔöÇ Navbar ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-navbar {
     display: flex;
     justify-content: space-between;
@@ -382,7 +381,7 @@
     background: rgba(239, 68, 68, 0.08);
 }
 
-/* ── Main ────────────────────────────────────── */
+/* ÔöÇÔöÇ Main ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-main {
     max-width: 100%;
     width: 100%;
@@ -390,7 +389,7 @@
     padding: 32px 48px;
 }
 
-/* ── Welcome ─────────────────────────────────── */
+/* ÔöÇÔöÇ Welcome ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-welcome {
     display: flex;
     align-items: center;
@@ -435,7 +434,7 @@
     background: rgba(79, 70, 229, 0.07);
 }
 
-/* ── Stats row ───────────────────────────────── */
+/* ÔöÇÔöÇ Stats row ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -502,7 +501,7 @@
     white-space: nowrap;
 }
 
-/* ── Controls ────────────────────────────────── */
+/* ÔöÇÔöÇ Controls ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-controls {
     display: flex;
     flex-direction: column;
@@ -576,7 +575,7 @@
     color: #fff;
 }
 
-/* ── Loading / Empty ─────────────────────────── */
+/* ÔöÇÔöÇ Loading / Empty ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-loading {
     display: flex;
     flex-direction: column;
@@ -624,14 +623,14 @@
     font-size: 0.875rem;
 }
 
-/* ── Events grid ─────────────────────────────── */
+/* ÔöÇÔöÇ Events grid ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-events-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 }
 
-/* ── Event card ──────────────────────────────── */
+/* ÔöÇÔöÇ Event card ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-event-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -793,7 +792,7 @@
     flex-shrink: 0;
 }
 
-/* ── Buttons ─────────────────────────────────── */
+/* ÔöÇÔöÇ Buttons ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 .sd-btn-register,
 .sd-btn-unregister,
 .sd-btn-ended {
@@ -865,9 +864,9 @@
     border-top-color: #dc2626;
 }
 
-/* ════════════════════════════════════════════
+/* ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
    STUDY SUPPORT SECTION
-   ════════════════════════════════════════════ */
+   ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ */
 
 .sd-study-support-section {
     padding: 60px 48px;
@@ -991,7 +990,7 @@
     50% { transform: translateY(-20px); }
 }
 
-/* ── Responsive Study Support ────────────────── */
+/* ÔöÇÔöÇ Responsive Study Support ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 @media (max-width: 768px) {
     .sd-study-support-section {
         padding: 40px 20px;
@@ -1015,7 +1014,7 @@
     }
 }
 
-/* ── Responsive ──────────────────────────────── */
+/* ÔöÇÔöÇ Responsive ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
 @media (max-width: 768px) {
     .sd-navbar {
         padding: 0 24px;
@@ -1026,7 +1025,7 @@
     }
 
     .sd-navbar::before {
-        content: '🚀 NEXORA';
+        content: '­ƒÜÇ NEXORA';
         font-weight: 800;
         font-size: 1rem;
         color: var(--primary-accent);

@@ -1,6 +1,7 @@
 import express from 'express';
 import AuthController from '../controllers/authController.js';
-import { verifyToken } from '../middleware/authMiddleware.js';
+import { verifyToken, requireRole } from '../middleware/authMiddleware.js';
+
 
 const router = express.Router();
 
@@ -16,5 +17,12 @@ router.get('/profile', verifyToken, AuthController.getProfile);
 // PUT /api/auth/profile - Update student profile
 router.put('/profile', verifyToken, AuthController.updateProfile);
 
+// POST /api/auth/change-password - Change user password
+router.post('/change-password', verifyToken, AuthController.changePassword);
+
+// GET /api/auth/students - Get all students (Admin only)
+router.get('/students', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.getAllStudents);
+
 export default router;
+
 

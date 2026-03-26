@@ -5,7 +5,7 @@ import { dashboardAPI } from "../../services/api";
 import "./Landing.css";
 
 // Footer Component
-const Footer = () => (
+const Footer = ({ user }) => (
   <footer className="landing-footer">
     <div className="footer-container">
       <div className="footer-grid">
@@ -51,9 +51,11 @@ const Footer = () => (
             <li>
               <a href="#clubs">Clubs</a>
             </li>
-            <li>
-              <Link to="/logistics">Logistics</Link>
-            </li>
+            {(!user || (user && user.role && user.role.toUpperCase() !== "STUDENT")) && (
+              <li>
+                <Link to="/logistics">Logistics</Link>
+              </li>
+            )}
           </ul>
         </div>
 
@@ -240,9 +242,11 @@ const Landing = () => {
             <Link to="/dashboard" className="nav-link">
               Dashboard
             </Link>
-            <Link to="/logistics" className="nav-link">
-              Logistics
-            </Link>
+            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
+              <Link to="/logistics" className="nav-link">
+                Logistics
+              </Link>
+            )}
             <a href="#clubs" className="nav-link">
               Clubs
             </a>
@@ -766,7 +770,7 @@ const Landing = () => {
 
       {isLoggedIn && <ChatBot />}
 
-      <Footer />
+      <Footer user={user} />
     </div>
   );
 };

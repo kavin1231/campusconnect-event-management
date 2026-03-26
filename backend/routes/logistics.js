@@ -39,6 +39,9 @@ router.post(
   LogisticsController.createAsset,
 );
 
+router.get("/assets/:assetId", verifyToken, LogisticsController.getAssetById);
+
+
 // Update asset
 router.patch("/assets/:assetId", verifyToken, LogisticsController.updateAsset);
 

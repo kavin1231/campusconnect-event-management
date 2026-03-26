@@ -28,6 +28,9 @@ router.patch("/clubs/:clubId", verifyToken, LogisticsController.updateClub);
 // Get all assets with filters
 router.get("/assets", verifyToken, LogisticsController.getAllAssets);
 
+// Get single asset by ID
+router.get("/assets/:assetId", verifyToken, LogisticsController.getAssetById);
+
 // Create asset (Club president or admin)
 router.post(
   "/assets",
@@ -45,6 +48,14 @@ router.patch("/assets/:assetId", verifyToken, LogisticsController.updateAsset);
 // Delete asset
 router.delete("/assets/:assetId", verifyToken, LogisticsController.deleteAsset);
 
+// Create booking request for a specific asset (used by frontend logisticsAPI)
+router.post(
+  "/assets/:assetId/request",
+  verifyToken,
+  requireRole("EVENT_ORGANIZER"),
+  LogisticsController.requestAsset,
+);
+
 // ========== AVAILABILITY ENGINE ==========
 
 // Check asset availability for date range
@@ -57,13 +68,29 @@ router.post(
 // ========== BOOKING MANAGEMENT ROUTES ==========
 
 // Create booking request
-router.post("/bookings", verifyToken, LogisticsController.createBooking);
+router.post(
+  "/bookings",
+  verifyToken,
+  requireRole("EVENT_ORGANIZER"),
+  LogisticsController.createBooking,
+);
 
 // Get all bookings (with filters)
 router.get("/bookings", verifyToken, LogisticsController.getAllBookings);
 
+// Aliased requests endpoints (for frontend logisticsAPI using "/logistics/requests")
+router.get("/requests", verifyToken, LogisticsController.getRequests);
+
+// Approve booking request (Owning club president)
 router.patch(
   "/bookings/:bookingId/approve",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT", "EVENT_ORGANIZER"),
+  LogisticsController.approveBooking,
+);
+
+router.patch(
+  "/requests/:bookingId/approve",
   verifyToken,
   requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT", "EVENT_ORGANIZER"),
   LogisticsController.approveBooking,
@@ -77,6 +104,13 @@ router.patch(
   LogisticsController.rejectBooking,
 );
 
+router.patch(
+  "/requests/:bookingId/reject",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT", "EVENT_ORGANIZER"),
+  LogisticsController.rejectBooking,
+);
+
 // Checkout asset (Mark as checked out)
 router.patch(
   "/bookings/:bookingId/checkout",
@@ -84,9 +118,21 @@ router.patch(
   LogisticsController.checkoutAsset,
 );
 
+router.patch(
+  "/requests/:bookingId/checkout",
+  verifyToken,
+  LogisticsController.checkoutAsset,
+);
+
 // Return asset
 router.patch(
   "/bookings/:bookingId/return",
+  verifyToken,
+  LogisticsController.returnAsset,
+);
+
+router.patch(
+  "/requests/:bookingId/return",
   verifyToken,
   LogisticsController.returnAsset,
 );

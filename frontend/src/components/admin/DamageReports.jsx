@@ -9,6 +9,8 @@ import {
   DollarSign,
   Calendar,
 } from "lucide-react";
+import Sidebar from "../common/Sidebar";
+import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
 import "./DamageReports.css";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -24,12 +26,24 @@ const DamageReports = () => {
     resolutionNotes: "",
   });
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchReports();
     const interval = setInterval(fetchReports, 20000);
     return () => clearInterval(interval);
   }, [statusFilter]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2600);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
 
   const fetchReports = async () => {
     try {
@@ -43,9 +57,11 @@ const DamageReports = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
       );
+      setErrorMsg("");
       setReports(response.data.reports);
     } catch (error) {
       console.error("Failed to fetch damage reports:", error);
+      setErrorMsg("Unable to load damage reports right now.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +69,7 @@ const DamageReports = () => {
 
   const handleApprove = async () => {
     if (!approvalData.actualCost || !approvalData.penalty) {
-      alert("Please fill in all required fields");
+      showToast("Please fill in all required fields.", "warning");
       return;
     }
     try {
@@ -69,13 +85,13 @@ const DamageReports = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      alert("Damage report approved and penalty set");
+      showToast("Damage report approved and penalty set.", "success");
       setShowApprovalModal(false);
       setApprovalData({ actualCost: "", penalty: "", resolutionNotes: "" });
       fetchReports();
     } catch (error) {
       console.error("Failed to approve report:", error);
-      alert("Error approving damage report");
+      showToast("Error approving damage report.", "error");
     }
   };
 
@@ -91,12 +107,12 @@ const DamageReports = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      alert("Damage report rejected");
+      showToast("Damage report rejected.", "success");
       setShowApprovalModal(false);
       fetchReports();
     } catch (error) {
       console.error("Failed to reject report:", error);
-      alert("Error rejecting damage report");
+      showToast("Error rejecting damage report.", "error");
     }
   };
 
@@ -121,7 +137,12 @@ const DamageReports = () => {
   };
 
   return (
-    <div className="damage-reports">
+    <div className="flex min-h-screen bg-[#0B0F19]">
+      <Sidebar isAdmin={true} />
+      <div className="flex-1 p-5 md:p-8">
+        <div className="damage-reports">
+          <FeedbackToast toast={toast} onClose={() => setToast(null)} />
+
       <div className="reports-header">
         <h2>Damage Reports Management</h2>
         <div className="filter-section">
@@ -137,6 +158,18 @@ const DamageReports = () => {
           </select>
         </div>
       </div>
+
+      {errorMsg && (
+        <div style={{ marginBottom: "1rem" }}>
+          <FeedbackPanel
+            type="error"
+            title="Could not load damage reports"
+            message={errorMsg}
+            actionLabel="Try again"
+            onAction={fetchReports}
+          />
+        </div>
+      )}
 
       {/* Reports List */}
       <motion.div
@@ -355,7 +388,9 @@ const DamageReports = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 };

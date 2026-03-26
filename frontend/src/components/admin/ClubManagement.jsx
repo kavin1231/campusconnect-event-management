@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, Edit2, Trash2, Eye, ChevronDown } from "lucide-react";
+import Sidebar from "../common/Sidebar";
+import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
 import "./ClubManagement.css";
 
 const API_BASE_URL = "http://localhost:3000/api";
@@ -14,6 +16,8 @@ const ClubManagement = () => {
   const [expandedClub, setExpandedClub] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingClub, setEditingClub] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [toast, setToast] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -24,6 +28,16 @@ const ClubManagement = () => {
   useEffect(() => {
     fetchClubs();
   }, [searchTerm, statusFilter]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2600);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
 
   const fetchClubs = async () => {
     try {
@@ -38,10 +52,11 @@ const ClubManagement = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },
       );
+      setErrorMsg("");
       setClubs(response.data.clubs);
     } catch (error) {
       console.error("Failed to fetch clubs:", error);
-      alert("Error fetching clubs");
+      setErrorMsg("Unable to load clubs right now.");
     } finally {
       setLoading(false);
     }
@@ -57,10 +72,10 @@ const ClubManagement = () => {
         },
       );
       fetchClubs();
-      alert("Club status updated successfully");
+      showToast("Club status updated successfully.", "success");
     } catch (error) {
       console.error("Failed to update club status:", error);
-      alert("Error updating club status");
+      showToast("Error updating club status.", "error");
     }
   };
 
@@ -69,9 +84,10 @@ const ClubManagement = () => {
       try {
         // Note: Delete endpoint not defined in routes, this is a placeholder
         console.log("Delete club:", clubId);
-        alert("Club deletion not yet implemented");
+        showToast("Club deletion not yet implemented.", "warning");
       } catch (error) {
         console.error("Failed to delete club:", error);
+        showToast("Failed to delete club.", "error");
       }
     }
   };
@@ -90,7 +106,12 @@ const ClubManagement = () => {
   };
 
   return (
-    <div className="club-management">
+    <div className="flex min-h-screen bg-[#0B0F19]">
+      <Sidebar isAdmin={true} />
+      <div className="flex-1 p-5 md:p-8">
+        <div className="club-management">
+          <FeedbackToast toast={toast} onClose={() => setToast(null)} />
+
       <div className="club-header">
         <h2>Club Management</h2>
         <button className="add-club-btn" onClick={() => setShowForm(true)}>
@@ -120,6 +141,18 @@ const ClubManagement = () => {
           <option value="SUSPENDED">Suspended</option>
         </select>
       </div>
+
+      {errorMsg && (
+        <div style={{ marginBottom: "1rem" }}>
+          <FeedbackPanel
+            type="error"
+            title="Could not load clubs"
+            message={errorMsg}
+            actionLabel="Try again"
+            onAction={fetchClubs}
+          />
+        </div>
+      )}
 
       {/* Clubs List */}
       <motion.div
@@ -180,7 +213,9 @@ const ClubManagement = () => {
                 </div>
               </div>
 
-              <AnimatePresence>
+                  </AnimatePresence>
+                </div>
+              </div>
                 {expandedClub === club.id && (
                   <motion.div
                     className="club-card-expanded"

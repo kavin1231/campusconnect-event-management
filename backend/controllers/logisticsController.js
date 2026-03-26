@@ -294,11 +294,59 @@ class LogisticsController {
     }
   }
 
+  static async getAssetById(req, res) {
+    try {
+      const { assetId } = req.params;
+
+      const asset = await prisma.asset.findUnique({
+        where: { id: parseInt(assetId) },
+        include: {
+          club: { select: { id: true, name: true, logo: true } },
+          _count: { select: { bookings: true, damageReports: true } },
+        },
+      });
+
+      if (!asset) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Asset not found" });
+      }
+
+      res.json({ success: true, asset });
+    } catch (error) {
+      console.error("Get asset by id error:", error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   // ========== AVAILABILITY ENGINE ==========
 
   static async checkAvailability(req, res) {
     try {
       const { assetId, startDate, endDate, quantityNeeded = 1 } = req.body;
+
+      if (!assetId || !startDate || !endDate) {
+        return res.status(400).json({
+          success: false,
+          message: "assetId, startDate and endDate are required",
+        });
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (isNaN(start) || isNaN(end)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid date format" });
+      }
+
+      if (start > end) {
+        return res.status(400).json({
+          success: false,
+          message: "startDate must be before or equal to endDate",
+        });
+      }
 
       const asset = await prisma.asset.findUnique({
         where: { id: parseInt(assetId) },
@@ -359,20 +407,49 @@ class LogisticsController {
         purpose,
       } = req.body;
 
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (!assetId || !requestingClubId || !owningClubId || !requesterId) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "assetId, requestingClubId, owningClubId and requesterId are required",
+        });
+      }
+
+      if (isNaN(start) || isNaN(end)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid date format" });
+      }
+
+      if (start > end) {
+        return res.status(400).json({
+          success: false,
+          message: "startDate must be before or equal to endDate",
+        });
+      }
+
+      if (!quantityRequested || parseInt(quantityRequested) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "quantityRequested must be greater than 0",
+        });
+      }
+
       const availCheck = await this.checkAssetAvailability(
         parseInt(assetId),
-        new Date(startDate),
-        new Date(endDate),
+        start,
+        end,
         parseInt(quantityRequested),
       );
 
       if (!availCheck.isAvailable) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Asset not available for requested dates",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Asset not available for requested dates",
+        });
       }
 
       const booking = await prisma.assetBooking.create({
@@ -382,8 +459,8 @@ class LogisticsController {
           owningClubId: parseInt(owningClubId),
           requesterId: parseInt(requesterId),
           quantityRequested: parseInt(quantityRequested),
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate: start,
+          endDate: end,
           purpose,
           status: "PENDING",
         },
@@ -400,6 +477,116 @@ class LogisticsController {
         .json({ success: true, message: "Booking request created", booking });
     } catch (error) {
       console.error("Create booking error:", error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // Simpler request API used by frontend: POST /assets/:assetId/request
+  static async requestAsset(req, res) {
+    try {
+      const { assetId } = req.params;
+      const { quantity, neededDate, returnDate, purpose, contact } = req.body;
+
+      if (!assetId || !neededDate || !returnDate || !quantity) {
+        return res.status(400).json({
+          success: false,
+          message: "assetId, quantity, neededDate and returnDate are required",
+        });
+      }
+
+      const start = new Date(neededDate);
+      const end = new Date(returnDate);
+
+      if (isNaN(start) || isNaN(end)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid date format" });
+      }
+
+      if (start > end) {
+        return res.status(400).json({
+          success: false,
+          message: "neededDate must be before or equal to returnDate",
+        });
+      }
+
+      const qty = parseInt(quantity);
+      if (!qty || qty <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "quantity must be greater than 0",
+        });
+      }
+
+      const asset = await prisma.asset.findUnique({
+        where: { id: parseInt(assetId) },
+      });
+
+      if (!asset) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Asset not found" });
+      }
+
+      const availability = await this.checkAssetAvailability(
+        asset.id,
+        start,
+        end,
+        qty,
+      );
+
+      if (!availability.isAvailable) {
+        return res.status(400).json({
+          success: false,
+          message: "Asset not available for requested dates or quantity",
+          availableQuantity: availability.availableQuantity,
+        });
+      }
+
+      // Try to resolve requesting club from user account, fall back to asset's club
+      let requestingClubId = asset.clubId;
+      try {
+        const currentUser = await prisma.user.findUnique({
+          where: { id: req.user.id },
+          select: { clubId: true },
+        });
+        if (currentUser?.clubId) {
+          requestingClubId = currentUser.clubId;
+        }
+      } catch (e) {
+        // If lookup fails we keep fallback club
+        console.error("Resolve requesting club error:", e.message);
+      }
+
+      const booking = await prisma.assetBooking.create({
+        data: {
+          assetId: asset.id,
+          requestingClubId,
+          owningClubId: asset.clubId,
+          requesterId: req.user.id,
+          quantityRequested: qty,
+          startDate: start,
+          endDate: end,
+          purpose: contact
+            ? `${purpose || ""} (Contact: ${contact})`.trim()
+            : purpose,
+          status: "PENDING",
+        },
+        include: {
+          asset: true,
+          requester: { select: { id: true, name: true, email: true } },
+          requestingClub: { select: { id: true, name: true } },
+          owningClub: { select: { id: true, name: true } },
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Request submitted successfully",
+        request: booking,
+      });
+    } catch (error) {
+      console.error("Request asset error:", error);
       res.status(500).json({ success: false, message: error.message });
     }
   }
@@ -446,6 +633,87 @@ class LogisticsController {
       });
     } catch (error) {
       console.error("Get all bookings error:", error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // Alias used by frontend logisticsAPI.listRequests ("requests" terminology)
+  static async getRequests(req, res) {
+    try {
+      const { status, page = 1, limit = 20 } = req.query;
+      const skip = (page - 1) * limit;
+
+      const where = {};
+      if (status) {
+        if (status === "active") {
+          where.status = "CHECKED_OUT";
+        } else if (status === "pending") {
+          where.status = "PENDING";
+        } else if (status === "returned") {
+          where.status = "RETURNED";
+        } else {
+          where.status = status.toUpperCase();
+        }
+      }
+
+      const bookings = await prisma.assetBooking.findMany({
+        where,
+        include: {
+          asset: true,
+          requester: { select: { id: true, name: true, email: true } },
+          requestingClub: { select: { id: true, name: true } },
+          owningClub: { select: { id: true, name: true } },
+        },
+        skip,
+        take: parseInt(limit),
+        orderBy: { createdAt: "desc" },
+      });
+
+      const now = new Date();
+
+      const requests = bookings.map((b) => {
+        let statusLabel = b.status.toLowerCase();
+        if (b.status === "CHECKED_OUT") {
+          statusLabel = b.endDate < now ? "overdue" : "checked_out";
+        } else if (b.status === "RETURNED") {
+          statusLabel = "returned";
+        }
+
+        const dateToString = (d) => (d ? d.toISOString().split("T")[0] : null);
+
+        return {
+          id: b.id,
+          asset: b.asset.name,
+          owner: b.owningClub?.name || b.requestingClub?.name || "Unknown",
+          club: b.requestingClub?.name || "Unknown",
+          quantity: b.quantityRequested,
+          status: statusLabel,
+          neededDate: dateToString(b.startDate),
+          returnDate: dateToString(b.endDate),
+          requestDate: dateToString(b.createdAt),
+          dueDate: dateToString(b.endDate),
+          checkedOutDate: dateToString(b.checkedOutAt),
+          returnedDate: dateToString(b.returnedAt),
+          borrowerContact: null,
+          condition: b.asset.condition.toLowerCase(),
+          notes: b.purpose || null,
+        };
+      });
+
+      const total = await prisma.assetBooking.count({ where });
+
+      res.json({
+        success: true,
+        requests,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      console.error("Get requests error:", error);
       res.status(500).json({ success: false, message: error.message });
     }
   }
@@ -583,13 +851,11 @@ class LogisticsController {
         },
       });
 
-      res
-        .status(201)
-        .json({
-          success: true,
-          message: "Damage report submitted",
-          damageReport,
-        });
+      res.status(201).json({
+        success: true,
+        message: "Damage report submitted",
+        damageReport,
+      });
     } catch (error) {
       console.error("Report damage error:", error);
       res.status(500).json({ success: false, message: error.message });

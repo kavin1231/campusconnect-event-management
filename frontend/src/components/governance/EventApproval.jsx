@@ -258,21 +258,21 @@ const EventApproval = () => {
 
                     {/* ACTION BUTTONS */}
                     {selectedEvent.status === "pending" && (
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleApprove(selectedEvent.id)}
-                          className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
+                          className="w-full px-4 py-3 bg-emerald-600/95 hover:bg-emerald-600 text-white rounded-xl font-semibold transition shadow-lg shadow-emerald-900/30"
                         >
-                          ✓ Approve Event
+                          Approve
                         </button>
                         <button
                           onClick={() => {
                             const reason = prompt("Enter rejection reason:");
                             if (reason) handleReject(selectedEvent.id, reason);
                           }}
-                          className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+                          className="w-full px-4 py-3 bg-red-600/95 hover:bg-red-600 text-white rounded-xl font-semibold transition shadow-lg shadow-red-900/25"
                         >
-                          ✗ Reject Event
+                          Reject
                         </button>
                       </div>
                     )}

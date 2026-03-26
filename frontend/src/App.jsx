@@ -33,7 +33,10 @@ const AnalyticsPlaceholder = ({ title }) => (
     <div className="sd-content-wrapper">
       <div style={{ padding: "30px", color: "#fff" }}>
         <h1>📈 {title}</h1>
-        <p>This module is currently under development. Stay tuned for advanced insights!</p>
+        <p>
+          This module is currently under development. Stay tuned for advanced
+          insights!
+        </p>
       </div>
     </div>
   </div>
@@ -173,7 +176,9 @@ function App() {
           path="/create-event"
           element={
             <ProtectedRoute
-              element={() => <EventRequestFormPage onBack={() => window.history.back()} />}
+              element={() => (
+                <EventRequestFormPage onBack={() => window.history.back()} />
+              )}
               allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
@@ -182,8 +187,15 @@ function App() {
           path="/calendar"
           element={
             <ProtectedRoute
-              element={() => <CalendarPage onBack={() => window.history.back()} />}
-              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT", "SYSTEM_ADMIN"]}
+              element={() => (
+                <CalendarPage onBack={() => window.history.back()} />
+              )}
+              allowedRoles={[
+                "STUDENT",
+                "EVENT_ORGANIZER",
+                "CLUB_PRESIDENT",
+                "SYSTEM_ADMIN",
+              ]}
             />
           }
         />
@@ -365,7 +377,6 @@ function App() {
           }
         />
       </Routes>
-
     </div>
   );
 }

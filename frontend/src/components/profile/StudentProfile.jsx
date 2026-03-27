@@ -34,7 +34,6 @@ const StudentProfile = () => {
 
   // Security modals state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showTwoFactorModal, setShowTwoFactorModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -389,13 +388,6 @@ const StudentProfile = () => {
                     </div>
                     <button className="sp-btn-outline" onClick={() => setShowPasswordModal(true)}>Update Password</button>
                   </div>
-                  <div className="sp-security-row">
-                    <div className="sp-security-info">
-                      <h4>Two-Factor Authentication</h4>
-                      <p>Add an extra layer of security to your account.</p>
-                    </div>
-                    <button className="sp-btn-outline" onClick={() => setShowTwoFactorModal(true)}>Enable 2FA</button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -473,24 +465,6 @@ const StudentProfile = () => {
         </div>
       </Modal>
 
-      {/* \u2500\u2500 2FA Modal \u2500\u2500 */}
-      <Modal
-        isOpen={showTwoFactorModal}
-        onClose={() => setShowTwoFactorModal(false)}
-        title="Two-Factor Authentication"
-        footer={(
-          <button className="sp-save-btn" onClick={() => setShowTwoFactorModal(false)}>Got it</button>
-        )}
-      >
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🛡\ufe0f</div>
-          <h3 style={{ marginBottom: '12px' }}>Coming Soon!</h3>
-          <p style={{ color: '#64748b', lineHeight: '1.6' }}>
-            We're working on enhancing your account security with Two-Factor Authentication. 
-            This feature will be available in the next major platform update.
-          </p>
-        </div>
-      </Modal>
     </div>
   );
 };

@@ -1,217 +1,619 @@
-import { useState } from "react";
-import { C, FONT } from "../../constants/colors";
-import { Icon } from "./Icon";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import "./Sidebar.css";
+import {
+  Award,
+  Bell,
+  BookOpen,
+  Boxes,
+  Brain,
+  Building2,
+  CalendarDays,
+  ChevronDown,
+  Home,
+  LayoutDashboard,
+  Link2,
+  LogOut,
+  Menu,
+  Package,
+  Search,
+  Settings,
+  ShieldCheck,
+  Trophy,
+  UserRound,
+  Users,
+  Wrench,
+  X,
+} from "lucide-react";
+import { authAPI } from "../../services/api";
 
-export function Sidebar({ page, onNavigate }) {
-  const [open, setOpen] = useState(true);
-  const NAV = [
-    { key: "dashboard", icon: <Icon.Grid />, label: "Overview" },
-    { key: "events", icon: <Icon.Calendar />, label: "My Events" },
-    { key: "create", icon: <Icon.Plus />, label: "Create Event", highlight: true },
-    { key: "calendar", icon: <Icon.CalendarView />, label: "Conflict Calendar" },
-    { key: "venues", icon: <Icon.Venue />, label: "Venues" },
-    { key: "requests", icon: <Icon.FileText />, label: "My Requests" },
-    { key: "staffing", icon: <Icon.Users />, label: "Staffing" },
+const Sidebar = ({ activePage, isAdmin = false }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [user, setUserState] = useState(() => JSON.parse(localStorage.getItem("user") || "{}"));
+  const role = user?.role;
+  const [expandedMenu, setExpandedMenu] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const refreshProfile = async () => {
+      try {
+        const response = await authAPI.getProfile();
+        if (response.success && response.user) {
+          localStorage.setItem("user", JSON.stringify(response.user));
+          setUserState(response.user);
+        }
+      } catch (err) {
+        console.error("Failed to refresh profile:", err);
+      }
+    };
+    refreshProfile();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
+  const isActive = (path, query = "") => {
+    const pathMatch = location.pathname === path;
+    if (query) {
+      return pathMatch && location.search === query;
+    }
+    // For items without a query (like Dashboard), they should only be active
+    // if there's no filter query parameter currently in the URL.
+    return pathMatch && !location.search.includes("filter=");
+  };
+
+  const toggleMenu = (menu) => {
+    setExpandedMenu(expandedMenu === menu ? null : menu);
+  };
+
+  useEffect(() => {
+    setMobileOpen(false);
+    setProfileOpen(false);
+  }, [location.pathname, location.search]);
+
+  const showStaffMenu =
+    isAdmin ||
+    role === "SYSTEM_ADMIN" ||
+    role === "EVENT_ORGANIZER" ||
+    role === "CLUB_PRESIDENT";
+
+  const adminMenuItems = [
+    {
+      id: "governance",
+      label: "Governance",
+      icon: "⚖️",
+      badge: "5",
+      subItems: [
+        {
+          id: "hub-dashboard",
+          label: "Hub Dashboard",
+          path: "/governance",
+          icon: "📊",
+        },
+        {
+          id: "club-onboarding",
+          label: "Club Onboarding",
+          path: "/governance/club-onboarding",
+          icon: "🤝",
+          badge: "3",
+        },
+        {
+          id: "event-approvals",
+          label: "Event Approvals",
+          path: "/governance/event-approval",
+          icon: "📅",
+          badge: "12",
+        },
+      ],
+    },
+    {
+      id: "logistics",
+      label: "Logistics",
+      icon: "📦",
+      badge: "3",
+      subItems: [
+        {
+          id: "logistics-hub",
+          label: "Logistics Hub",
+          path: "/logistics/admin",
+          icon: "📊",
+        },
+        {
+          id: "asset-management",
+          label: "Asset Management",
+          path: "/logistics/assets",
+          icon: "🛠️",
+        },
+      ],
+    },
+    {
+      id: "analytics",
+      label: "Analytics",
+      icon: "📈",
+      subItems: [
+        {
+          id: "platform-overview",
+          label: "Platform Overview",
+          path: "/analytics/overview",
+          icon: "📊",
+        },
+        {
+          id: "usage-reports",
+          label: "Usage Reports",
+          path: "/analytics/reports",
+          icon: "📝",
+        },
+        {
+          id: "user-activity",
+          label: "User Activity",
+          path: "/analytics/activity",
+          icon: "👥",
+        },
+      ],
+    },
+    {
+      id: "user-management",
+      label: "User Management",
+      path: "/admin/users",
+      icon: "👥",
+    },
+    {
+      id: "role-management",
+      label: "Permissions & Roles",
+      path: "/admin/roles",
+      icon: "🛡️",
+    },
+    {
+      id: "extracurricular",
+      label: "Extracurricular",
+      path: "/admin/group-links",
+      icon: "🏆",
+    },
+    {
+      id: "study-support",
+      label: "Study Support",
+      path: "/admin/study-support",
+      icon: "📚",
+    },
   ];
-  return (
-    <div
-      style={{
-        width: open ? "216px" : "60px",
-        flexShrink: 0,
-        background: C.primary,
-        display: "flex",
-        flexDirection: "column",
-        transition: "width 0.25s cubic-bezier(.4,0,.2,1)",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          padding: open ? "16px 16px 14px" : "16px 10px 14px",
-          borderBottom: "1px solid rgba(255,255,255,.1)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: open ? "space-between" : "center",
-          minHeight: "64px",
-        }}
-      >
-        {open && (
-          <div style={{ overflow: "hidden", whiteSpace: "nowrap" }}>
-            <p
-              style={{
-                fontSize: "11px",
-                fontWeight: "700",
-                color: C.secondary,
-                margin: "0 0 2px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                fontFamily: FONT,
-              }}
-            >
-              Event Manager
-            </p>
-            <p
-              style={{
-                fontSize: "10px",
-                color: "rgba(255,255,255,.4)",
-                margin: 0,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                fontFamily: FONT,
-              }}
-            >
-              University Logistics
-            </p>
-          </div>
-        )}
-        <button
-          onClick={() => setOpen((o) => !o)}
-          style={{
-            background: "rgba(255,255,255,.1)",
-            border: "none",
-            borderRadius: "6px",
-            width: "28px",
-            height: "28px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: C.white,
-            flexShrink: 0,
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,.2)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,.1)")}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.25"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{
-              transform: open ? "rotate(0deg)" : "rotate(180deg)",
-              transition: "transform 0.25s",
-            }}
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-      </div>
 
-      <nav style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", gap: "2px" }}>
-        {NAV.map(({ key, icon, label, highlight }) => {
-          const isActive = page === key;
-          return (
-            <div
-              key={key}
-              title={!open ? label : undefined}
-              onClick={() => onNavigate(key)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: open ? "10px" : "0",
-                padding: open ? "9px 10px" : "9px 0",
-                justifyContent: open ? "flex-start" : "center",
-                borderRadius: "8px",
-                cursor: "pointer",
-                position: "relative",
-                background: isActive
-                  ? "rgba(255,255,255,.14)"
-                  : highlight
-                  ? "rgba(255,113,0,.15)"
-                  : "transparent",
-                transition: "all .15s",
-                border: highlight && !isActive ? "1px solid rgba(255,113,0,.3)" : "1px solid transparent",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = highlight ? "rgba(255,113,0,.22)" : "rgba(255,255,255,.07)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = isActive ? "rgba(255,255,255,.14)" : highlight ? "rgba(255,113,0,.15)" : "transparent";
-              }}
+  const organizerMenuItems = [
+    {
+      id: "organizer-logistics",
+      label: "Logistics",
+      icon: "📦",
+      subItems: [
+        {
+          id: "organizer-home",
+          label: "Organizer Home",
+          path: "/organizer-dashboard",
+          icon: "📊",
+        },
+        {
+          id: "browse-resources",
+          label: "Browse Resources",
+          path: "/logistics/browse",
+          icon: "🔍",
+        },
+        {
+          id: "checkout-tracking",
+          label: "Checkout Tracking",
+          path: "/logistics/checkout",
+          icon: "🔧",
+        },
+        {
+          id: "availability-engine",
+          label: "Availability Engine",
+          path: "/logistics/availability",
+          icon: "⚙️",
+        },
+      ],
+    },
+    {
+      id: "organizer-operations",
+      label: "Operations",
+      icon: "⚙️",
+      subItems: [
+        {
+          id: "ops-home",
+          label: "Operations Home",
+          path: "/operations",
+          icon: "📊",
+        },
+        {
+          id: "ops-org",
+          label: "Organization",
+          path: "/operations/organizations",
+          icon: "🏢",
+        },
+        {
+          id: "ops-spon",
+          label: "Sponsorship Pipeline",
+          path: "/operations/sponsorships",
+          icon: "🤝",
+        },
+        {
+          id: "ops-budget",
+          label: "Budgeting",
+          path: "/operations/budgets",
+          icon: "💰",
+        },
+        {
+          id: "ops-vendors",
+          label: "Vendor Management",
+          path: "/operations/vendors",
+          icon: "🏪",
+        },
+        {
+          id: "ops-stalls",
+          label: "Stall Allocation",
+          path: "/operations/stalls",
+          icon: "🎪",
+        },
+        {
+          id: "ops-intel",
+          label: "Intelligence Dashboard",
+          path: "/operations/intelligence",
+          icon: "🧠",
+        },
+      ],
+    },
+  ];
+
+  const presidentMenuItems = [
+    {
+      id: "governance",
+      label: "Governance",
+      icon: "⚖️",
+      subItems: [
+        {
+          id: "hub-dashboard",
+          label: "Hub Dashboard",
+          path: "/governance",
+          icon: "📊",
+        },
+      ],
+    },
+  ];
+
+  const studentMenuItems = [
+    { id: "home", label: "Home", path: "/", icon: "🏠" },
+    { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
+    { id: "explore-sports", label: "Explore Sports", path: "/explore-sports", icon: "🏆" },
+    { id: "calendar", label: "Calendar", path: "/calendar", icon: "📅" },
+    // Students should not see Logistics in the sidebar
+    { id: "resources", label: "Resources", path: "/resources", icon: "📦" },
+    {
+      id: "study-materials",
+      label: "Study Materials",
+      path: "/dashboard",
+      icon: "📖",
+      query: "?filter=study",
+    },
+    { id: "profile", label: "My Profile", path: "/profile", icon: "👤" },
+  ];
+
+  let menuItems;
+  if (role === "EVENT_ORGANIZER") {
+    menuItems = organizerMenuItems;
+  } else if (role === "CLUB_PRESIDENT") {
+    menuItems = presidentMenuItems;
+  } else if (isAdmin || role === "SYSTEM_ADMIN") {
+    menuItems = adminMenuItems;
+  } else {
+    menuItems = studentMenuItems;
+  }
+
+  useEffect(() => {
+    if (!showStaffMenu) return;
+    
+    // Auto-expand operations for organizer if nothing is expanded
+    if (role === "EVENT_ORGANIZER" && !expandedMenu) {
+      setExpandedMenu("organizer-operations");
+      return;
+    }
+
+    const activeSection = menuItems.find((section) =>
+      section.subItems?.some((item) => item.path === location.pathname),
+    );
+    if (activeSection?.id) {
+      setExpandedMenu(activeSection.id);
+    }
+  }, [showStaffMenu, location.pathname, menuItems, role]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getNavIcon = (id, isSection = false) => {
+    const iconClass = "sd-lucide-icon";
+    const iconMap = {
+      home: <Home className={iconClass} />,
+      dashboard: <LayoutDashboard className={iconClass} />,
+      "my-events": <CalendarDays className={iconClass} />,
+      "explore-sports": <Trophy className={iconClass} />,
+      calendar: <CalendarDays className={iconClass} />,
+      resources: <Package className={iconClass} />,
+      "study-materials": <BookOpen className={iconClass} />,
+      profile: <UserRound className={iconClass} />,
+      governance: <ShieldCheck className={iconClass} />,
+      logistics: <Boxes className={iconClass} />,
+      analytics: <LayoutDashboard className={iconClass} />,
+      "user-management": <Users className={iconClass} />,
+      "all-users": <Users className={iconClass} />,
+      "role-management": <ShieldCheck className={iconClass} />,
+      "roles-list": <ShieldCheck className={iconClass} />,
+      extracurricular: <Award className={iconClass} />,
+      "group-links": <Link2 className={iconClass} />,
+      "organizer-logistics": <Boxes className={iconClass} />,
+      "hub-dashboard": <LayoutDashboard className={iconClass} />,
+      "club-onboarding": <Building2 className={iconClass} />,
+      "event-approvals": <CalendarDays className={iconClass} />,
+      "president-management": <UserRound className={iconClass} />,
+      "logistics-hub": <Boxes className={iconClass} />,
+      "asset-management": <Package className={iconClass} />,
+      "organizer-home": <LayoutDashboard className={iconClass} />,
+      "browse-resources": <Search className={iconClass} />,
+      "checkout-tracking": <Wrench className={iconClass} />,
+      "availability-engine": <Settings className={iconClass} />,
+      "ops-intel": <Brain className={iconClass} />,
+    };
+    if (iconMap[id]) return iconMap[id];
+    return isSection ? (
+      <Boxes className={iconClass} />
+    ) : (
+      <LayoutDashboard className={iconClass} />
+    );
+  };
+
+  const roleLabel = useMemo(() => {
+    if (!role) return "USER";
+    return role.replaceAll("_", " ");
+  }, [role]);
+
+  const dashboardPath = useMemo(() => {
+    if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT") return "/admin-dashboard";
+    if (role === "EVENT_ORGANIZER") return "/organizer-dashboard";
+    return "/dashboard";
+  }, [role]);
+
+  return (
+    <>
+      {role !== "STUDENT" && (
+        <header
+          className={`sd-topbar ${role === "STUDENT" ? "sd-student-theme" : ""}`}
+        >
+          <div className="sd-topbar-left">
+            <button
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="sd-menu-btn"
+              aria-label="Toggle sidebar"
+              type="button"
             >
-              {isActive && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "3px",
-                    height: "20px",
-                    borderRadius: "0 3px 3px 0",
-                    background: C.secondary,
-                  }}
-                />
-              )}
-              <span
-                style={{
-                  display: "flex",
-                  flexShrink: 0,
-                  color: highlight ? C.secondary : isActive ? C.white : "rgba(255,255,255,.55)",
-                }}
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <Link to={dashboardPath} className="sd-brand">
+              <div className="sd-brand-dot" />
+              <span>NEXORA Workspace</span>
+            </Link>
+          </div>
+
+          <div className="sd-topbar-right">
+            <button
+              className="sd-notify-btn"
+              type="button"
+              aria-label="Notifications"
+            >
+              <Bell size={16} />
+              <span className="sd-notify-badge" />
+            </button>
+
+            <div className="sd-user-menu" ref={profileRef}>
+              <button
+                type="button"
+                className="sd-user-trigger"
+                onClick={() => setProfileOpen((prev) => !prev)}
               >
-                {icon}
-              </span>
-              {open && (
-                <span
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: isActive || highlight ? "700" : "500",
-                    fontFamily: FONT,
-                    flex: 1,
-                    color: highlight ? C.secondary : isActive ? C.white : "rgba(255,255,255,.55)",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                  }}
-                >
-                  {label}
-                </span>
+                <div className="sd-side-avatar">
+                  {user.profileImage ? (
+                    <img src={user.profileImage} alt={user.name} />
+                  ) : (
+                    user.name?.charAt(0).toUpperCase() || "U"
+                  )}
+                </div>
+                <div className="sd-top-user-meta">
+                  <span className="sd-side-user-name">
+                    {user.name || "User"}
+                  </span>
+                  <span className="sd-side-user-role">{roleLabel}</span>
+                </div>
+                <ChevronDown size={16} className="sd-chev" />
+              </button>
+
+              {profileOpen && (
+                <div className="sd-user-dropdown">
+                  <Link className="sd-user-dropdown-link" to="/profile">
+                    <UserRound size={15} />
+                    Profile
+                  </Link>
+                  <button
+                    className="sd-user-dropdown-link sd-user-logout"
+                    onClick={handleLogout}
+                    type="button"
+                  >
+                    <LogOut size={15} />
+                    Logout
+                  </button>
+                </div>
               )}
             </div>
-          );
-        })}
-      </nav>
+          </div>
+        </header>
+      )}
 
-      <div
-        style={{
-          padding: open ? "14px" : "14px 10px",
-          borderTop: "1px solid rgba(255,255,255,.1)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: open ? "10px" : "0",
-            justifyContent: open ? "flex-start" : "center",
-            padding: open ? "8px 10px" : "8px 0",
-            borderRadius: "8px",
-            cursor: "pointer",
-            color: "rgba(255,255,255,.45)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,.07)";
-            e.currentTarget.style.color = C.white;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "rgba(255,255,255,.45)";
-          }}
+      {/* Mobile Toggle for Students (Topbar hidden) */}
+      {role === "STUDENT" && (
+        <button
+          onClick={() => setMobileOpen((prev) => !prev)}
+          className="sd-student-mobile-toggle"
+          aria-label="Toggle sidebar"
+          type="button"
         >
-          <span style={{ display: "flex" }}>
-            <Icon.LogOut size={15} />
-          </span>
-          {open && (
-            <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: "500" }}>Sign Out</span>
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      )}
+
+      {mobileOpen && (
+        <div
+          className="sd-mobile-backdrop"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`sd-sidebar ${mobileOpen ? "sd-mobile-open" : ""} ${role === "STUDENT" ? "sd-student-theme" : ""}`}
+      >
+        {role !== "STUDENT" && (
+          <div className="sd-side-header">
+            <div className="sd-logo-wrap">
+              <div className="sd-logo-mark" />
+              <div>
+                <h2 className="sd-logo-title">Control Center</h2>
+                <p className="sd-logo-subtitle">{roleLabel}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="sd-side-nav">
+          {showStaffMenu ? (
+            <>
+              {menuItems.map((section) => (
+                <div key={section.id}>
+                  {section.subItems ? (
+                    <>
+                      <div className="sd-menu-item">
+                        <button
+                          onClick={() => {
+                            setExpandedMenu(section.id);
+                            if (section.subItems?.[0]?.path) {
+                              navigate(section.subItems[0].path);
+                            }
+                          }}
+                          className="sd-menu-item-left sd-menu-item-trigger"
+                          type="button"
+                        >
+                          <span className="sd-menu-icon">
+                            {getNavIcon(section.id, true)}
+                          </span>
+                          <span className="sd-menu-label">{section.label}</span>
+                        </button>
+                        <div className="sd-menu-item-right">
+                          {section.badge && (
+                            <span className="sd-menu-badge">{section.badge}</span>
+                          )}
+                          <button
+                            onClick={() => toggleMenu(section.id)}
+                            className={`sd-menu-toggle ${expandedMenu === section.id ? "sd-expanded" : ""}`}
+                            type="button"
+                            aria-label={`Toggle ${section.label} menu`}
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`sd-submenu ${expandedMenu === section.id ? "sd-submenu-active" : ""}`}
+                      >
+                        {section.subItems.map((item) => (
+                          <Link
+                            key={item.id}
+                            to={item.path}
+                            className={`sd-submenu-item ${isActive(item.path) ? "sd-active" : ""}`}
+                          >
+                            <span className="sd-submenu-icon">
+                              {getNavIcon(item.id)}
+                            </span>
+                            <span>{item.label}</span>
+                            {item.badge && (
+                              <span className="sd-submenu-badge">{item.badge}</span>
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <Link
+                      to={section.path}
+                      className={`sd-side-link ${isActive(section.path) ? "sd-side-active" : ""}`}
+                    >
+                      <span className="sd-side-link-icon">
+                        {getNavIcon(section.id, true)}
+                      </span>
+                      <span>{section.label}</span>
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              {menuItems.map((item) => (
+                <Link
+                  key={item.id}
+                  to={item.query ? `${item.path}${item.query}` : item.path}
+                  className={`sd-side-link ${isActive(item.path, item.query) ? "sd-side-active" : ""}`}
+                >
+                  <span className="sd-side-link-icon">
+                    {getNavIcon(item.id)}
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </>
           )}
         </div>
-      </div>
-    </div>
+
+        <div className="sd-side-footer">
+          <div className="sd-side-user">
+            <div className="sd-side-avatar">
+              {user.profileImage ? (
+                <img src={user.profileImage} alt={user.name} />
+              ) : (
+                user.name?.charAt(0).toUpperCase() || "U"
+              )}
+            </div>
+            <div className="sd-side-user-info">
+              <span className="sd-side-user-name">{user.name}</span>
+              <span className="sd-side-user-role">{roleLabel}</span>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="sd-side-logout-btn"
+            title="Sign Out"
+            type="button"
+          >
+            <LogOut size={17} />
+          </button>
+        </div>
+      </aside>
+    </>
   );
-}
+};
 
 export default Sidebar;

@@ -6,13 +6,22 @@ import authRoutes from "./routes/auth.js";
 import chatbotRoutes from "./routes/chatbot.js";
 import eventRoutes from "./routes/events.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import logisticsRoutes from "./routes/logistics.js";
+import presidentRoutes from "./routes/president.js";
+import adminRoutes from "./routes/admin.js";
+import operationsRoutes from "./routes/operations.js";
+import sportsRoutes from "./routes/sports.js";
+// import studySupportRoutes from "./routes/studySupport.js";  // TODO: Convert to ES modules
+
 
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
 
 app.get("/", (req, res) => {
   res.send("NEXORA API running");
@@ -23,6 +32,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/logistics", logisticsRoutes);
+app.use("/api/president", presidentRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/operations", operationsRoutes);
+app.use("/api/sports", sportsRoutes);
+// app.use("/api/study-support", studySupportRoutes);  // TODO: Convert to ES modules
+
 
 // test database connection
 app.get("/db-test", async (req, res) => {

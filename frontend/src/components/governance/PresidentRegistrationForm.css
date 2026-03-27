@@ -1,0 +1,318 @@
+.prf-container {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+}
+
+.prf-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.prf-header {
+  margin-bottom: 40px;
+  animation: slideInDown 0.5s ease-out;
+}
+
+.prf-header h1 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.prf-subtitle {
+  font-size: 1.1rem;
+  color: #cbd5e1;
+}
+
+.prf-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #ffffff;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+}
+
+/* Status Card */
+.prf-status-card {
+  background: rgba(30, 41, 59, 0.8);
+  border-left: 4px solid;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: slideInUp 0.5s ease-out;
+}
+
+.prf-status-pending {
+  border-left-color: #f59e0b;
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.prf-status-approved {
+  border-left-color: #10b981;
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.prf-status-rejected {
+  border-left-color: #ef4444;
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.prf-status-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.prf-status-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.prf-status-pending .prf-status-badge {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+  border: 1px solid #f59e0b;
+}
+
+.prf-status-approved .prf-status-badge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #6ee7b7;
+  border: 1px solid #10b981;
+}
+
+.prf-status-rejected .prf-status-badge {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+}
+
+.prf-status-header h3 {
+  color: #ffffff;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.prf-status-details {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+.prf-status-details p {
+  margin: 8px 0;
+}
+
+.prf-status-details strong {
+  color: #e2e8f0;
+}
+
+.prf-rejection-reason {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 12px;
+  border-radius: 4px;
+  border-left: 3px solid #ef4444;
+  margin-top: 12px;
+}
+
+/* Form */
+.prf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  animation: slideInUp 0.6s ease-out 0.1s both;
+}
+
+.prf-form-section {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.prf-form-section h3 {
+  color: #ffffff;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+}
+
+.prf-form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.prf-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.prf-form-group label {
+  color: #e2e8f0;
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.prf-form-group input,
+.prf-form-group select {
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
+}
+
+.prf-form-group input:focus,
+.prf-form-group select:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.prf-form-group input::placeholder {
+  color: #64748b;
+}
+
+.prf-form-group small {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.prf-email-hint {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Message */
+.prf-message {
+  padding: 14px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  animation: slideInDown 0.4s ease-out;
+}
+
+.prf-message-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid #10b981;
+  color: #6ee7b7;
+}
+
+.prf-message-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+
+/* Form Actions */
+.prf-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+
+.prf-submit-btn,
+.prf-cancel-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: capitalize;
+}
+
+.prf-submit-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.prf-submit-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  transform: translateY(-2px);
+}
+
+.prf-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.prf-cancel-btn {
+  background: rgba(148, 163, 184, 0.1);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.prf-cancel-btn:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+/* Animations */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .prf-content {
+    margin-left: 0;
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .prf-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .prf-form-actions {
+    flex-direction: column;
+  }
+
+  .prf-submit-btn,
+  .prf-cancel-btn {
+    width: 100%;
+  }
+}

@@ -5,7 +5,7 @@ import Sidebar from "../common/Sidebar";
 import { dashboardAPI } from "../../services/api";
 import "./StudentDashboard.css";
 
-// ÔöÇÔöÇ Filter options ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ── Filter options ──────────────────────────────────────────────
 const FILTERS = [
   { key: "all", label: "All Events" },
   { key: "registered", label: "Registered" },
@@ -50,7 +50,7 @@ const StudentDashboard = () => {
   const profileRef = useRef(null);
   const searchTimerRef = useRef(null);
 
-  // ÔöÇÔöÇ Auth guard ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Auth guard ──────────────────────────────────────────────────
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -74,7 +74,7 @@ const StudentDashboard = () => {
     }
   }, [navigate]);
 
-  // ÔöÇÔöÇ Fetch stats ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Fetch stats ─────────────────────────────────────────────────
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
     try {
@@ -87,7 +87,7 @@ const StudentDashboard = () => {
     }
   }, []);
 
-  // ÔöÇÔöÇ Fetch events ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Fetch events ─────────────────────────────────────────────────
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
@@ -112,7 +112,7 @@ const StudentDashboard = () => {
     }
   }, [user, fetchStats, fetchEvents]);
 
-  // ÔöÇÔöÇ Sync filter with URL ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Sync filter with URL ────────────────────────────────────────
   useEffect(() => {
     const urlFilter = searchParams.get("filter") || "all";
     if (urlFilter !== filter) {
@@ -120,14 +120,14 @@ const StudentDashboard = () => {
     }
   }, [searchParams, filter]);
 
-  // ÔöÇÔöÇ Debounced search ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Debounced search ─────────────────────────────────────────────
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
     clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => setSearch(e.target.value), 400);
   };
 
-  // ÔöÇÔöÇ Profile dropdown close on outside click ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Profile dropdown close on outside click ──────────────────────
   useEffect(() => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target))
@@ -137,14 +137,14 @@ const StudentDashboard = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, [showProfileMenu]);
 
-  // ÔöÇÔöÇ Toast helper ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Toast helper ─────────────────────────────────────────────────
   const showToast = (msg, type = "success") => {
     setToastMsg(msg);
     setToastType(type);
     setTimeout(() => setToastMsg(""), 3000);
   };
 
-  // ÔöÇÔöÇ Register / Unregister ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Register / Unregister ────────────────────────────────────────
   const toggleRegistration = async (event) => {
     setActionLoading((prev) => ({ ...prev, [event.id]: true }));
     try {
@@ -174,7 +174,7 @@ const StudentDashboard = () => {
     navigate("/");
   };
 
-  // ÔöÇÔöÇ Helpers ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Helpers ──────────────────────────────────────────────────────
   const getInitials = (name = "") => {
     const parts = name.trim().split(" ");
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
@@ -210,16 +210,16 @@ const StudentDashboard = () => {
     return map[cat] || "#64748b";
   };
 
-  // ÔöÇÔöÇ Render ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ── Render ───────────────────────────────────────────────────────
   return (
     <>
       <Header />
       <div className="sd-layout">
         <Sidebar activePage="dashboard" />
 
-      {/* ÔöÇÔöÇ Main Wrapper ÔöÇÔöÇ */}
+      {/* ── Main Wrapper ── */}
       <div className="sd-content-wrapper">
-        {/* ÔöÇÔöÇ Toast ÔöÇÔöÇ */}
+        {/* ── Toast ── */}
         {toastMsg && (
           <div className={`sd-toast sd-toast-${toastType}`}>
             {toastType === "success" ? (
@@ -258,7 +258,7 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* ÔöÇÔöÇ Dashboard Header ÔöÇÔöÇ */}
+        {/* ── Dashboard Header ── */}
         <header className="sd-header">
           <div className="sd-header-content">
             <div className="sd-header-text">
@@ -279,7 +279,7 @@ const StudentDashboard = () => {
           </div>
         </header>
 
-        {/* ÔöÇÔöÇ Body ÔöÇÔöÇ */}
+        {/* ── Body ── */}
         <main className="sd-main">
           {/* Stats row */}
           <div className="sd-stats-row">
@@ -287,7 +287,7 @@ const StudentDashboard = () => {
               {
                 label: "Total Registered",
                 value: stats.registered,
-                icon: "📝",
+                icon: "📋",
                 color: "#4f46e5",
               },
               {
@@ -318,7 +318,7 @@ const StudentDashboard = () => {
                 </div>
                 <div className="sd-stat-body">
                   <span className="sd-stat-value" style={{ color: s.color }}>
-                    {statsLoading ? "ÔÇö" : s.value}
+                    {statsLoading ? "—" : s.value}
                   </span>
                   <span className="sd-stat-label">{s.label}</span>
                 </div>
@@ -326,7 +326,7 @@ const StudentDashboard = () => {
             ))}
           </div>
 
-          {/* ÔöÇÔöÇ Filter + Category bar ÔöÇÔöÇ */}
+          {/* ── Filter + Category bar ── */}
           <div className="sd-controls">
             <div className="sd-filter-tabs">
               {FILTERS.map((f) => (
@@ -355,13 +355,13 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          {/* ÔöÇÔöÇ Events grid ÔöÇÔöÇ */}
+          {/* ── Events grid ── */}
           {filter !== "study" && (
             <>
           {loading ? (
             <div className="sd-loading">
               <div className="sd-spinner" />
-              <p>Loading eventsÔÇª</p>
+              <p>Loading events…</p>
             </div>
           ) : events.length === 0 ? (
             <div className="sd-empty">
@@ -505,7 +505,7 @@ const StudentDashboard = () => {
                           {busy ? (
                             <>
                               <div className="sd-btn-spinner sd-btn-spinner-dark" />
-                              ProcessingÔÇª
+                              Processing…
                             </>
                           ) : (
                             <>
@@ -536,7 +536,7 @@ const StudentDashboard = () => {
                           {busy ? (
                             <>
                               <div className="sd-btn-spinner" />
-                              ProcessingÔÇª
+                              Processing…
                             </>
                           ) : (
                             <>
@@ -569,7 +569,7 @@ const StudentDashboard = () => {
           )}
         </main>
 
-        {/* ÔöÇÔöÇ Study Support Section ÔöÇÔöÇ */}
+        {/* ── Study Support Section ── */}
         {filter === "study" && (
         <section className="sd-study-support-section">
           <div className="sd-study-support-container">

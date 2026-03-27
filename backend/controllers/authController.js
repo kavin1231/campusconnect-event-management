@@ -180,32 +180,11 @@ class AuthController {
   static async getProfile(req, res) {
     try {
       const userId = req.user.id;
-      const role = req.user.role;
+      const email = req.user.email;
 
-      if (role === 'STUDENT') {
-        const student = await StudentModel.findById(userId);
-        if (!student) {
-          return res.status(404).json({ success: false, message: 'Student not found' });
-        }
-        return res.status(200).json({
-          success: true,
-          profile: {
-            id: student.id,
-            name: student.name,
-            email: student.email,
-            studentId: student.studentId,
-            department: student.department,
-            year: student.year,
-            profileImage: student.profileImage,
-            createdAt: student.createdAt,
-            role: 'STUDENT'
-          }
-        });
-      } else {
-        const user = await UserModel.findById(userId);
-        if (!user) {
-          return res.status(404).json({ success: false, message: 'User not found' });
-        }
+      // Try User table first (Admin/Organizer/President)
+      const user = await UserModel.findByEmail(email);
+      if (user) {
         return res.status(200).json({
           success: true,
           profile: {
@@ -218,6 +197,34 @@ class AuthController {
           }
         });
       }
+
+      // Try Student table next
+      const student = await StudentModel.findByEmail(email);
+      if (student) {
+        // Check if there's a corresponding User entry with CLUB_PRESIDENT role
+        let role = 'STUDENT';
+        const userAsStaff = await UserModel.findByEmail(email);
+        if (userAsStaff && userAsStaff.role === 'CLUB_PRESIDENT') {
+          role = 'CLUB_PRESIDENT';
+        }
+
+        return res.status(200).json({
+          success: true,
+          profile: {
+            id: student.id,
+            name: student.name,
+            email: student.email,
+            studentId: student.studentId,
+            department: student.department,
+            year: student.year,
+            profileImage: student.profileImage,
+            createdAt: student.createdAt,
+            role: role
+          }
+        });
+      }
+
+      return res.status(404).json({ success: false, message: 'User not found' });
     } catch (error) {
       console.error('Get profile error:', error);
       res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -333,93 +340,108 @@ class AuthController {
     }
   }
 
-  // Get all users with their roles
+  // Get all users (Staff + Students) (Admin only)
   static async getAllUsers(req, res) {
     try {
-      const users = await UserModel.findAll();
+      const staff = await UserModel.findAll();
+      const students = await StudentModel.findAll();
+      
+      // Combine them
+      const allUsers = [
+        ...staff.map(u => ({ ...u })),
+        ...students.map(s => ({ ...s, role: 'STUDENT' }))
+      ];
+
       res.status(200).json({
         success: true,
-        users: users.map(user => ({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          profileImage: user.profileImage,
-          createdAt: user.createdAt,
-        }))
+        users: allUsers
       });
     } catch (error) {
       console.error('Get all users error:', error);
       res.status(500).json({
         success: false,
-        message: 'Server error fetching users',
+        message: 'Server error fetching all users',
         error: error.message
       });
     }
   }
 
-  // Update user role
-  static async updateUserRole(req, res) {
+  // Assign a student to a role (e.g. Club President)
+  static async assignRole(req, res) {
     try {
-      const { userId, role } = req.body;
-      const requestingUser = req.user;
+      const { studentId, role, clubOrFacultyName, clubOrFacultyType } = req.body;
 
-      // Validate input
-      if (!userId || !role) {
+      if (!studentId || !role) {
         return res.status(400).json({
           success: false,
-          message: 'User ID and role are required'
+          message: 'Student ID and role are required'
         });
       }
 
-      const validRoles = ['STUDENT', 'SYSTEM_ADMIN', 'CLUB_PRESIDENT', 'EVENT_ORGANIZER'];
-      if (!validRoles.includes(role)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid role. Must be one of: ' + validRoles.join(', ')
-        });
-      }
+      // 1. Find the student
+      const student = await prisma.student.findUnique({
+        where: { id: parseInt(studentId) }
+      });
 
-      // Only admins can update roles
-      if (requestingUser.role !== 'SYSTEM_ADMIN') {
-        return res.status(403).json({
-          success: false,
-          message: 'Only admins can update user roles'
-        });
-      }
-
-      // Prevent users from removing their own admin role
-      if (userId === requestingUser.id && role !== 'SYSTEM_ADMIN') {
-        return res.status(400).json({
-          success: false,
-          message: 'You cannot remove your own admin role'
-        });
-      }
-
-      const updatedUser = await UserModel.updateRole(userId, role);
-
-      if (!updatedUser) {
+      if (!student) {
         return res.status(404).json({
           success: false,
-          message: 'User not found'
+          message: 'Student not found'
+        });
+      }
+
+      // 1.1 Prevent Event Organizers from becoming Presidents
+      if (role === 'CLUB_PRESIDENT') {
+        const existingUser = await prisma.user.findUnique({ where: { email: student.email } });
+        if (existingUser && existingUser.role === 'EVENT_ORGANIZER') {
+          return res.status(400).json({
+            success: false,
+            message: 'Event Organizers cannot be assigned as Club Presidents.'
+          });
+        }
+      }
+
+      // 2. Check if user record already exists for this email
+      let user = await prisma.user.findUnique({
+        where: { email: student.email }
+      });
+
+      if (user) {
+        // Update existing user role and club info
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            role,
+            clubOrFacultyName,
+            clubOrFacultyType
+          }
+        });
+      } else {
+        // Create new user record from student data
+        user = await prisma.user.create({
+          data: {
+            name: student.name,
+            email: student.email,
+            password: student.password, // Reuse student password for simplicity
+            role,
+            clubOrFacultyName,
+            clubOrFacultyType,
+            profileImage: student.profileImage
+          }
         });
       }
 
       res.status(200).json({
         success: true,
-        message: 'User role updated successfully',
-        user: {
-          id: updatedUser.id,
-          name: updatedUser.name,
-          email: updatedUser.email,
-          role: updatedUser.role
-        }
+        message: `Successfully assigned ${student.name} as ${role} for ${clubOrFacultyName}`,
+        user
       });
+
     } catch (error) {
-      console.error('Update user role error:', error);
+      console.error('Assign role error:', error);
       res.status(500).json({
         success: false,
-        message: 'Server error updating user role',
+        message: 'Server error during role assignment',
         error: error.message
       });
     }

@@ -42,9 +42,11 @@ export const getUserRole = () => {
 };
 
 export const isAdmin = () => {
+  const role = getUserRole();
   return (
-    getUserRole() === "SYSTEM_ADMIN"
-
+    role === "SYSTEM_ADMIN" ||
+    role === "EVENT_ORGANIZER" ||
+    role === "CLUB_PRESIDENT"
   );
 };
 

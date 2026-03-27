@@ -26,10 +26,9 @@ router.get('/students', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController
 // GET /api/auth/users - Get all users (Admin only)
 router.get('/users', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.getAllUsers);
 
-// PUT /api/auth/users/:userId/role - Update user role (Admin only)
-router.put('/users/:userId/role', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.updateUserRole);
+// POST /api/auth/assign-role - Assign role to student (Admin only)
+router.post('/assign-role', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.assignRole);
 
 export default router;
-
 
 

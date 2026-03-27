@@ -78,10 +78,10 @@ export const authAPI = {
     return response.json();
   },
 
-  updateUserRole: async (userId, role) => {
-    const response = await fetchWithAuth(`/auth/users/${userId}/role`, {
-      method: "PUT",
-      body: JSON.stringify({ userId, role }),
+  assignRole: async (assignmentData) => {
+    const response = await fetchWithAuth("/auth/assign-role", {
+      method: "POST",
+      body: JSON.stringify(assignmentData),
     });
     return response.json();
   },

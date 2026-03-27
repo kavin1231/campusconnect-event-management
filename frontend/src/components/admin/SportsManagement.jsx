@@ -161,7 +161,7 @@ const SportsManagement = () => {
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex">
+    <div className="bg-background-dark text-slate-100 font-display min-h-screen flex">
       <Sidebar isAdmin={true} activePage="sports" />
 
       <div className="flex flex-col min-h-screen flex-1">

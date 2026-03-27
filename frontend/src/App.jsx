@@ -12,6 +12,8 @@ import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
 import UserManagement from "./components/admin/UserManagement";
 import StudentManagement from "./components/admin/StudentManagement";
+import UserManagement from "./components/admin/UserManagement";
+import GroupLinksManagement from "./components/admin/GroupLinksManagement";
 import SportsManagement from "./components/admin/SportsManagement";
 import SportsList from "./components/sports/SportsList";
 import Sidebar from "./components/common/Sidebar";
@@ -33,7 +35,7 @@ const AnalyticsPlaceholder = ({ title }) => (
     <Sidebar activePage="analytics" isAdmin={true} />
     <div className="sd-content-wrapper">
       <div style={{ padding: "30px", color: "#fff" }}>
-        <h1>📈 {title}</h1>
+        <h1>­ƒôê {title}</h1>
         <p>
           This module is currently under development. Stay tuned for advanced
           insights!
@@ -229,6 +231,24 @@ function App() {
           }
         />
         <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute
+              element={UserManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/admin/group-links"
+          element={
+            <ProtectedRoute
+              element={GroupLinksManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
           path="/admin/roles"
           element={
             <ProtectedRoute
@@ -312,6 +332,71 @@ function App() {
           }
         />
 
+        {/* Operations Routes */}
+        <Route
+          path="/operations"
+          element={
+            <ProtectedRoute
+              element={OperationsDashboard}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
+            />
+          }
+        />
+        <Route
+          path="/operations/organizations"
+          element={
+            <ProtectedRoute
+              element={OrganizationProfile}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
+            />
+          }
+        />
+        <Route
+          path="/operations/sponsorships"
+          element={
+            <ProtectedRoute
+              element={SponsorshipPipeline}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
+            />
+          }
+        />
+        <Route
+          path="/operations/budgets"
+          element={
+            <ProtectedRoute
+              element={BudgetTracking}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
+            />
+          }
+        />
+        <Route
+          path="/operations/vendors"
+          element={
+            <ProtectedRoute
+              element={VendorManagement}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
+            />
+          }
+        />
+        <Route
+          path="/operations/stalls"
+          element={
+            <ProtectedRoute
+              element={StallManagement}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
+            />
+          }
+        />
+        <Route
+          path="/operations/intelligence"
+          element={
+            <ProtectedRoute
+              element={IntelligenceDashboard}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
+            />
+          }
+        />
+
         {/* Logistics Routes */}
         <Route
           path="/logistics/admin"
@@ -355,6 +440,14 @@ function App() {
             <ProtectedRoute
               element={ResourceAvailabilityEngine}
               allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          element={
+            <ProtectedRoute
+              element={StallManagement}
+              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
             />
           }
         />

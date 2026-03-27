@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
 import { dashboardAPI } from "../../services/api";
 import "./StudentDashboard.css";
@@ -212,9 +211,7 @@ const StudentDashboard = () => {
 
   // ÔöÇÔöÇ Render ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
   return (
-    <>
-      <Header />
-      <div className="sd-layout">
+    <div className="sd-layout">
         <Sidebar activePage="dashboard" />
 
       {/* ÔöÇÔöÇ Main Wrapper ÔöÇÔöÇ */}
@@ -618,7 +615,6 @@ const StudentDashboard = () => {
         )}
       </div>
     </div>
-    </>
   );
 };
 

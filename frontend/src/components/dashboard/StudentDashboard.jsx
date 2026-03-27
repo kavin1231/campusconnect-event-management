@@ -63,7 +63,7 @@ const StudentDashboard = () => {
         navigate("/admin-dashboard");
         return;
       }
-      if (u.role !== "STUDENT") {
+      if (u.role !== "STUDENT" && u.role !== "CLUB_PRESIDENT") {
         navigate("/");
         return;
       }
@@ -258,100 +258,125 @@ const StudentDashboard = () => {
         )}
 
         {/* ÔöÇÔöÇ Dashboard Header ÔöÇÔöÇ */}
-        <header className="sd-header">
-          <div className="sd-header-content">
-            <div className="sd-header-text">
-              <span className="sd-header-badge">WELCOME BACK</span>
-              <h1>Hello, {user?.name?.split(" ")[0]}! 👋</h1>
-              <p>Here's what's happening with your campus events today.</p>
-            </div>
-            <div className="sd-header-stats">
-              <div className="sd-header-stat">
-                <span className="sd-stat-num">{stats.totalEvents}</span>
-                <span className="sd-stat-text">Total Events</span>
+        {filter !== "study" && (
+          <header className="sd-header">
+            <div className="sd-header-content">
+              <div className="sd-header-text">
+                <span className="sd-header-badge">WELCOME BACK</span>
+                <h1>Hello, {user?.name?.split(" ")[0]}! 👋</h1>
+                <p>Here's what's happening with your campus events today.</p>
               </div>
-              <div className="sd-header-stat">
-                <span className="sd-stat-num">{stats.registered}</span>
-                <span className="sd-stat-text">Registered</span>
+              <div className="sd-header-stats">
+                <div className="sd-header-stat">
+                  <span className="sd-stat-num">{stats.totalEvents}</span>
+                  <span className="sd-stat-text">Total Events</span>
+                </div>
+                <div className="sd-header-stat">
+                  <span className="sd-stat-num">{stats.registered}</span>
+                  <span className="sd-stat-text">Registered</span>
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* ÔöÇÔöÇ Body ÔöÇÔöÇ */}
         <main className="sd-main">
-          {/* Stats row */}
-          <div className="sd-stats-row">
-            {[
-              {
-                label: "Total Registered",
-                value: stats.registered,
-                icon: "📝",
-                color: "#4f46e5",
-              },
-              {
-                label: "Upcoming",
-                value: stats.upcoming,
-                icon: "📅",
-                color: "#10b981",
-              },
-              {
-                label: "Completed",
-                value: stats.past,
-                icon: "✅",
-                color: "#f59e0b",
-              },
-              {
-                label: "Events on Platform",
-                value: stats.totalEvents,
-                icon: "🌐",
-                color: "#8b5cf6",
-              },
-            ].map((s) => (
-              <div key={s.label} className="sd-stat-card">
-                <div
-                  className="sd-stat-icon"
-                  style={{ background: `${s.color}18` }}
-                >
-                  {s.icon}
+          {/* President Quick Access */}
+          {user?.role === "CLUB_PRESIDENT" && (
+            <div className="sd-president-workspace-card">
+              <div className="sd-pw-content">
+                <div className="sd-pw-text">
+                  <span className="sd-pw-badge">PRESIDENT ACCESS</span>
+                  <h3>Club President Workspace</h3>
+                  <p>Access management tools, approve club assets, and oversee your organization's activity.</p>
                 </div>
-                <div className="sd-stat-body">
-                  <span className="sd-stat-value" style={{ color: s.color }}>
-                    {statsLoading ? "ÔÇö" : s.value}
-                  </span>
-                  <span className="sd-stat-label">{s.label}</span>
-                </div>
+                <Link to="/admin-dashboard" className="sd-pw-btn">
+                  Go to President Dashboard
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </Link>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Stats row */}
+          {filter !== "study" && (
+            <div className="sd-stats-row">
+              {[
+                {
+                  label: "Total Registered",
+                  value: stats.registered,
+                  icon: "📝",
+                  color: "#4f46e5",
+                },
+                {
+                  label: "Upcoming",
+                  value: stats.upcoming,
+                  icon: "📅",
+                  color: "#10b981",
+                },
+                {
+                  label: "Completed",
+                  value: stats.past,
+                  icon: "✅",
+                  color: "#f59e0b",
+                },
+                {
+                  label: "Events on Platform",
+                  value: stats.totalEvents,
+                  icon: "🌐",
+                  color: "#8b5cf6",
+                },
+              ].map((s) => (
+                <div key={s.label} className="sd-stat-card">
+                  <div
+                    className="sd-stat-icon"
+                    style={{ background: `${s.color}18` }}
+                  >
+                    {s.icon}
+                  </div>
+                  <div className="sd-stat-body">
+                    <span className="sd-stat-value" style={{ color: s.color }}>
+                      {statsLoading ? "ÔÇö" : s.value}
+                    </span>
+                    <span className="sd-stat-label">{s.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* ÔöÇÔöÇ Filter + Category bar ÔöÇÔöÇ */}
           <div className="sd-controls">
-            <div className="sd-filter-tabs">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  className={`sd-filter-tab ${filter === f.key ? "sd-filter-active" : ""}`}
-                  onClick={() => {
-                    setFilter(f.key);
-                    window.history.replaceState(null, "", `?filter=${f.key}`);
-                  }}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            <div className="sd-category-chips">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c}
-                  className={`sd-chip ${category === c ? "sd-chip-active" : ""}`}
-                  onClick={() => setCategory(c)}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
+            {filter !== "study" && (
+              <div className="sd-filter-tabs">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.key}
+                    className={`sd-filter-tab ${filter === f.key ? "sd-filter-active" : ""}`}
+                    onClick={() => {
+                      setFilter(f.key);
+                      window.history.replaceState(null, "", `?filter=${f.key}`);
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {filter !== "study" && (
+              <div className="sd-category-chips">
+                {CATEGORIES.map((c) => (
+                  <button
+                    key={c}
+                    className={`sd-chip ${category === c ? "sd-chip-active" : ""}`}
+                    onClick={() => setCategory(c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ÔöÇÔöÇ Events grid ÔöÇÔöÇ */}

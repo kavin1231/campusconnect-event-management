@@ -6,6 +6,7 @@ import {
   Bell,
   BookOpen,
   Boxes,
+  Brain,
   Building2,
   CalendarDays,
   ChevronDown,
@@ -233,19 +234,19 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         },
         {
           id: "ops-spon",
-          label: "Sponsorship",
+          label: "Sponsorship Pipeline",
           path: "/operations/sponsorships",
           icon: "🤝",
         },
         {
           id: "ops-budget",
-          label: "Budget",
+          label: "Budgeting",
           path: "/operations/budgets",
           icon: "💰",
         },
         {
           id: "ops-vendors",
-          label: "Vendors",
+          label: "Vendor Management",
           path: "/operations/vendors",
           icon: "🏪",
         },
@@ -257,9 +258,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         },
         {
           id: "ops-intel",
-          label: "Intelligence",
+          label: "Intelligence Dashboard",
           path: "/operations/intelligence",
-          icon: "💡",
+          icon: "🧠",
         },
       ],
     },
@@ -311,13 +312,20 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   useEffect(() => {
     if (!showStaffMenu) return;
+    
+    // Auto-expand operations for organizer if nothing is expanded
+    if (role === "EVENT_ORGANIZER" && !expandedMenu) {
+      setExpandedMenu("organizer-operations");
+      return;
+    }
+
     const activeSection = menuItems.find((section) =>
       section.subItems?.some((item) => item.path === location.pathname),
     );
     if (activeSection?.id) {
       setExpandedMenu(activeSection.id);
     }
-  }, [showStaffMenu, location.pathname, menuItems]);
+  }, [showStaffMenu, location.pathname, menuItems, role]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -361,6 +369,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "browse-resources": <Search className={iconClass} />,
       "checkout-tracking": <Wrench className={iconClass} />,
       "availability-engine": <Settings className={iconClass} />,
+      "ops-intel": <Brain className={iconClass} />,
     };
     if (iconMap[id]) return iconMap[id];
     return isSection ? (

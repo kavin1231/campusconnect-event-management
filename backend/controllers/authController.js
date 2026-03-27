@@ -201,6 +201,13 @@ class AuthController {
       // Try Student table next
       const student = await StudentModel.findByEmail(email);
       if (student) {
+        // Check if there's a corresponding User entry with CLUB_PRESIDENT role
+        let role = 'STUDENT';
+        const userAsStaff = await UserModel.findByEmail(email);
+        if (userAsStaff && userAsStaff.role === 'CLUB_PRESIDENT') {
+          role = 'CLUB_PRESIDENT';
+        }
+
         return res.status(200).json({
           success: true,
           profile: {
@@ -212,7 +219,7 @@ class AuthController {
             year: student.year,
             profileImage: student.profileImage,
             createdAt: student.createdAt,
-            role: 'STUDENT'
+            role: role
           }
         });
       }
@@ -381,6 +388,17 @@ class AuthController {
           success: false,
           message: 'Student not found'
         });
+      }
+
+      // 1.1 Prevent Event Organizers from becoming Presidents
+      if (role === 'CLUB_PRESIDENT') {
+        const existingUser = await prisma.user.findUnique({ where: { email: student.email } });
+        if (existingUser && existingUser.role === 'EVENT_ORGANIZER') {
+          return res.status(400).json({
+            success: false,
+            message: 'Event Organizers cannot be assigned as Club Presidents.'
+          });
+        }
       }
 
       // 2. Check if user record already exists for this email

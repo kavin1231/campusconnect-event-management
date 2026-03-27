@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Header from '../common/Header';
 import Sidebar from '../common/Sidebar';
 import Modal from '../ui/Modal';
 import './StudentProfile.css';
@@ -265,7 +266,9 @@ const StudentProfile = () => {
   }
 
   return (
-    <div className="sd-layout">
+    <>
+      <Header />
+      <div className="sd-layout">
       <Sidebar activePage="profile" />
       <div className="sd-content-wrapper">
         {/* \u2500\u2500 Profile Header \u2500\u2500 */}
@@ -413,12 +416,6 @@ const StudentProfile = () => {
                   <span className="sp-stat-val">High</span>
                 </div>
               </div>
-
-              <div className="sp-help-card">
-                <h3>Need Help?</h3>
-                <p>Having trouble with your profile? Contact our support team.</p>
-                <button className="sp-support-btn">Contact Support</button>
-              </div>
             </div>
           </div>
         </main>
@@ -492,6 +489,7 @@ const StudentProfile = () => {
         </div>
       </Modal>
     </div>
+    </>
   );
 };
 

@@ -219,12 +219,6 @@ function DashboardPage({ onNavigate }) {
               </div>
             ))}
           </div>
-
-          <div style={{ background: `linear-gradient(135deg, ${C.primary} 0%, #0a4f96 100%)`, borderRadius: "14px", padding: "20px" }}>
-            <p style={{ margin: "0 0 6px", fontSize: "13px", fontWeight: "800", color: C.white, fontFamily: FONT }}>Need Help?</p>
-            <p style={{ margin: "0 0 14px", fontSize: "12px", color: "rgba(255,255,255,.6)", fontFamily: FONT, lineHeight: 1.5 }}>View the organizer guide or contact the admin office.</p>
-            <button style={{ width: "100%", padding: "9px", background: C.secondary, color: C.white, border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}>View Guide</button>
-          </div>
         </div>
       </div>
     </div>

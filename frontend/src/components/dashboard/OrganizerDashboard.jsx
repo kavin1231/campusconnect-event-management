@@ -6,9 +6,12 @@ import { motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
+  Brain,
   ClipboardCheck,
   Clock3,
+  Building2,
   Package,
+  ShieldCheck,
   Truck,
 } from "lucide-react";
 
@@ -208,29 +211,96 @@ const OrganizerDashboard = () => {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5">
-              <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300 mb-4">
-                Status Overview
-              </h2>
-              <div className="space-y-3">
-                <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3">
-                  <p className="text-xs text-indigo-200 uppercase tracking-wider">Response Window</p>
-                  <p className="font-bold text-indigo-100 mt-1 inline-flex items-center gap-1">
-                    <Clock3 size={14} /> Under 24h
-                  </p>
+            <div className="flex flex-col gap-5">
+              <section className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5">
+                <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300 mb-4">
+                  Quick Operations
+                </h2>
+                <div className="grid grid-cols-1 gap-3">
+                  <button 
+                    onClick={() => navigate('/operations/stalls')}
+                    className="flex items-center justify-between p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                        <Building2 size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-indigo-300 transition">Stall Allocation</p>
+                        <p className="text-xs text-slate-400">Allocate and track event stalls</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    onClick={() => navigate('/operations/sponsorships')}
+                    className="flex items-center justify-between p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                        <ShieldCheck size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-emerald-300 transition">Sponsorship Pipeline</p>
+                        <p className="text-xs text-slate-400">Track and manage event partners</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    onClick={() => navigate('/operations/vendors')}
+                    className="flex items-center justify-between p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                        <Truck size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-amber-300 transition">Vendor Management</p>
+                        <p className="text-xs text-slate-400">Handle external service providers</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    onClick={() => navigate('/operations/intelligence')}
+                    className="flex items-center justify-between p-4 rounded-xl border border-purple-500/20 bg-purple-500/5 hover:bg-purple-500/10 transition group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400">
+                        <Brain size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-purple-300 transition">Intelligence Dashboard</p>
+                        <p className="text-xs text-slate-400">Advanced event analytics & insights</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                  </button>
                 </div>
-                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-                  <p className="text-xs text-emerald-200 uppercase tracking-wider">Fulfillment Rate</p>
-                  <p className="font-bold text-emerald-100 mt-1">{stats?.activeRequests ? Math.max(0, 100 - Math.round((stats.activeRequests / (requests.length || 1)) * 100)) : 100}%</p>
+              </section>
+
+              <section className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5">
+                <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300 mb-4">
+                  Status Overview
+                </h2>
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3">
+                    <p className="text-xs text-indigo-200 uppercase tracking-wider">Response Window</p>
+                    <p className="font-bold text-indigo-100 mt-1 inline-flex items-center gap-1">
+                      <Clock3 size={14} /> Under 24h
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+                    <p className="text-xs text-emerald-200 uppercase tracking-wider">Fulfillment Rate</p>
+                    <p className="font-bold text-emerald-100 mt-1">{stats?.activeRequests ? Math.max(0, 100 - Math.round((stats.activeRequests / (requests.length || 1)) * 100)) : 100}%</p>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-slate-500/30 bg-slate-500/10 px-4 py-3">
-                  <p className="text-xs text-slate-300 uppercase tracking-wider">Next Action</p>
-                  <p className="font-bold text-slate-100 mt-1 inline-flex items-center gap-1">
-                    Review pending queue <ArrowRight size={14} />
-                  </p>
-                </div>
-              </div>
-            </section>
+              </section>
+            </div>
           </motion.div>
         </main>
 

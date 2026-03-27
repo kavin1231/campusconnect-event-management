@@ -124,7 +124,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const menuItems = isAdmin ? adminMenuItems : studentMenuItems;
 
   return (
-    <aside className="sd-sidebar">
+    <aside className={`sd-sidebar ${!isAdmin ? "sd-student-theme" : ""}`}>
       {/* SIDEBAR HEADER */}
 
       {/* SIDEBAR NAVIGATION */}

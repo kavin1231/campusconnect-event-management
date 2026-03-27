@@ -464,3 +464,63 @@
     width: min(88vw, 300px);
   }
 }
+
+/* Student Theme Overrides (White Sidebar) */
+.sd-sidebar.sd-student-theme {
+  background: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-link,
+.sd-sidebar.sd-student-theme .sd-menu-item,
+.sd-sidebar.sd-student-theme .sd-submenu-item,
+.sd-sidebar.sd-student-theme .sd-logo-title,
+.sd-sidebar.sd-student-theme .sd-side-user-name,
+.sd-sidebar.sd-student-theme .sd-menu-label {
+  color: #1e293b !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-logo-wrap {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-link:hover,
+.sd-sidebar.sd-student-theme .sd-menu-item:hover,
+.sd-sidebar.sd-student-theme .sd-submenu-item:hover {
+  background: rgba(255, 107, 53, 0.08) !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-active,
+.sd-sidebar.sd-student-theme .sd-submenu-item.sd-active {
+  background: rgba(255, 107, 53, 0.12) !important;
+  border: 1px solid rgba(255, 107, 53, 0.3) !important;
+  color: #FF6B35 !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-link span,
+.sd-sidebar.sd-student-theme .sd-menu-icon,
+.sd-sidebar.sd-student-theme .sd-submenu-icon {
+  color: inherit !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-footer {
+  border-top-color: #e2e8f0 !important;
+  background: #fdfdfd !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-user-role {
+  color: #64748b !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-logout-btn {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border-color: #e2e8f0 !important;
+}
+
+.sd-sidebar.sd-student-theme .sd-side-logout-btn:hover {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+  border-color: #fecaca !important;
+}

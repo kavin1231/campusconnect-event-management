@@ -145,8 +145,7 @@ const StudySupportAdmin = () => {
                     title: formData.title,
                     description: formData.description,
                     sessionDate: formData.sessionDate,
-                    sessionLink: formData.sessionLink,
-                    sessionNotes: formData.sessionNotes
+                    sessionLink: formData.sessionLink
                 }
                 : {
                     semester: formData.semester,
@@ -509,16 +508,6 @@ const StudySupportAdmin = () => {
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label>Session Notes</label>
-                                        <textarea
-                                            name="sessionNotes"
-                                            value={formData.sessionNotes}
-                                            onChange={handleInputChange}
-                                            placeholder="Additional notes for the session"
-                                            rows="3"
-                                        />
-                                    </div>
                                 </>
                             )}
 

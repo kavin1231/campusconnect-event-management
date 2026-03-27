@@ -180,13 +180,27 @@ class AuthController {
   static async getProfile(req, res) {
     try {
       const userId = req.user.id;
-      const role = req.user.role;
+      const email = req.user.email;
 
-      if (role === 'STUDENT') {
-        const student = await StudentModel.findById(userId);
-        if (!student) {
-          return res.status(404).json({ success: false, message: 'Student not found' });
-        }
+      // Try User table first (Admin/Organizer/President)
+      const user = await UserModel.findByEmail(email);
+      if (user) {
+        return res.status(200).json({
+          success: true,
+          profile: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            profileImage: user.profileImage,
+            createdAt: user.createdAt
+          }
+        });
+      }
+
+      // Try Student table next
+      const student = await StudentModel.findByEmail(email);
+      if (student) {
         return res.status(200).json({
           success: true,
           profile: {
@@ -201,23 +215,9 @@ class AuthController {
             role: 'STUDENT'
           }
         });
-      } else {
-        const user = await UserModel.findById(userId);
-        if (!user) {
-          return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        return res.status(200).json({
-          success: true,
-          profile: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            profileImage: user.profileImage,
-            createdAt: user.createdAt
-          }
-        });
       }
+
+      return res.status(404).json({ success: false, message: 'User not found' });
     } catch (error) {
       console.error('Get profile error:', error);
       res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -328,6 +328,102 @@ class AuthController {
       res.status(500).json({
         success: false,
         message: 'Server error fetching students',
+        error: error.message
+      });
+    }
+  }
+
+  // Get all users (Staff + Students) (Admin only)
+  static async getAllUsers(req, res) {
+    try {
+      const staff = await UserModel.findAll();
+      const students = await StudentModel.findAll();
+      
+      // Combine them
+      const allUsers = [
+        ...staff.map(u => ({ ...u })),
+        ...students.map(s => ({ ...s, role: 'STUDENT' }))
+      ];
+
+      res.status(200).json({
+        success: true,
+        users: allUsers
+      });
+    } catch (error) {
+      console.error('Get all users error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error fetching all users',
+        error: error.message
+      });
+    }
+  }
+
+  // Assign a student to a role (e.g. Club President)
+  static async assignRole(req, res) {
+    try {
+      const { studentId, role, clubOrFacultyName, clubOrFacultyType } = req.body;
+
+      if (!studentId || !role) {
+        return res.status(400).json({
+          success: false,
+          message: 'Student ID and role are required'
+        });
+      }
+
+      // 1. Find the student
+      const student = await prisma.student.findUnique({
+        where: { id: parseInt(studentId) }
+      });
+
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found'
+        });
+      }
+
+      // 2. Check if user record already exists for this email
+      let user = await prisma.user.findUnique({
+        where: { email: student.email }
+      });
+
+      if (user) {
+        // Update existing user role and club info
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            role,
+            clubOrFacultyName,
+            clubOrFacultyType
+          }
+        });
+      } else {
+        // Create new user record from student data
+        user = await prisma.user.create({
+          data: {
+            name: student.name,
+            email: student.email,
+            password: student.password, // Reuse student password for simplicity
+            role,
+            clubOrFacultyName,
+            clubOrFacultyType,
+            profileImage: student.profileImage
+          }
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Successfully assigned ${student.name} as ${role} for ${clubOrFacultyName}`,
+        user
+      });
+
+    } catch (error) {
+      console.error('Assign role error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error during role assignment',
         error: error.message
       });
     }

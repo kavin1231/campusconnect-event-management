@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
 import { dashboardAPI } from "../../services/api";
 import "./StudentDashboard.css";
@@ -7,7 +8,6 @@ import "./StudentDashboard.css";
 // ÔöÇÔöÇ Filter options ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 const FILTERS = [
   { key: "all", label: "All Events" },
-  { key: "registered", label: "Registered" },
   { key: "upcoming", label: "Upcoming" },
   { key: "past", label: "Past Events" },
   { key: "explore", label: "Explore" },
@@ -211,7 +211,9 @@ const StudentDashboard = () => {
 
   // ÔöÇÔöÇ Render ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
   return (
-    <div className="sd-layout">
+    <>
+      <Header />
+      <div className="sd-layout">
         <Sidebar activePage="dashboard" />
 
       {/* ÔöÇÔöÇ Main Wrapper ÔöÇÔöÇ */}
@@ -615,6 +617,7 @@ const StudentDashboard = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

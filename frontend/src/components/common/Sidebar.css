@@ -480,6 +480,26 @@
   color: #1e293b !important;
 }
 
+.sd-topbar.sd-student-theme {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  backdrop-filter: none !important;
+}
+
+.sd-topbar.sd-student-theme .sd-brand-name,
+.sd-topbar.sd-student-theme .sd-side-user-name,
+.sd-topbar.sd-student-theme .sd-side-user-role {
+  color: #1e293b !important;
+}
+
+.sd-topbar.sd-student-theme .sd-notify-btn,
+.sd-topbar.sd-student-theme .sd-menu-btn,
+.sd-topbar.sd-student-theme .sd-user-trigger {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border-color: #e2e8f0 !important;
+}
+
 .sd-sidebar.sd-student-theme .sd-logo-wrap {
   background: #f8fafc !important;
   border-color: #e2e8f0 !important;
@@ -523,4 +543,29 @@
   background: #fee2e2 !important;
   color: #ef4444 !important;
   border-color: #fecaca !important;
+}
+
+/* Student Mobile Toggle (when topbar is hidden) */
+.sd-student-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 85px; /* Below global header */
+  left: 20px;
+  z-index: 2000;
+  width: 42px;
+  height: 42px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .sd-student-mobile-toggle {
+    display: flex;
+  }
 }

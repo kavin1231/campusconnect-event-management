@@ -72,6 +72,19 @@ export const authAPI = {
     const response = await fetchWithAuth("/auth/students");
     return response.json();
   },
+
+  getAllUsers: async () => {
+    const response = await fetchWithAuth("/auth/users");
+    return response.json();
+  },
+
+  assignRole: async (assignmentData) => {
+    const response = await fetchWithAuth("/auth/assign-role", {
+      method: "POST",
+      body: JSON.stringify(assignmentData),
+    });
+    return response.json();
+  },
 };
 
 

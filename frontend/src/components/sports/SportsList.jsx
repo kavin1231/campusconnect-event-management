@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { sportsAPI } from "../../services/api";
+import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
 import "./SportsList.css";
 
@@ -29,7 +30,9 @@ const SportsList = () => {
   };
 
   return (
-    <div className="sd-layout">
+    <>
+      <Header />
+      <div className="sd-layout">
         <Sidebar activePage="sports" />
         <div className="sd-content-wrapper">
           <div className="sports-list-container">
@@ -108,8 +111,9 @@ const SportsList = () => {
           </div>
         </div>
       </div>
-    );
-  };
+    </>
+  );
+};
 
 
 

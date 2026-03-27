@@ -6,7 +6,7 @@ const router = express.Router();
 
 const operationsGuard = [
   verifyToken,
-  requireRole("OPERATIONS_MANAGER", "SYSTEM_ADMIN"),
+  requireRole("OPERATIONS_MANAGER", "SYSTEM_ADMIN", "EVENT_ORGANIZER"),
 ];
 
 router.get("/overview", ...operationsGuard, OperationsController.getOverview);

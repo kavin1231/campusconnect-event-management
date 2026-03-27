@@ -10,6 +10,7 @@ import OrganizerDashboard from "./components/dashboard/OrganizerDashboard"; // O
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
+import UserManagement from "./components/admin/UserManagement";
 import StudentManagement from "./components/admin/StudentManagement";
 import SportsManagement from "./components/admin/SportsManagement";
 import SportsList from "./components/sports/SportsList";
@@ -232,6 +233,15 @@ function App() {
           element={
             <ProtectedRoute
               element={RoleManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute
+              element={UserManagement}
               allowedRoles={["SYSTEM_ADMIN"]}
             />
           }

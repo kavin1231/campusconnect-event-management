@@ -72,6 +72,19 @@ export const authAPI = {
     const response = await fetchWithAuth("/auth/students");
     return response.json();
   },
+
+  getAllUsers: async () => {
+    const response = await fetchWithAuth("/auth/users");
+    return response.json();
+  },
+
+  updateUserRole: async (userId, role) => {
+    const response = await fetchWithAuth(`/auth/users/${userId}/role`, {
+      method: "PUT",
+      body: JSON.stringify({ userId, role }),
+    });
+    return response.json();
+  },
 };
 
 

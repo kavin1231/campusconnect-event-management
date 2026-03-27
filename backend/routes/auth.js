@@ -23,6 +23,13 @@ router.post('/change-password', verifyToken, AuthController.changePassword);
 // GET /api/auth/students - Get all students (Admin only)
 router.get('/students', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.getAllStudents);
 
+// GET /api/auth/users - Get all users (Admin only)
+router.get('/users', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.getAllUsers);
+
+// PUT /api/auth/users/:userId/role - Update user role (Admin only)
+router.put('/users/:userId/role', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.updateUserRole);
+
 export default router;
+
 
 

@@ -24,7 +24,9 @@ const buildSampleImage = (name, category, seed = "") => {
   else if (lookup.includes("furniture")) keyword = "furniture";
 
   const seedText = `${name || "resource"}-${category || "item"}-${seed}`;
-  const lock = encodeURIComponent(seedText.toLowerCase().replace(/[^a-z0-9]+/g, "-"));
+  const lock = encodeURIComponent(
+    seedText.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+  );
   return `https://loremflickr.com/900/600/${keyword}?lock=${lock}`;
 };
 
@@ -382,7 +384,10 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
     sourceAssets.forEach((asset) => {
       if (asset.category) categories.add(asset.category);
     });
-    return ["all", ...Array.from(categories).sort((a, b) => a.localeCompare(b))];
+    return [
+      "all",
+      ...Array.from(categories).sort((a, b) => a.localeCompare(b)),
+    ];
   }, [sourceAssets]);
 
   const filteredAssets = useMemo(
@@ -497,8 +502,7 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
             result{filteredAssets.length !== 1 ? "s" : ""}
           </span>
           <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300">
-            {availableCount}{" "}
-            in stock
+            {availableCount} in stock
           </span>
           {assets.length === 0 && (
             <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-300">
@@ -526,11 +530,7 @@ const BrowseMode = ({ assets, loading, errorMsg, onRetry, onRequest }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAssets.map((asset) => (
-            <ResourceCard
-              key={asset.id}
-              asset={asset}
-              onRequest={onRequest}
-            />
+            <ResourceCard key={asset.id} asset={asset} onRequest={onRequest} />
           ))}
         </div>
       )}
@@ -696,10 +696,10 @@ const MyRequestsMode = ({ requests, loading, errorMsg, onRetry }) => (
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-bold text-white">
-                {request.asset?.name || "Unknown Asset"}
+                {request.asset || "Unknown Asset"}
               </h3>
               <p className="text-gray-400 text-sm">
-                From: {request.owner?.name || request.club?.name || "Unknown"}
+                From: {request.owner || request.club || "Unknown"}
               </p>
             </div>
             <span
@@ -736,7 +736,7 @@ const MyRequestsMode = ({ requests, loading, errorMsg, onRetry }) => (
             <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <p className="text-yellow-300 text-sm">
                 ⏳ Awaiting approval from{" "}
-                {request.owner?.name || request.club?.name || "owner"}
+                {request.owner || request.club || "owner"}
               </p>
             </div>
           )}

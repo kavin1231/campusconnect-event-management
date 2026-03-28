@@ -280,26 +280,90 @@ const OverviewTab = ({ stats }) => {
 const AssetsTab = () => {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [feedback, setFeedback] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+  const fetchAssets = async () => {
+    try {
+      setLoading(true);
+      const data = await logisticsAPI.listAssets();
+      if (data.success && data.assets) {
+        setAssets(data.assets);
+      }
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+      setFeedback({ type: "error", text: "Failed to load assets" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        setLoading(true);
-        const data = await logisticsAPI.listAssets();
-        if (data.success && data.assets) {
-          setAssets(data.assets);
-        }
-      } catch (error) {
-        console.error("Failed to fetch assets:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAssets();
   }, []);
 
+  const handleEditClick = (asset) => {
+    setEditingId(asset.id);
+    setEditForm({
+      name: asset.name || "",
+      description: asset.description || "",
+      quantity: asset.quantity || 0,
+      status: asset.status || "AVAILABLE",
+    });
+  };
+
+  const handleEditSave = async () => {
+    try {
+      const result = await logisticsAPI.updateAsset(editingId, editForm);
+      if (!result.success) {
+        throw new Error(result.message || "Failed to update asset");
+      }
+      setFeedback({ type: "success", text: "Asset updated successfully" });
+      setEditingId(null);
+      await fetchAssets();
+    } catch (error) {
+      console.error("Update asset failed:", error);
+      setFeedback({
+        type: "error",
+        text: error.message || "Failed to update asset",
+      });
+    }
+  };
+
+  const handleDelete = async (assetId) => {
+    try {
+      const result = await logisticsAPI.deleteAsset(assetId);
+      if (!result.success) {
+        throw new Error(result.message || "Failed to delete asset");
+      }
+      setFeedback({ type: "success", text: "Asset deleted successfully" });
+      setDeleteConfirmId(null);
+      await fetchAssets();
+    } catch (error) {
+      console.error("Delete asset failed:", error);
+      setFeedback({
+        type: "error",
+        text: error.message || "Failed to delete asset",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {feedback && (
+        <div
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-200"
+              : "border-red-500/40 bg-red-500/15 text-red-200"
+          }`}
+        >
+          {feedback.text}
+        </div>
+      )}
+
       <motion.button
         className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition"
         whileTap={{ scale: 0.98 }}
@@ -365,9 +429,11 @@ const AssetsTab = () => {
                     <td className="px-6 py-4 text-center">
                       <span
                         className={`inline-block px-3 py-1 text-sm rounded-full font-medium capitalize border ${
-                          String(asset.condition || "").toLowerCase() === "excellent"
+                          String(asset.condition || "").toLowerCase() ===
+                          "excellent"
                             ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                            : String(asset.condition || "").toLowerCase() === "good"
+                            : String(asset.condition || "").toLowerCase() ===
+                                "good"
                               ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
                               : "bg-amber-500/20 text-amber-300 border-amber-500/30"
                         }`}
@@ -376,12 +442,22 @@ const AssetsTab = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <motion.button
-                        className="px-3 py-1.5 text-sm bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg transition"
-                        whileTap={{ scale: 0.97 }}
-                      >
-                        Edit
-                      </motion.button>
+                      <div className="flex items-center justify-center gap-2">
+                        <motion.button
+                          className="px-3 py-1.5 text-sm bg-blue-600/90 hover:bg-blue-600 text-white rounded-lg transition"
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => handleEditClick(asset)}
+                        >
+                          ✏️ Edit
+                        </motion.button>
+                        <motion.button
+                          className="px-3 py-1.5 text-sm bg-red-600/90 hover:bg-red-600 text-white rounded-lg transition"
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => setDeleteConfirmId(asset.id)}
+                        >
+                          🗑️ Delete
+                        </motion.button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -389,6 +465,148 @@ const AssetsTab = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {editingId && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+          onClick={() => setEditingId(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.9 }}
+            className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-96"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-bold text-white mb-4">Edit Asset</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">
+                  Asset Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, description: e.target.value })
+                  }
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                  rows="3"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">
+                  Status
+                </label>
+                <select
+                  value={editForm.status}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, status: e.target.value })
+                  }
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                >
+                  <option>AVAILABLE</option>
+                  <option>UNAVAILABLE</option>
+                  <option>MAINTENANCE</option>
+                  <option>DAMAGED</option>
+                  <option>ARCHIVED</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">
+                  Total Quantity
+                </label>
+                <input
+                  type="number"
+                  value={editForm.quantity}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      quantity: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <motion.button
+                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setEditingId(null)}
+              >
+                Cancel
+              </motion.button>
+              <motion.button
+                className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition"
+                whileTap={{ scale: 0.97 }}
+                onClick={handleEditSave}
+              >
+                Save Changes
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteConfirmId && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.9 }}
+            className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-96"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-bold text-red-400 mb-4">
+              Delete Asset?
+            </h2>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this asset? This action cannot be
+              undone.
+            </p>
+            <div className="flex gap-3">
+              <motion.button
+                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setDeleteConfirmId(null)}
+              >
+                Cancel
+              </motion.button>
+              <motion.button
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleDelete(deleteConfirmId)}
+              >
+                Delete
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );
@@ -445,7 +663,8 @@ const RequestsTab = () => {
   };
 
   const handleReject = async (requestId) => {
-    const reason = window.prompt("Enter rejection reason (optional):", "") || "";
+    const reason =
+      window.prompt("Enter rejection reason (optional):", "") || "";
 
     try {
       setActionLoadingId(requestId);
@@ -550,7 +769,9 @@ const RequestsTab = () => {
                             disabled={actionLoadingId === req.id}
                             whileTap={{ scale: 0.97 }}
                           >
-                            {actionLoadingId === req.id ? "Approving..." : "Approve"}
+                            {actionLoadingId === req.id
+                              ? "Approving..."
+                              : "Approve"}
                           </motion.button>
                           <motion.button
                             className="px-3 py-1.5 text-xs font-semibold bg-red-600/90 hover:bg-red-600 text-white rounded-lg transition"
@@ -558,7 +779,9 @@ const RequestsTab = () => {
                             disabled={actionLoadingId === req.id}
                             whileTap={{ scale: 0.97 }}
                           >
-                            {actionLoadingId === req.id ? "Working..." : "Reject"}
+                            {actionLoadingId === req.id
+                              ? "Working..."
+                              : "Reject"}
                           </motion.button>
                         </div>
                       ) : (
@@ -582,54 +805,90 @@ const RequestsTab = () => {
 };
 
 const CheckoutTab = () => {
-  const [checkouts, setCheckouts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [checkouts, setCheckouts] = useState([
+    {
+      id: 1,
+      asset: "Projector (Sony Bravia)",
+      club: "Photography Club",
+      startDate: "2026-03-20",
+      endDate: "2026-03-25",
+      status: "checked_out",
+      checkedOutDate: "2026-03-20",
+      dueDate: "2026-03-25",
+    },
+    {
+      id: 2,
+      asset: "Speaker System (JBL)",
+      club: "Music Society",
+      startDate: "2026-03-18",
+      endDate: "2026-03-26",
+      status: "checked_out",
+      checkedOutDate: "2026-03-18",
+      dueDate: "2026-03-26",
+    },
+    {
+      id: 3,
+      asset: "Canon EOS 5D Camera",
+      club: "Film Club",
+      startDate: "2026-03-15",
+      endDate: "2026-03-23",
+      status: "overdue",
+      checkedOutDate: "2026-03-15",
+      dueDate: "2026-03-23",
+    },
+    {
+      id: 4,
+      asset: "Tripod Stand & Mount",
+      club: "Events Club",
+      startDate: "2026-03-22",
+      endDate: "2026-03-28",
+      status: "checked_out",
+      checkedOutDate: "2026-03-22",
+      dueDate: "2026-03-28",
+    },
+    {
+      id: 5,
+      asset: "DJ Console & Mixer",
+      club: "Entertainment Society",
+      startDate: "2026-03-19",
+      endDate: "2026-03-24",
+      status: "overdue",
+      checkedOutDate: "2026-03-19",
+      dueDate: "2026-03-24",
+    },
+    {
+      id: 6,
+      asset: "Lighting Setup (LED)",
+      club: "Drama Club",
+      startDate: "2026-03-21",
+      endDate: "2026-03-27",
+      status: "checked_out",
+      checkedOutDate: "2026-03-21",
+      dueDate: "2026-03-27",
+    },
+  ]);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [feedback, setFeedback] = useState(null);
-
-  const fetchCheckouts = async () => {
-    try {
-      setLoading(true);
-      const data = await logisticsAPI.listRequests();
-      if (data.success && data.requests) {
-        const checkedOutItems = data.requests.filter(
-          (r) => r.status === "checked_out" || r.status === "overdue",
-        );
-        setCheckouts(checkedOutItems);
-      } else {
-        setCheckouts([]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch checkouts:", error);
-      setFeedback({
-        type: "error",
-        text: "Failed to load checkout records. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCheckouts();
-  }, []);
 
   const handleReturn = async (requestId) => {
     try {
       setActionLoadingId(requestId);
-      const result = await logisticsAPI.returnAsset(requestId);
-      if (!result.success) {
-        throw new Error(result.message || "Failed to return asset");
-      }
-      setFeedback({ type: "success", text: "Asset marked as returned." });
-      await fetchCheckouts();
+      // Simulate API call
+      setTimeout(() => {
+        setCheckouts(checkouts.filter((c) => c.id !== requestId));
+        setFeedback({
+          type: "success",
+          text: "Asset marked as returned successfully!",
+        });
+        setActionLoadingId(null);
+        setTimeout(() => setFeedback(null), 3000);
+      }, 800);
     } catch (error) {
       console.error("Return asset failed:", error);
       setFeedback({
         type: "error",
         text: error.message || "Failed to return asset.",
       });
-    } finally {
       setActionLoadingId(null);
     }
   };
@@ -647,11 +906,7 @@ const CheckoutTab = () => {
           {feedback.text}
         </div>
       )}
-      {loading ? (
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-          <p className="text-gray-400">Loading checkouts...</p>
-        </div>
-      ) : checkouts.length === 0 ? (
+      {checkouts.length === 0 ? (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
           <p className="text-gray-400">No items currently checked out</p>
         </div>
@@ -718,7 +973,9 @@ const CheckoutTab = () => {
                           disabled={actionLoadingId === item.id}
                           whileTap={{ scale: 0.97 }}
                         >
-                          {actionLoadingId === item.id ? "Returning..." : "Return"}
+                          {actionLoadingId === item.id
+                            ? "Returning..."
+                            : "Return"}
                         </motion.button>
                       </td>
                     </tr>

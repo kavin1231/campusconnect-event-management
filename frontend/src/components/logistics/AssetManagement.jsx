@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
+import { validateAssetForm } from "../../utils/logisticsValidations";
+import {
+  ValidationError,
+  ValidatedInput,
+  ValidatedTextarea,
+} from "../common/ValidationError";
 
 const SummaryCard = ({ label, value, icon }) => (
   <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
@@ -22,20 +28,7 @@ const AssetCard = ({ asset, onEdit, onDelete }) => (
         <h3 className="text-lg font-bold text-white">{asset.name}</h3>
         <p className="text-gray-400 text-sm">{asset.category}</p>
       </div>
-      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-        <button
-          onClick={onEdit}
-          className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded"
-        >
-          ✏️
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded"
-        >
-          🗑️
-        </button>
-      </div>
+      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition"></div>
     </div>
 
     <p className="text-gray-300 text-sm mb-4 line-clamp-2">
@@ -90,6 +83,8 @@ const AssetManagement = () => {
     condition: "excellent",
   });
 
+  const [formErrors, setFormErrors] = useState({});
+
   // Get user role from localStorage
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -134,33 +129,41 @@ const AssetManagement = () => {
   };
 
   const handleAddAsset = async () => {
-    if (newAsset.name && newAsset.quantity > 0) {
-      try {
-        const response = await logisticsAPI.createAsset({
-          ...newAsset,
-          quantity: parseInt(newAsset.quantity),
-        });
+    // Validate form data
+    const validation = validateAssetForm(newAsset);
 
-        if (response.success) {
-          fetchAssets();
-          setNewAsset({
-            name: "",
-            category: "Audio/Visual",
-            quantity: 1,
-            description: "",
-            condition: "excellent",
-          });
-          setShowAddModal(false);
-          showToast("Asset created successfully.", "success");
-        } else {
-          showToast(response.message || "Failed to create asset.", "error");
-        }
-      } catch (error) {
-        console.error("Failed to create asset:", error);
-        showToast("Failed to create asset.", "error");
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
+      showToast("Please fix validation errors before submitting.", "warning");
+      return;
+    }
+
+    // Clear errors if validation passes
+    setFormErrors({});
+
+    try {
+      const response = await logisticsAPI.createAsset({
+        ...newAsset,
+        quantity: parseInt(newAsset.quantity),
+      });
+
+      if (response.success) {
+        fetchAssets();
+        setNewAsset({
+          name: "",
+          category: "Audio/Visual",
+          quantity: 1,
+          description: "",
+          condition: "excellent",
+        });
+        setShowAddModal(false);
+        showToast("Asset created successfully.", "success");
+      } else {
+        showToast(response.message || "Failed to create asset.", "error");
       }
-    } else {
-      showToast("Please provide asset name and valid quantity.", "warning");
+    } catch (error) {
+      console.error("Failed to create asset:", error);
+      showToast("Failed to create asset.", "error");
     }
   };
 
@@ -288,25 +291,29 @@ const AssetManagement = () => {
                   Add New Asset
                 </h2>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-gray-300 font-medium mb-2">
-                      Asset Name *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., Projector, Speaker System"
-                      value={newAsset.name}
-                      onChange={(e) =>
-                        setNewAsset({ ...newAsset, name: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition"
-                    />
+                {Object.keys(formErrors).length > 0 && (
+                  <div className="mb-6">
+                    <ValidationError errors={formErrors} />
                   </div>
+                )}
+
+                <div className="space-y-4">
+                  <ValidatedInput
+                    label="Asset Name"
+                    name="name"
+                    type="text"
+                    placeholder="e.g., Projector, Speaker System"
+                    value={newAsset.name}
+                    onChange={(e) =>
+                      setNewAsset({ ...newAsset, name: e.target.value })
+                    }
+                    error={formErrors.name}
+                    required={true}
+                  />
 
                   <div>
                     <label className="block text-gray-300 font-medium mb-2">
-                      Category *
+                      Category
                     </label>
                     <select
                       value={newAsset.category}
@@ -325,27 +332,25 @@ const AssetManagement = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-gray-300 font-medium mb-2">
-                        Quantity *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={newAsset.quantity}
-                        onChange={(e) =>
-                          setNewAsset({
-                            ...newAsset,
-                            quantity: parseInt(e.target.value) || 1,
-                          })
-                        }
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-cyan-500 outline-none transition"
-                      />
-                    </div>
+                    <ValidatedInput
+                      label="Quantity"
+                      name="quantity"
+                      type="number"
+                      min="1"
+                      value={newAsset.quantity}
+                      onChange={(e) =>
+                        setNewAsset({
+                          ...newAsset,
+                          quantity: parseInt(e.target.value) || 1,
+                        })
+                      }
+                      error={formErrors.quantity}
+                      required={true}
+                    />
 
                     <div>
                       <label className="block text-gray-300 font-medium mb-2">
-                        Condition *
+                        Condition
                       </label>
                       <select
                         value={newAsset.condition}
@@ -365,28 +370,28 @@ const AssetManagement = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-gray-300 font-medium mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      placeholder="Describe your asset..."
-                      value={newAsset.description}
-                      onChange={(e) =>
-                        setNewAsset({
-                          ...newAsset,
-                          description: e.target.value,
-                        })
-                      }
-                      rows={3}
-                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition resize-none"
-                    ></textarea>
-                  </div>
+                  <ValidatedTextarea
+                    label="Description"
+                    name="description"
+                    placeholder="Describe your asset..."
+                    value={newAsset.description}
+                    onChange={(e) =>
+                      setNewAsset({
+                        ...newAsset,
+                        description: e.target.value,
+                      })
+                    }
+                    error={formErrors.description}
+                    rows={3}
+                  />
                 </div>
 
                 <div className="flex gap-3 mt-8">
                   <button
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setFormErrors({});
+                    }}
                     className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
                   >
                     Cancel

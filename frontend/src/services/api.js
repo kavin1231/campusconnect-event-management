@@ -87,7 +87,6 @@ export const authAPI = {
   },
 };
 
-
 // ============================================
 // DASHBOARD ENDPOINTS
 // ============================================
@@ -148,6 +147,21 @@ export const logisticsAPI = {
         body: JSON.stringify(requestData),
       },
     );
+    return response.json();
+  },
+
+  updateAsset: async (assetId, assetData) => {
+    const response = await fetchWithAuth(`/logistics/assets/${assetId}`, {
+      method: "PATCH",
+      body: JSON.stringify(assetData),
+    });
+    return response.json();
+  },
+
+  deleteAsset: async (assetId) => {
+    const response = await fetchWithAuth(`/logistics/assets/${assetId}`, {
+      method: "DELETE",
+    });
     return response.json();
   },
 
@@ -352,10 +366,13 @@ export const operationsAPI = {
   },
 
   moveSponsorshipStage: async (id, stage) => {
-    const response = await fetchWithAuth(`/operations/sponsorships/${id}/stage`, {
-      method: "PATCH",
-      body: JSON.stringify({ stage }),
-    });
+    const response = await fetchWithAuth(
+      `/operations/sponsorships/${id}/stage`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ stage }),
+      },
+    );
     return response.json();
   },
 
@@ -417,5 +434,3 @@ export default {
   operationsAPI,
   sportsAPI,
 };
-
-

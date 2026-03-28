@@ -12,7 +12,6 @@ import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
 import UserManagement from "./components/admin/UserManagement";
 import StudentManagement from "./components/admin/StudentManagement";
-import UserManagement from "./components/admin/UserManagement";
 import GroupLinksManagement from "./components/admin/GroupLinksManagement";
 import SportsManagement from "./components/admin/SportsManagement";
 import SportsList from "./components/sports/SportsList";
@@ -465,7 +464,11 @@ function App() {
           element={
             <ProtectedRoute
               element={CheckoutReturnTracking}
-              allowedRoles={["EVENT_ORGANIZER", "SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+              allowedRoles={[
+                "EVENT_ORGANIZER",
+                "SYSTEM_ADMIN",
+                "CLUB_PRESIDENT",
+              ]}
             />
           }
         />

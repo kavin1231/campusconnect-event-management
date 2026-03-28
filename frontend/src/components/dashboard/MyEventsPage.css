@@ -1,0 +1,78 @@
+/* MyEventsPage Styles */
+.my-events-page {
+  padding: 40px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.my-events-page h1 {
+  color: #053668;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+
+.events-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.events-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.events-table thead {
+  background: #f1f5f9;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.events-table th {
+  padding: 16px;
+  text-align: left;
+  color: #053668;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.events-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.events-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.events-table td {
+  padding: 16px;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #FF7100;
+  color: white;
+}
+
+.status-approved {
+  background: #1B7F4B;
+  color: white;
+}
+
+.status-published {
+  background: #053668;
+  color: white;
+}

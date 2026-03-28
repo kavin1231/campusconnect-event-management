@@ -1,4 +1,5 @@
 ﻿import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 import { AnimatePresence, motion } from "framer-motion";
@@ -9,25 +10,44 @@ const buildSampleImage = (name, category, seed = "") => {
   const lookup = `${name || ""} ${category || ""}`.toLowerCase();
 
   let keyword = "equipment";
-  if (lookup.includes("projector")) keyword = "projector";
+
+  // Music items
+  if (lookup.includes("drum")) keyword = "drum";
+  else if (lookup.includes("guitar")) keyword = "guitar";
+  else if (lookup.includes("turntable") || lookup.includes("dj"))
+    keyword = "turntable";
+  else if (lookup.includes("keyboard")) keyword = "keyboard";
+  else if (lookup.includes("bass")) keyword = "bass";
+  else if (lookup.includes("vinyl")) keyword = "vinyl";
+  else if (lookup.includes("headphone")) keyword = "headphones";
+  else if (lookup.includes("microphone")) keyword = "microphone";
   else if (lookup.includes("speaker")) keyword = "speaker";
-  else if (lookup.includes("backdrop")) keyword = "backdrop";
+  else if (lookup.includes("audio interface")) keyword = "mixer";
+  // Photo/Video items
+  else if (lookup.includes("projector")) keyword = "projector";
+  else if (lookup.includes("backdrop")) keyword = "stage";
   else if (lookup.includes("camera")) keyword = "camera";
   else if (lookup.includes("light")) keyword = "stage-light";
   else if (lookup.includes("table")) keyword = "table";
-  else if (lookup.includes("microphone")) keyword = "microphone";
   else if (lookup.includes("banner")) keyword = "banner";
   else if (lookup.includes("tripod")) keyword = "tripod";
   else if (lookup.includes("tent")) keyword = "tent";
-  else if (lookup.includes("audio")) keyword = "audio";
   else if (lookup.includes("photo")) keyword = "photography";
   else if (lookup.includes("furniture")) keyword = "furniture";
 
-  const seedText = `${name || "resource"}-${category || "item"}-${seed}`;
-  const lock = encodeURIComponent(
-    seedText.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-  );
-  return `https://loremflickr.com/900/600/${keyword}?lock=${lock}`;
+  // Generate deterministic ID based on name
+  const hashCode = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  };
+
+  const imageId = 100 + (hashCode(`${name}${seed}`) % 800);
+  return `https://picsum.photos/900/600?random=${imageId}&keywords=${keyword}`;
 };
 
 const SAMPLE_PRODUCT_TEMPLATES = [
@@ -92,6 +112,71 @@ const SAMPLE_PRODUCT_TEMPLATES = [
     value: 3000,
     description: "Weather-resistant canopy tent for outdoor kiosks.",
   },
+  {
+    name: "Drum Kit",
+    category: "Music",
+    value: 4500,
+    description: "Professional 5-piece drum set with hardware and cymbals.",
+  },
+  {
+    name: "Electric Guitar with Amplifier",
+    category: "Music",
+    value: 3200,
+    description: "Solid body electric guitar with 40W amplifier and cable set.",
+  },
+  {
+    name: "DJ Turntable Set",
+    category: "Music",
+    value: 5800,
+    description:
+      "Professional DJ setup with 2 turntables, mixer, and flight case.",
+  },
+  {
+    name: "Studio Headphones",
+    category: "Audio",
+    value: 1900,
+    description:
+      "Professional over-ear studio monitoring headphones with detachable cable.",
+  },
+  {
+    name: "Digital Keyboard",
+    category: "Music",
+    value: 3600,
+    description: "88-key weighted digital piano keyboard with stand and pedal.",
+  },
+  {
+    name: "Bass Guitar with Amplifier",
+    category: "Music",
+    value: 2800,
+    description: "4-string bass guitar with 100W amplifier and accessories.",
+  },
+  {
+    name: "Vocal Microphone System",
+    category: "Audio",
+    value: 1400,
+    description:
+      "Professional vocal microphone with stand, pop filter, and XLR cables.",
+  },
+  {
+    name: "Audio Interface",
+    category: "Audio",
+    value: 2200,
+    description:
+      "4-channel USB audio interface for music production and recording.",
+  },
+  {
+    name: "Vinyl Record Player",
+    category: "Music",
+    value: 1600,
+    description:
+      "High-fidelity turntable with built-in speakers and dust cover.",
+  },
+  {
+    name: "Music Stand Pack",
+    category: "Music",
+    value: 600,
+    description: "Set of 5 adjustable music stands with carrying bag.",
+  },
 ];
 
 const SAMPLE_OWNER_NAMES = [
@@ -125,7 +210,8 @@ const SAMPLE_ASSETS = Array.from({ length: 100 }, (_, idx) => {
   };
 });
 
-const ResourceRequest = () => {
+const BrowseResources = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [requestMode, setRequestMode] = useState("browse"); // browse or myRequests
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -331,6 +417,7 @@ const ResourceRequest = () => {
                     loading={loading}
                     errorMsg={errorMsg}
                     onRetry={fetchMyRequests}
+                    navigate={navigate}
                   />
                 )}
               </motion.div>
@@ -667,7 +754,7 @@ const ResourceCard = memo(({ asset, onRequest }) => {
   );
 });
 
-const MyRequestsMode = ({ requests, loading, errorMsg, onRetry }) => (
+const MyRequestsMode = ({ requests, loading, errorMsg, onRetry, navigate }) => (
   <div className="space-y-4">
     {errorMsg ? (
       <FeedbackPanel
@@ -742,7 +829,10 @@ const MyRequestsMode = ({ requests, loading, errorMsg, onRetry }) => (
           {(request.status === "approved" ||
             request.status === "checked_out") && (
             <div className="mt-4 flex gap-2">
-              <button className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition">
+              <button
+                onClick={() => navigate("/logistics/checkout")}
+                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition"
+              >
                 View Checkout Details
               </button>
               <button className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition">
@@ -1057,4 +1147,4 @@ const ResourceSkeleton = () => (
   </div>
 );
 
-export default ResourceRequest;
+export default BrowseResources;

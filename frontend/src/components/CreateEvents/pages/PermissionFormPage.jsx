@@ -43,6 +43,7 @@ import {
   ValidatedSelect,
   FieldValidationFeedback,
 } from "../inlineValidationComponents";
+import styles from "./PermissionFormPage.module.css";
 
 function FStep1({ d, set }) {
   const wc = wordCount(d.purpose_desc);
@@ -442,7 +443,7 @@ export default function PermissionFormPage({ onBack, onSubmitSuccess }) {
   const pct = Math.round(((step - 1) / TOTAL) * 100);
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className={styles.container}>
       <div style={{ background: `linear-gradient(135deg, ${C.primary} 0%, ${C.secondary} 100%)`, padding: "12px 40px", flexShrink: 0, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255,255,255,.04)" }} />
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>

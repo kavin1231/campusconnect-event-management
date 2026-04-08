@@ -1,5 +1,7 @@
 import { useState, createContext, useContext } from "react";
 import { THEMES, FONT, Icon } from "./designSystem";
+import styles from "./CreateEventsApp.module.css";
+import "./global.css";
 
 // Theme Context for child components
 const ThemeContext = createContext();
@@ -94,148 +96,58 @@ export default function App() {
     : page;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", fontFamily: FONT, background: C.neutral }}>
-      <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        /* Smooth animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        body { animation: fadeIn 0.4s ease-out; }
-        
-        /* Enhanced scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: ${C.neutral}; }
-        ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: ${C.textMuted}; }
-        
-        /* Form elements */
-        ::placeholder { color: ${C.textMuted}; }
-        select option { background: ${C.white}; color: ${C.text}; }
-        
-        /* Smooth button transitions */
-        button { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        button:hover:not(:disabled) { transform: translateY(-2px); }
-        button:active:not(:disabled) { transform: translateY(0); }
-        
-        /* Glass Effect */
-        [data-glass] {
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Card hover effects */
-        [data-card] { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        [data-card]:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(139, 92, 246, 0.15); }
-        
-        /* Glass Card */
-        [data-glass-card] {
-          background: rgba(255, 255, 255, 0.12);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        [data-glass-card]:hover {
-          background: rgba(255, 255, 255, 0.18);
-          border-color: rgba(255, 255, 255, 0.3);
-          transform: translateY(-4px);
-          box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
-        }
-        
-        /* Input focus states */
-        input, textarea, select { transition: all 0.2s ease; }
-        input:focus, textarea:focus, select:focus { 
-          border-color: ${C.primary} !important; 
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-        }
-        
-        /* Glass Input */
-        [data-glass-input] {
-          background: rgba(255, 255, 255, 0.15) !important;
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.25) !important;
-          color: ${C.text};
-        }
-        [data-glass-input]:focus {
-          background: rgba(255, 255, 255, 0.2) !important;
-          border-color: rgba(255, 255, 255, 0.4) !important;
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15) !important;
-        }
-        
-        /* Badge animations */
-        [data-badge] { animation: scaleIn 0.3s ease-out; }
-        
-        /* Glass Badge */
-        [data-glass-badge] {
-          background: rgba(139, 92, 246, 0.15);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-        
-        /* Loading state */
-        .skeleton { 
-          background: linear-gradient(90deg, ${C.white} 25%, ${C.border} 50%, ${C.white} 75%);
-          background-size: 1000px 100%;
-          animation: shimmer 2s infinite;
-        }
-        
-        font-family: Montserrat, system-ui, sans-serif;
-      `}</style>
+    <div style={{ background: C.neutral }} className={styles.root}>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" />
 
-      <div style={{ height: "56px", background: C.white, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 28px", gap: "24px", flexShrink: 0, zIndex: 200, position: "relative" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginRight: "8px" }}>
-          <div onClick={() => navigate("dashboard")} style={{ width: "32px", height: "32px", borderRadius: "8px", background: C.primary, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, cursor: "pointer" }}><Icon.Logo /></div>
-          <span onClick={() => navigate("dashboard")} style={{ fontSize: "16px", fontWeight: "800", color: C.primary, fontFamily: FONT, letterSpacing: "-0.02em", cursor: "pointer" }}>NEXORA</span>
+      <div className={styles.navbar} style={{ background: C.white, borderBottom: `1px solid ${C.border}` }}>
+        <div className={styles.navbarBrand}>
+          <div onClick={() => navigate("dashboard")} className={styles.navbarLogo} style={{ background: C.primary, color: C.white }}><Icon.Logo /></div>
+          <span onClick={() => navigate("dashboard")} className={styles.navbarText} style={{ color: C.primary }}>NEXORA</span>
         </div>
 
         {[ ["dashboard", "Dashboard"], ["events", "Events"], ["merch", "Merchandise"], ["calendar", "Logistics"], ["requests", "Finances"] ].map(([key, label]) => {
           const isActive = navbarActive === key || (key === "events" && ["events", "pending", "approved", "published", "create", "submit_success"].includes(page));
           return (
-            <a key={key} href="#" onClick={(e) => { e.preventDefault(); navigate(key); }} style={{ fontSize: "14px", fontWeight: isActive ? "700" : "500", color: isActive ? C.primary : C.textMuted, textDecoration: "none", borderBottom: isActive ? `3px solid ${C.primary}` : "2px solid transparent", paddingBottom: "1px", transition: "all .2s", padding: "0 0 1px", display: "flex", alignItems: "center" }}>
+            <a key={key} href="#" onClick={(e) => { e.preventDefault(); navigate(key); }} className={styles.navLink} style={{ fontWeight: isActive ? "700" : "500", color: isActive ? C.primary : C.textMuted, borderBottom: isActive ? `3px solid ${C.primary}` : "2px solid transparent" }}>
               {label}
             </a>
           );
         })}
 
-        <div style={{ flex: 1 }} />
+        <div className={styles.flex1} />
 
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", background: C.neutral, border: `1px solid ${C.border}`, borderRadius: "8px", padding: "7px 14px", width: "180px" }}>
+        <div className={styles.searchBox} style={{ background: C.neutral, border: `1px solid ${C.border}` }}>
           <span style={{ color: C.textDim, display: "flex" }}><Icon.Search /></span>
           <span style={{ fontSize: "13px", color: C.textDim, fontFamily: FONT }}>Search events...</span>
         </div>
 
-        <button style={{ width: "36px", height: "36px", borderRadius: "8px", border: `1px solid ${C.border}`, background: C.white, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.textMuted, position: "relative" }}>
+        <button className={styles.navButton} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.textMuted }}>
           <Icon.Bell />
-          <span style={{ position: "absolute", top: "-3px", right: "-3px", width: "14px", height: "14px", borderRadius: "50%", background: C.secondary, color: C.white, fontSize: "8px", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${C.white}` }}>4</span>
+          <span className={styles.notificationBadge} style={{ background: C.secondary, color: C.white, border: `2px solid ${C.white}` }}>4</span>
         </button>
+
         <button 
           onClick={() => handleThemeChange(theme === "light" ? "dark" : "light")}
-          style={{ width: "36px", height: "36px", borderRadius: "8px", border: `1px solid ${C.border}`, background: C.white, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.textMuted, transition: "all 0.2s" }}
+          className={styles.navButton}
+          style={{ border: `1px solid ${C.border}`, background: C.white, color: C.textMuted }}
           title={theme === "light" ? "Switch to Dark Theme" : "Switch to Light Theme"}
         >
           {theme === "light" ? <Icon.Moon /> : <Icon.Sun />}
         </button>
-        <button style={{ width: "36px", height: "36px", borderRadius: "8px", border: `1px solid ${C.border}`, background: C.white, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.textMuted }}><Icon.Settings /></button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer" }}>
-          <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: C.primaryLight, border: `2px solid ${C.primary}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.primary }}><Icon.User size={16} /></div>
+        <button className={styles.navButton} style={{ border: `1px solid ${C.border}`, background: C.white, color: C.textMuted }}><Icon.Settings /></button>
+
+        <div className={styles.userProfile}>
+          <div className={styles.userAvatar} style={{ background: C.primaryLight, border: `2px solid ${C.primary}`, color: C.primary }}><Icon.User size={16} /></div>
           <div>
-            <p style={{ margin: 0, fontSize: "12px", fontWeight: "700", color: C.text, fontFamily: FONT, lineHeight: 1.2 }}>Kavindu P.</p>
-            <p style={{ margin: 0, fontSize: "10px", color: C.textMuted, fontFamily: FONT }}>Club President</p>
+            <p className={styles.userName} style={{ color: C.text }}>Kavindu P.</p>
+            <p className={styles.userRole} style={{ color: C.textMuted }}>Club President</p>
           </div>
           <span style={{ color: C.textDim, display: "flex" }}><Icon.ChevronDown size={12} /></span>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+      <div className={styles.mainContainer}>
         <SidebarFull activePage={activeSidebar} onNavigate={navigate} />
 
         {page === "dashboard" && <DashboardPage onNavigate={navigate} />}
@@ -249,12 +161,12 @@ export default function App() {
         {page === "merch" && <MerchPage onNavigate={navigate} />}
 
         {["venues", "requests", "staffing"].includes(page) && (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: C.primary }}><Icon.Grid /></div>
-              <p style={{ fontSize: "16px", fontWeight: "700", color: C.text, margin: "0 0 8px", fontFamily: FONT, textTransform: "capitalize" }}>{page}</p>
-              <p style={{ fontSize: "13px", color: C.textMuted, margin: "0 0 20px", fontFamily: FONT }}>This section is part of the full NEXORA platform.</p>
-              <button onClick={() => navigate("dashboard")} style={{ padding: "10px 22px", background: C.primary, color: C.white, border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}>
+          <div className={styles.placeholder}>
+            <div className={styles.placeholderContent}>
+              <div className={styles.placeholderIcon} style={{ background: C.primaryLight, color: C.primary }}><Icon.Grid /></div>
+              <p className={styles.placeholderTitle} style={{ color: C.text }}>{page}</p>
+              <p className={styles.placeholderDesc} style={{ color: C.textMuted }}>This section is part of the full NEXORA platform.</p>
+              <button onClick={() => navigate("dashboard")} className={styles.placeholderButton} style={{ background: C.primary, color: C.white }}>
                 ← Back to Dashboard
               </button>
             </div>

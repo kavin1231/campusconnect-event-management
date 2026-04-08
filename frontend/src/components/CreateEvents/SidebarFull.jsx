@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, FONT, Icon } from "./designSystem";
+import styles from "./SidebarFull.module.css";
 
 export default function SidebarFull({ activePage, onNavigate }) {
   const [open, setOpen] = useState(true);
@@ -15,20 +16,20 @@ export default function SidebarFull({ activePage, onNavigate }) {
   ];
 
   return (
-    <div style={{ width: open ? "216px" : "60px", flexShrink: 0, background: C.neutral, display: "flex", flexDirection: "column", transition: "width 0.25s cubic-bezier(.4,0,.2,1)", overflow: "hidden" }}>
-      <div style={{ padding: open ? "16px 16px 14px" : "16px 10px 14px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: open ? "space-between" : "center", minHeight: "64px" }}>
+    <div className={styles.sidebar} style={{ width: open ? "216px" : "60px", background: C.neutral }}>
+      <div className={`${styles.sidebarHeader} ${open ? styles.sidebarHeaderOpen : styles.sidebarHeaderClosed}`} style={{ borderColor: C.border }}>
         {open && (
-          <div style={{ overflow: "hidden", whiteSpace: "nowrap" }}>
-            <p style={{ fontSize: "11px", fontWeight: "700", color: C.primary, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: FONT }}>Event Manager</p>
-            <p style={{ fontSize: "10px", color: C.textMuted, margin: 0, letterSpacing: "0.06em", textTransform: "uppercase", fontFamily: FONT }}>University Logistics</p>
+          <div className={styles.sidebarTitle}>
+            <p className={styles.sidebarTitleMain} style={{ color: C.primary }}>Event Manager</p>
+            <p className={styles.sidebarTitleSub} style={{ color: C.textMuted }}>University Logistics</p>
           </div>
         )}
-        <button onClick={() => setOpen((o) => !o)} style={{ background: C.white, border: "none", borderRadius: "8px", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.text, flexShrink: 0 }}>
-          <span style={{ fontSize: "14px", lineHeight: 1 }}>{open ? "<" : ">"}</span>
+        <button onClick={() => setOpen((o) => !o)} className={styles.toggleBtn} style={{ background: C.white, color: C.text }}>
+          <span>{open ? "<" : ">"}</span>
         </button>
       </div>
 
-      <nav style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", gap: "2px" }}>
+      <nav className={styles.nav}>
         {NAV.map(({ key, icon, label, highlight }) => {
           const isActive = activePage === key;
           return (
@@ -36,33 +37,27 @@ export default function SidebarFull({ activePage, onNavigate }) {
               key={key}
               title={!open ? label : undefined}
               onClick={() => onNavigate(key)}
+              className={`${styles.navItem} ${open ? styles.navItemOpen : styles.navItemClosed} ${isActive ? styles.navItemActive : ""}`}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: open ? "10px" : "0",
-                padding: open ? "9px 10px" : "9px 0",
-                justifyContent: open ? "flex-start" : "center",
-                borderRadius: "10px",
-                cursor: "pointer",
-                position: "relative",
                 background: isActive ? C.white : highlight ? C.primaryLight : "transparent",
-                transition: "all .15s",
                 border: highlight && !isActive ? `1px solid ${C.primary}` : "1px solid transparent",
               }}
             >
-              {isActive && <div style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", width: "3px", height: "20px", borderRadius: "0 3px 3px 0", background: C.primary }} />}
-              <span style={{ display: "flex", flexShrink: 0, color: highlight ? C.primary : isActive ? C.text : C.textMuted }}>{icon}</span>
-              {open && <span style={{ fontSize: "12px", fontWeight: isActive || highlight ? "700" : "500", fontFamily: FONT, flex: 1, color: highlight ? C.primary : isActive ? C.text : C.text, whiteSpace: "nowrap", overflow: "hidden" }}>{label}</span>}
-              {open && highlight && <span style={{ fontSize: "8px", fontWeight: "800", background: C.primaryLight, color: C.white, padding: "2px 6px", borderRadius: "100px", fontFamily: FONT }}>NEW</span>}
+              {isActive && <div style={{ background: C.primary }} />}
+              <span className={styles.navItemIcon} style={{ color: highlight ? C.primary : isActive ? C.text : C.textMuted }}>{icon}</span>
+              {open && <span className={styles.navItemText} style={{ fontWeight: isActive || highlight ? "700" : "500", color: highlight ? C.primary : isActive ? C.text : C.text }}>{label}</span>}
+              {open && highlight && <span className={styles.navItemAccent} style={{ background: C.primaryLight, color: C.white }}>NEW</span>}
             </div>
           );
         })}
       </nav>
 
-      <div style={{ padding: open ? "14px" : "14px 10px", borderTop: `1px solid ${C.border}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: open ? "10px" : "0", justifyContent: open ? "flex-start" : "center", padding: open ? "8px 10px" : "8px 0", borderRadius: "8px", cursor: "pointer", color: C.textMuted }}>
-          <span style={{ display: "flex" }}><Icon.LogOut /></span>
-          {open && <span style={{ fontSize: "12px", fontFamily: FONT, fontWeight: "500" }}>Sign Out</span>}
+      <div className={styles.sidebarFooter} style={{ borderColor: C.border }}>
+        <div className={styles.sidebarFooterContent}>
+          <button className={`${styles.signoutBtn} ${!open ? styles.signoutBtnClosed : ""}`} style={{ color: C.textMuted }}>
+            <span className={styles.signoutIcon}><Icon.LogOut /></span>
+            {open && <span>Sign Out</span>}
+          </button>
         </div>
       </div>
     </div>

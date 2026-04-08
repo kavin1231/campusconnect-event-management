@@ -230,7 +230,7 @@ export default function EventSetupPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <Card>
                 <SectionHead label="Tickets">
-                  <button onClick={addTicket} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: C.primaryLight, color: C.primary, border: `1px solid ${C.primary}30`, borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                  <button onClick={addTicket} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: C.primaryLight, color: C.text, border: `1px solid ${C.primary}30`, borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
                     <Icon.Plus size={12} /> Add Ticket
                   </button>
                 </SectionHead>
@@ -262,7 +262,7 @@ export default function EventSetupPage() {
 
               <Card>
                 <SectionHead label="Merchandise">
-                  <button onClick={addMerch} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: C.primaryLight, color: C.primary, border: `1px solid ${C.primary}30`, borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                  <button onClick={addMerch} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: C.primaryLight, color: C.text, border: `1px solid ${C.primary}30`, borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
                     <Icon.Plus size={12} /> Add Item
                   </button>
                 </SectionHead>

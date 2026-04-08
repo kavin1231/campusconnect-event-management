@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { C, FONT, Icon, Inp, Sel, Txta, Lbl } from "../designSystem";
 import { MERCH_PRODUCTS_INIT, MERCH_ORDERS_INIT } from "../data";
+import { getProductImage } from "../imageUtils";
 
 export default function MerchPage() {
   const [products, setProducts] = useState(MERCH_PRODUCTS_INIT);
@@ -70,9 +71,9 @@ export default function MerchPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: "16px" }}>
           {products.map((p) => (
             <div key={p.id} style={{ background: C.white, borderRadius: "14px", border: `1px solid ${C.border}`, overflow: "hidden", boxShadow: "0 2px 8px rgba(5,54,104,.05)" }}>
-              <div style={{ height: "140px", background: p.image === "👕" ? "linear-gradient(135deg,#1a1a2e,#16213e)" : p.image === "🧥" ? "linear-gradient(135deg,#c8c8c8,#a0a0a0)" : "linear-gradient(135deg,#e8e0d0,#d4c9b5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "56px", position: "relative" }}>
-                {p.image}
-                <span style={{ position: "absolute", top: "10px", right: "10px", fontSize: "9px", fontWeight: "800", padding: "3px 8px", borderRadius: "100px", background: p.status === "instock" ? "#22c55e" : p.status === "lowstock" ? "#FF7100" : "#ef4444", color: C.white, letterSpacing: "0.06em" }}>{p.status === "instock" ? "IN STOCK" : p.status === "lowstock" ? "LOW STOCK" : "OUT OF STOCK"}</span>
+              <div style={{ height: "140px", background: C.neutral, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+                <img src={getProductImage(p.id)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { e.target.style.opacity = "0.3"; }} />
+                <span style={{ position: "absolute", top: "10px", right: "10px", fontSize: "9px", fontWeight: "800", padding: "3px 8px", borderRadius: "100px", background: p.status === "instock" ? "#22c55e" : p.status === "lowstock" ? "#FF7100" : "#ef4444", color: C.white, letterSpacing: "0.06em", zIndex: 10 }}>{p.status === "instock" ? "IN STOCK" : p.status === "lowstock" ? "LOW STOCK" : "OUT OF STOCK"}</span>
               </div>
               <div style={{ padding: "14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}><h4 style={{ margin: 0, fontSize: "13px", fontWeight: "800", color: C.text, fontFamily: FONT }}>{p.name}</h4><span style={{ fontSize: "14px", fontWeight: "800", color: C.secondary, fontFamily: FONT }}>LKR {p.price.toLocaleString()}</span></div>
@@ -120,7 +121,7 @@ export default function MerchPage() {
                     <span style={{ fontSize: "10px", fontWeight: "700", color: C.primary, fontFamily: FONT }}>{fc.label}</span>
                   ) : (
                     <div style={{ display: "flex", gap: "6px" }}>
-                      {o.payStatus === "paid" ? <button onClick={() => markCollected(o.id)} style={{ padding: "5px 12px", background: C.secondary, color: C.white, border: "none", borderRadius: "6px", fontSize: "10px", fontWeight: "800", cursor: "pointer", fontFamily: FONT, whiteSpace: "nowrap" }}>Mark Collected</button> : <button style={{ padding: "5px 12px", background: C.primaryLight, color: C.primary, border: `1px solid ${C.border}`, borderRadius: "6px", fontSize: "10px", fontWeight: "700", cursor: "pointer", fontFamily: FONT, whiteSpace: "nowrap" }}>Process Payment</button>}
+                      {o.payStatus === "paid" ? <button onClick={() => markCollected(o.id)} style={{ padding: "5px 12px", background: C.secondary, color: C.white, border: "none", borderRadius: "6px", fontSize: "10px", fontWeight: "800", cursor: "pointer", fontFamily: FONT, whiteSpace: "nowrap" }}>Mark Collected</button> : <button style={{ padding: "5px 12px", background: C.primaryLight, color: C.text, border: `1px solid ${C.border}`, borderRadius: "6px", fontSize: "10px", fontWeight: "700", cursor: "pointer", fontFamily: FONT, whiteSpace: "nowrap" }}>Process Payment</button>}
                     </div>
                   )}
                 </div>

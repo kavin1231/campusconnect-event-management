@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, FONT, Icon, StatusBadge, TypeBadge } from "../designSystem";
+import { getEventImage } from "../imageUtils";
 
 export default function MyEventsPage({ events, onSelectEvent, onNavigate }) {
   const [filter, setFilter] = useState("all");
@@ -40,26 +41,31 @@ export default function MyEventsPage({ events, onSelectEvent, onNavigate }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-        {filtered.map((ev, i) => (
-          <div key={ev.id} onClick={() => onSelectEvent(ev)} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: i === 0 ? "12px 12px 4px 4px" : i === filtered.length - 1 ? "4px 4px 12px 12px" : "4px", padding: "18px 22px", display: "flex", alignItems: "center", gap: "18px", cursor: "pointer" }}>
-            <div style={{ width: "52px", height: "58px", borderRadius: "10px", background: C.neutral, border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <span style={{ fontSize: "9px", fontWeight: "700", color: C.textMuted, fontFamily: FONT, textTransform: "uppercase" }}>{ev.date.split(" ")[0]}</span>
-              <span style={{ fontSize: "22px", fontWeight: "800", color: C.primary, fontFamily: FONT, lineHeight: 1.1 }}>{ev.date.split(" ")[1].replace(",", "")}</span>
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "5px", flexWrap: "wrap" }}>
-                <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: C.text, fontFamily: FONT }}>{ev.title}</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: "18px" }}>
+        {filtered.map((ev) => (
+          <div key={ev.id} onClick={() => onSelectEvent(ev)} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", cursor: "pointer", transition: "all 0.2s", display: "flex", flexDirection: "column" }}>
+            <div style={{ width: "100%", height: "160px", background: `linear-gradient(135deg, ${C.primary}, ${C.secondary})`, position: "relative", overflow: "hidden" }}>
+              <img src={getEventImage(ev.id, ev.type)} alt={ev.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { e.target.style.opacity = "0.2"; }} />
+              <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "6px" }}>
                 <TypeBadge type={ev.type} />
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: C.textMuted, fontFamily: FONT }}><Icon.Clock size={12} />{ev.time}</span>
-                <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: C.textMuted, fontFamily: FONT }}><Icon.MapPin size={12} />{ev.venue}</span>
+              <div style={{ position: "absolute", top: "10px", left: "10px", background: C.white, padding: "6px 12px", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", minWidth: "50px" }}>
+                <span style={{ fontSize: "9px", fontWeight: "700", color: C.textMuted, fontFamily: FONT, textTransform: "uppercase" }}>{ev.date.split(" ")[0]}</span>
+                <span style={{ fontSize: "18px", fontWeight: "800", color: C.primary, fontFamily: FONT, lineHeight: 1 }}>{ev.date.split(" ")[1].replace(",", "")}</span>
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", flexShrink: 0 }}>
-              <StatusBadge status={ev.status} />
-              <span style={{ display: "flex", color: C.textDim }}><Icon.ChevronRight size={16} /></span>
+            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+              <div>
+                <h3 style={{ margin: "0 0 4px", fontSize: "14px", fontWeight: "700", color: C.text, fontFamily: FONT }}>{ev.title}</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: C.textMuted, fontFamily: FONT, flexWrap: "wrap" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Icon.Clock size={11} />{ev.time}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><Icon.MapPin size={11} />{ev.venue}</span>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
+                <StatusBadge status={ev.status} />
+                <span style={{ color: C.textDim }}><Icon.ChevronRight size={16} /></span>
+              </div>
             </div>
           </div>
         ))}

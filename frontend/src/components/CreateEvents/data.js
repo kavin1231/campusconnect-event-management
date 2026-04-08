@@ -178,21 +178,21 @@ export const RECENT_REQUESTS_DASH = [
 ];
 
 export const DASH_STATUS_META = {
-  approved: { bg: "#E8F5EF", text: "#1B7F4B", label: "Approved" },
-  pending: { bg: "#FFFBEB", text: "#C47F00", label: "Pending" },
-  rejected: { bg: "#FEF2F2", text: "#C92D20", label: "Rejected" },
-  conflicted: { bg: "#FFF4EC", text: "#FF7100", label: "Conflicted" },
+  approved: { bg: "#D97706", text: "#FEF3C7", label: "Approved" },
+  pending: { bg: "#06B6D4", text: "#F0F9FA", label: "Pending" },
+  rejected: { bg: "#EF4444", text: "#FEE2E2", label: "Rejected" },
+  conflicted: { bg: "#8B5CF6", text: "#F3E8FF", label: "Conflicted" },
 };
 
 export const DASH_TYPE_COLORS = {
-  Conference: { bg: "#EBF1F9", text: "#053668" },
-  Hackathon: { bg: "#EBF1F9", text: "#053668" },
-  Workshop: { bg: "#E8F5EF", text: "#1B7F4B" },
-  Concert: { bg: "#FDF2F8", text: "#7E22CE" },
-  "Guest Speaker": { bg: "#E8F5EF", text: "#1B7F4B" },
-  "Sports Meet": { bg: "#F0FDF4", text: "#166534" },
-  "Charity Drive": { bg: "#FEF2F2", text: "#C92D20" },
-  Seminar: { bg: "#F0F9FF", text: "#0369A1" },
+  Conference: { bg: "#312E81", text: "#8B5CF6" },
+  Hackathon: { bg: "#312E81", text: "#8B5CF6" },
+  Workshop: { bg: "#064E3B", text: "#10B981" },
+  Concert: { bg: "#4C1D95", text: "#D8B4FE" },
+  "Guest Speaker": { bg: "#064E3B", text: "#10B981" },
+  "Sports Meet": { bg: "#064E3B", text: "#10B981" },
+  "Charity Drive": { bg: "#7F1D1D", text: "#EF4444" },
+  Seminar: { bg: "#0E5A8A", text: "#06B6D4" },
 };
 
 const TODAY_D = new Date();
@@ -228,16 +228,16 @@ export const CONFLICTS_DATA = [
 ];
 
 export const CAL_TYPE_COLORS = {
-  Workshop: { bg: "#EBF1F9", text: "#053668", dot: "#053668" },
-  Exhibition: { bg: "#FFF4EC", text: "#7A3300", dot: "#FF7100" },
-  "Cultural Show": { bg: "#FEF3C7", text: "#7A5F00", dot: "#D97706" },
-  "Guest Speaker": { bg: "#E8F5EF", text: "#1B7F4B", dot: "#1B7F4B" },
-  "Sports Meet": { bg: "#F0FDF4", text: "#166534", dot: "#22C55E" },
-  Networking: { bg: "#EBF1F9", text: "#053668", dot: "#053668" },
-  Hackathon: { bg: "#EBF1F9", text: "#053668", dot: "#053668" },
-  Concert: { bg: "#FDF2F8", text: "#7E22CE", dot: "#A855F7" },
-  "Charity Drive": { bg: "#FEF2F2", text: "#C92D20", dot: "#C92D20" },
-  Seminar: { bg: "#F0F9FF", text: "#0369A1", dot: "#0EA5E9" },
+  Workshop: { bg: "#312E81", text: "#8B5CF6", dot: "#8B5CF6" },
+  Exhibition: { bg: "#1F2937", text: "#D97706", dot: "#D97706" },
+  "Cultural Show": { bg: "#1F2937", text: "#D97706", dot: "#D97706" },
+  "Guest Speaker": { bg: "#064E3B", text: "#10B981", dot: "#10B981" },
+  "Sports Meet": { bg: "#064E3B", text: "#10B981", dot: "#10B981" },
+  Networking: { bg: "#312E81", text: "#8B5CF6", dot: "#8B5CF6" },
+  Hackathon: { bg: "#312E81", text: "#8B5CF6", dot: "#8B5CF6" },
+  Concert: { bg: "#4C1D95", text: "#D8B4FE", dot: "#D8B4FE" },
+  "Charity Drive": { bg: "#7F1D1D", text: "#EF4444", dot: "#EF4444" },
+  Seminar: { bg: "#0E5A8A", text: "#06B6D4", dot: "#06B6D4" },
 };
 
 export const VENUE_NAMES_CAL = ["All Venues", "Main Auditorium", "Open Air Amphitheatre", "IT Lab Block", "Sports Complex", "Lecture Hall 1", "Main Field", "Seminar Room A", "Student Union Hall"];

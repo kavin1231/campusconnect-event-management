@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, FONT, Icon, Inp, Txta, Sel, Lbl, Card, SectionHead, ToggleSwitch } from "../designSystem";
+import { getEventImage } from "../imageUtils";
 
 export default function ApprovedPage({ event, onBack, onPublish }) {
   const [details, setDetails] = useState({ title: event.title, description: event.description, capacity: event.capacity, category: event.category, bannerUrl: "" });
@@ -33,25 +34,25 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      <div style={{ background: `linear-gradient(135deg, ${C.primary} 0%, #0a4f96 100%)`, padding: "24px 36px", flexShrink: 0, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(255,255,255,.04)" }} />
-        <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,.1)", border: "none", cursor: "pointer", color: "rgba(255,255,255,.7)", fontSize: "12px", fontFamily: FONT, fontWeight: "600", padding: "6px 12px", borderRadius: "6px", marginBottom: "14px" }}>
+      <div style={{ backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.4) 100%), url('${getEventImage(event.id, event.type)}')`, backgroundSize: "cover", backgroundPosition: "center", padding: "24px 36px", flexShrink: 0, position: "relative", overflow: "hidden", minHeight: "280px" }}>
+        <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(255,255,255,.03)" }} />
+        <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,.15)", border: "none", cursor: "pointer", color: "rgba(255,255,255,.9)", fontSize: "12px", fontFamily: FONT, fontWeight: "600", padding: "6px 12px", borderRadius: "6px", marginBottom: "14px", backdropFilter: "blur(8px)" }}>
           <Icon.ArrowLeft size={14} /> My Events
         </button>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px", position: "relative", zIndex: 10 }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "rgba(27,127,75,.2)", border: "1px solid rgba(27,127,75,.4)", borderRadius: "100px", padding: "4px 12px", marginBottom: "10px" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "block" }} />
-              <span style={{ fontSize: "10px", fontWeight: "700", color: "#4ade80", fontFamily: FONT, letterSpacing: "0.1em", textTransform: "uppercase" }}>Approved - Setup Required</span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.25)", borderRadius: "100px", padding: "6px 14px", marginBottom: "12px", backdropFilter: "blur(8px)" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: C.success, display: "block" }} />
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "rgba(255,255,255,.95)", fontFamily: FONT, letterSpacing: "0.1em", textTransform: "uppercase" }}>Approved • Setup Required</span>
             </div>
-            <h1 style={{ margin: "0 0 4px", fontSize: "22px", fontWeight: "800", color: C.white, fontFamily: FONT, letterSpacing: "-0.02em" }}>{event.title}</h1>
-            <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,.6)", fontFamily: FONT }}>{event.date} · {event.venue}</p>
+            <h1 style={{ margin: "0 0 6px", fontSize: "32px", fontWeight: "800", color: "#ffffff", fontFamily: FONT, letterSpacing: "-0.02em", textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>{event.title}</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,.9)", fontFamily: FONT, textShadow: "0 1px 4px rgba(0,0,0,0.2)" }}>{event.date} • {event.venue}</p>
           </div>
-          <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "12px", padding: "14px 20px", textAlign: "center", flexShrink: 0 }}>
-            <div style={{ fontSize: "28px", fontWeight: "800", color: allDone ? "#4ade80" : C.white, fontFamily: FONT, lineHeight: 1 }}>{doneCount}/{checks.length}</div>
-            <div style={{ fontSize: "10px", color: "rgba(255,255,255,.5)", fontFamily: FONT, textTransform: "uppercase", letterSpacing: "0.08em", margin: "4px 0 8px" }}>Setup Done</div>
-            <div style={{ background: "rgba(255,255,255,.15)", borderRadius: "100px", height: "4px", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${(doneCount / checks.length) * 100}%`, background: allDone ? "#4ade80" : C.secondary, borderRadius: "100px", transition: "width .4s" }} />
+          <div style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.2)", borderRadius: "14px", padding: "16px 24px", textAlign: "center", flexShrink: 0, backdropFilter: "blur(10px)" }}>
+            <div style={{ fontSize: "32px", fontWeight: "800", color: allDone ? "#4ade80" : C.white, fontFamily: FONT, lineHeight: 1 }}>{doneCount}/{checks.length}</div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,.6)", fontFamily: FONT, textTransform: "uppercase", letterSpacing: "0.08em", margin: "6px 0 10px", fontWeight: "600" }}>Setup Done</div>
+            <div style={{ background: "rgba(255,255,255,.15)", borderRadius: "100px", height: "5px", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(doneCount / checks.length) * 100}%`, background: allDone ? "#4ade80" : C.secondary, borderRadius: "100px", transition: "width 0.3s ease" }} />
             </div>
           </div>
         </div>
@@ -65,7 +66,7 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "28px 36px", display: "flex", flexDirection: "column", gap: "20px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "28px 36px", display: "flex", flexDirection: "column", gap: "20px", background: C.neutral }}>
         {activeTab === "details" && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "20px", alignItems: "start" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -99,7 +100,7 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <Card style={{ background: C.successLight, border: "1px solid rgba(27,127,75,.2)" }}>
+              <Card style={{ background: C.successLight, border: `1px solid ${C.success}25` }}>
                 <p style={{ margin: "0 0 10px", fontSize: "12px", fontWeight: "800", color: C.success, fontFamily: FONT }}>✓ Event Approved!</p>
                 <p style={{ margin: 0, fontSize: "12px", color: C.success + "cc", fontFamily: FONT, lineHeight: 1.6 }}>Your event has been approved by the university. Complete the setup below to publish it for attendees.</p>
               </Card>
@@ -125,7 +126,7 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             <Card>
               <SectionHead label="Tickets">
-                <button onClick={addTicket} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "7px 14px", background: C.primaryLight, color: C.primary, border: `1px solid ${C.primary}30`, borderRadius: "7px", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}><Icon.Plus size={12} /> Add Ticket</button>
+                <button onClick={addTicket} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "7px 14px", background: C.primaryLight, color: C.text, border: `1px solid ${C.primary}30`, borderRadius: "7px", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}><Icon.Plus size={12} /> Add Ticket</button>
               </SectionHead>
               {tickets.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "32px 16px", border: `1.5px dashed ${C.border}`, borderRadius: "10px" }}>
@@ -155,7 +156,7 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
 
             <Card>
               <SectionHead label="Merchandise">
-                <button onClick={addMerch} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "7px 14px", background: C.primaryLight, color: C.primary, border: `1px solid ${C.primary}30`, borderRadius: "7px", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}><Icon.Plus size={12} /> Add Item</button>
+                <button onClick={addMerch} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "7px 14px", background: C.primaryLight, color: C.text, border: `1px solid ${C.primary}30`, borderRadius: "7px", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}><Icon.Plus size={12} /> Add Item</button>
               </SectionHead>
               {merch.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "32px 16px", border: `1.5px dashed ${C.border}`, borderRadius: "10px" }}>
@@ -192,7 +193,7 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
                 <SectionHead label="Validation Checklist" />
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {checks.map((c, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", borderRadius: "8px", background: c.done ? C.successLight : C.neutral, border: `1px solid ${c.done ? "rgba(27,127,75,.15)" : C.border}`, transition: "all .2s" }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", borderRadius: "8px", background: c.done ? C.successLight : C.neutral, border: `1px solid ${c.done ? `${C.success}18` : C.border}`, transition: "all .2s" }}>
                       <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: c.done ? C.success : C.border, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background .2s" }}>{c.done ? <span style={{ color: C.white, display: "flex" }}><Icon.Check size={11} /></span> : <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: C.textDim, display: "block" }} />}</div>
                       <span style={{ fontSize: "13px", fontWeight: "600", color: c.done ? C.text : C.textMuted, fontFamily: FONT }}>{c.label}</span>
                       {!c.done && <span style={{ marginLeft: "auto", fontSize: "10px", color: C.warning, fontWeight: "700", fontFamily: FONT, background: C.warningLight, padding: "2px 8px", borderRadius: "100px" }}>Required</span>}
@@ -207,8 +208,8 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
                   <div style={{ height: "100px", background: `linear-gradient(135deg, ${C.primaryLight} 0%, ${C.border} 100%)`, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: C.textDim, display: "flex" }}><Icon.Image size={28} /></span></div>
                   <div style={{ padding: "16px" }}>
                     <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "10px", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: C.primaryLight, color: C.primary, fontWeight: "600" }}>{event.type}</span>
-                      <span style={{ fontSize: "10px", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: C.primaryLight, color: C.primary, fontWeight: "600" }}>{details.category || "Uncategorized"}</span>
+                      <span style={{ fontSize: "10px", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: C.primaryLight, color: C.text, fontWeight: "600" }}>{event.type}</span>
+                      <span style={{ fontSize: "10px", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: C.primaryLight, color: C.text, fontWeight: "600" }}>{details.category || "Uncategorized"}</span>
                     </div>
                     <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: "800", color: C.text, fontFamily: FONT }}>{details.title || "Event Title"}</h4>
                     <p style={{ margin: "0 0 12px", fontSize: "12px", color: C.textMuted, fontFamily: FONT, lineHeight: 1.6 }}>{details.description ? details.description.slice(0, 120) + "..." : "No description added yet."}</p>
@@ -223,7 +224,7 @@ export default function ApprovedPage({ event, onBack, onPublish }) {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <Card style={{ background: allDone ? `linear-gradient(135deg, ${C.primary} 0%, #0a4f96 100%)` : C.neutral, border: allDone ? "none" : `1px solid ${C.border}` }}>
+              <Card style={{ background: allDone ? `linear-gradient(135deg, ${C.primary} 0%, ${C.primaryLight} 100%)` : C.neutral, border: allDone ? "none" : `1px solid ${C.border}` }}>
                 <div style={{ textAlign: "center", padding: "8px 0" }}>
                   <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: allDone ? "rgba(255,255,255,.15)" : C.border, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", color: allDone ? C.white : C.textDim }}><Icon.CheckCircle size={24} /></div>
                   <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: "800", color: allDone ? C.white : C.text, fontFamily: FONT }}>{allDone ? "Ready to Publish!" : "Setup Incomplete"}</p>

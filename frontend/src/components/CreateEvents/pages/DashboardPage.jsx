@@ -1,27 +1,27 @@
 import { useState } from "react";
 import { C, FONT, Icon } from "../designSystem";
 import { UPCOMING_EVENTS_DASH, RECENT_REQUESTS_DASH, DASH_STATUS_META, DASH_TYPE_COLORS } from "../data";
+import { getEventImage } from "../imageUtils";
 
 function DashStatusBadge({ status }) {
   const m = DASH_STATUS_META[status] || DASH_STATUS_META.pending;
-  return <span style={{ fontSize: "10px", fontWeight: "700", fontFamily: FONT, padding: "3px 10px", borderRadius: "100px", background: m.bg, color: m.text, whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.04em" }}>{m.label}</span>;
+  return <span style={{ fontSize: "10px", fontWeight: "700", fontFamily: FONT, padding: "4px 10px", borderRadius: "6px", background: m.bg, color: m.text, whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.04em", border: `1px solid ${m.bg}` }}>{m.label}</span>;
 }
 
 function DashTypeBadge({ type }) {
   const c = DASH_TYPE_COLORS[type] || { bg: C.primaryLight, text: C.primary };
-  return <span style={{ fontSize: "10px", fontWeight: "600", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: c.bg, color: c.text }}>{type}</span>;
+  return <span style={{ fontSize: "10px", fontWeight: "600", fontFamily: FONT, padding: "4px 9px", borderRadius: "6px", background: c.bg, color: c.text }}>{type}</span>;
 }
 
 function StatCard({ label, value, sub, trend, trendUp, icon, accent = false }) {
   return (
-    <div style={{ background: accent ? C.primary : C.white, borderRadius: "14px", padding: "22px", border: `1px solid ${accent ? "transparent" : C.border}`, boxShadow: accent ? "0 6px 24px rgba(5,54,104,.2)" : "0 2px 8px rgba(5,54,104,.05)", display: "flex", flexDirection: "column", gap: "12px", flex: 1, minWidth: 0, position: "relative", overflow: "hidden" }}>
-      {accent && (<><div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", borderRadius: "50%", background: "rgba(255,255,255,.05)" }} /><div style={{ position: "absolute", bottom: "-30px", right: "40px", width: "80px", height: "80px", borderRadius: "50%", background: "rgba(255,113,0,.08)" }} /></>)}
+    <div style={{ background: accent ? C.primary : C.white, borderRadius: "12px", padding: "20px", border: `1px solid ${accent ? "transparent" : C.border}`, display: "flex", flexDirection: "column", gap: "12px", flex: 1, minWidth: 0, position: "relative", overflow: "hidden" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: accent ? "rgba(255,255,255,.12)" : C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", color: accent ? C.white : C.primary }}>{icon}</div>
+        <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: accent ? "rgba(255,255,255,.12)" : C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", color: accent ? C.white : C.primary }}>{icon}</div>
         {trend !== undefined && <div style={{ display: "flex", alignItems: "center", gap: "4px", color: trendUp ? C.success : C.error, fontSize: "11px", fontWeight: "700", fontFamily: FONT }}>{trendUp ? <Icon.ArrowUp size={11} /> : <Icon.ArrowDown size={11} />}{trend}%</div>}
       </div>
       <div>
-        <p style={{ margin: "0 0 4px", fontSize: "28px", fontWeight: "800", color: accent ? C.white : C.text, fontFamily: FONT, lineHeight: 1 }}>{value}</p>
+        <p style={{ margin: "0 0 4px", fontSize: "26px", fontWeight: "800", color: accent ? C.white : C.text, fontFamily: FONT, lineHeight: 1 }}>{value}</p>
         <p style={{ margin: "0 0 2px", fontSize: "12px", fontWeight: "600", color: accent ? "rgba(255,255,255,.8)" : C.text, fontFamily: FONT }}>{label}</p>
         {sub && <p style={{ margin: 0, fontSize: "11px", color: accent ? "rgba(255,255,255,.5)" : C.textMuted, fontFamily: FONT }}>{sub}</p>}
       </div>
@@ -70,9 +70,8 @@ export default function DashboardPage({ onNavigate }) {
             </div>
             {UPCOMING_EVENTS_DASH.map((ev, i) => (
               <div key={ev.id} style={{ padding: "12px 20px", borderBottom: i < UPCOMING_EVENTS_DASH.length - 1 ? `1px solid ${C.border}` : "none", display: "flex", alignItems: "center", gap: "12px" }}>
-                <div style={{ width: "42px", height: "46px", borderRadius: "8px", background: C.primaryLight, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0, border: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: "8px", fontWeight: "700", color: C.textMuted, fontFamily: FONT, textTransform: "uppercase" }}>{ev.date.split(" ")[0]}</span>
-                  <span style={{ fontSize: "17px", fontWeight: "800", color: C.primary, fontFamily: FONT, lineHeight: 1.1 }}>{ev.date.split(" ")[1].replace(",", "")}</span>
+                <div style={{ width: "50px", height: "50px", borderRadius: "8px", background: C.primaryLight, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: `1px solid ${C.border}`, overflow: "hidden", position: "relative" }}>
+                  <img src={getEventImage(ev.id, ev.type)} alt={ev.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { e.target.style.opacity = "0.2"; }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: "0 0 3px", fontSize: "13px", fontWeight: "700", color: C.text, fontFamily: FONT, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ev.title}</p>

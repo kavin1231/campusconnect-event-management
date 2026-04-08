@@ -1,27 +1,57 @@
 import React from "react";
 
-export const C = {
-  primary: "#053668",
-  secondary: "#FF7100",
-  neutral: "#F9FAFB",
-  white: "#FFFFFF",
-  primaryLight: "#EBF1F9",
-  border: "#E2EAF3",
-  borderDark: "#D1DCE8",
-  text: "#0D1F33",
-  textMuted: "#5A7494",
-  textDim: "#A3B8CC",
-  secLight: "#FFF4EC",
-  success: "#1B7F4B",
-  successLight: "#E8F5EF",
-  warning: "#C47F00",
-  warningLight: "#FFFBEB",
-  error: "#C92D20",
-  errorLight: "#FEF2F2",
-  approvedBg: "#EBF1F9",
-  pendingBg: "#FFFBEB",
-  publishedBg: "#E8F5EF",
+// Theme definitions
+export const THEMES = {
+  light: {
+    primary: "#053668",
+    secondary: "#FF7100",
+    tertiary: "#F7ECB5",
+    neutral: "#F9FAFB",
+    white: "#FFFFFF",
+    primaryLight: "#E8ECFF",
+    border: "#E5E7EB",
+    borderDark: "#D1D5DB",
+    text: "#1F2937",
+    textMuted: "#6B7280",
+    textDim: "#9CA3AF",
+    secLight: "#FFF4E8",
+    success: "#10B981",
+    successLight: "#D1F4E8",
+    warning: "#F59E0B",
+    warningLight: "#FEF3C7",
+    error: "#EF4444",
+    errorLight: "#FEE2E2",
+    approvedBg: "#F59E0B",
+    pendingBg: "#FF7100",
+    publishedBg: "#10B981",
+  },
+  dark: {
+    primary: "#053668",
+    secondary: "#FF7100",
+    tertiary: "#F7ECB5",
+    neutral: "#1F2937",
+    white: "#111827",
+    primaryLight: "#1E3A8A",
+    border: "#374151",
+    borderDark: "#4B5563",
+    text: "#F3F4F6",
+    textMuted: "#D1D5DB",
+    textDim: "#9CA3AF",
+    secLight: "#7C2D12",
+    success: "#10B981",
+    successLight: "#064E3B",
+    warning: "#F59E0B",
+    warningLight: "#78350F",
+    error: "#EF4444",
+    errorLight: "#7F1D1D",
+    approvedBg: "#B45309",
+    pendingBg: "#EA580C",
+    publishedBg: "#047857",
+  },
 };
+
+// Default export for backward compatibility
+export const C = THEMES.light;
 
 export const FONT = "'Montserrat', sans-serif";
 
@@ -362,26 +392,44 @@ export const Icon = {
       <circle cx="12" cy="9" r="2.5" />
     </Ic>
   ),
+  Moon: ({ size = 16 } = {}) => (
+    <Ic size={size}>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </Ic>
+  ),
+  Sun: ({ size = 16 } = {}) => (
+    <Ic size={size}>
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </Ic>
+  ),
 };
 
 export const STATUS_META = {
-  pending: { label: "Approval Pending", color: C.warning, bg: C.warningLight, border: "rgba(196,127,0,.2)", dot: "#C47F00" },
-  approved: { label: "Approved", color: C.primary, bg: C.approvedBg, border: "rgba(5,54,104,.15)", dot: C.primary },
-  published: { label: "Published", color: C.success, bg: C.successLight, border: "rgba(27,127,75,.15)", dot: C.success },
+  pending: { label: "Approval Pending", color: C.secondary, bg: "#0E5A8A", border: "rgba(6,182,212,.2)", dot: "#06B6D4" },
+  approved: { label: "Approved", color: C.warning, bg: "#78350F", border: "rgba(217,119,6,.2)", dot: C.warning },
+  published: { label: "Published", color: C.success, bg: C.successLight, border: "rgba(16,185,129,.2)", dot: C.success },
 };
 
 export const TYPE_COLORS = {
-  Conference: { bg: "#EBF1F9", text: C.primary },
-  Workshop: { bg: "#E8F5EF", text: C.success },
-  Concert: { bg: "#FDF2F8", text: "#7E22CE" },
-  Hackathon: { bg: "#EBF1F9", text: C.primary },
-  Seminar: { bg: "#F0F9FF", text: "#0369A1" },
-  Exhibition: { bg: "#FFF4EC", text: "#7A3300" },
+  Conference: { bg: "#312E81", text: C.primary },
+  Workshop: { bg: "#064E3B", text: C.success },
+  Concert: { bg: "#4C1D95", text: "#D8B4FE" },
+  Hackathon: { bg: "#312E81", text: C.primary },
+  Seminar: { bg: "#0E5A8A", text: "#06B6D4" },
+  Exhibition: { bg: "#1F2937", text: C.warning },
 };
 
 const iBase = {
   width: "100%",
-  padding: "10px 14px",
+  padding: "11px 14px",
   borderRadius: "8px",
   border: `1.5px solid ${C.border}`,
   background: C.white,
@@ -390,15 +438,22 @@ const iBase = {
   fontFamily: FONT,
   outline: "none",
   boxSizing: "border-box",
-  transition: "border-color .2s, box-shadow .2s",
+  transition: "all 0.2s ease",
+  fontWeight: 500,
 };
 
 export function Inp({ style = {}, ...p }) {
   return (
     <input
       style={{ ...iBase, ...style }}
-      onFocus={(e) => Object.assign(e.target.style, { borderColor: C.primary, boxShadow: "0 0 0 3px rgba(5,54,104,.08)" })}
-      onBlur={(e) => Object.assign(e.target.style, { borderColor: C.border, boxShadow: "none" })}
+      onFocus={(e) => {
+        e.target.style.borderColor = C.primary;
+        e.target.style.boxShadow = `0 0 0 3px rgba(139, 92, 246, 0.1)`;
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = C.border;
+        e.target.style.boxShadow = "none";
+      }}
       {...p}
     />
   );
@@ -407,9 +462,15 @@ export function Inp({ style = {}, ...p }) {
 export function Txta({ style = {}, ...p }) {
   return (
     <textarea
-      style={{ ...iBase, resize: "vertical", ...style }}
-      onFocus={(e) => Object.assign(e.target.style, { borderColor: C.primary, boxShadow: "0 0 0 3px rgba(5,54,104,.08)" })}
-      onBlur={(e) => Object.assign(e.target.style, { borderColor: C.border, boxShadow: "none" })}
+      style={{ ...iBase, resize: "vertical", minHeight: "100px", ...style }}
+      onFocus={(e) => {
+        e.target.style.borderColor = C.primary;
+        e.target.style.boxShadow = `0 0 0 3px rgba(139, 92, 246, 0.1)`;
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = C.border;
+        e.target.style.boxShadow = "none";
+      }}
       {...p}
     />
   );
@@ -419,8 +480,14 @@ export function Sel({ children, style = {}, ...p }) {
   return (
     <select
       style={{ ...iBase, cursor: "pointer", ...style }}
-      onFocus={(e) => Object.assign(e.target.style, { borderColor: C.primary, boxShadow: "0 0 0 3px rgba(5,54,104,.08)" })}
-      onBlur={(e) => Object.assign(e.target.style, { borderColor: C.border, boxShadow: "none" })}
+      onFocus={(e) => {
+        e.target.style.borderColor = C.primary;
+        e.target.style.boxShadow = `0 0 0 3px rgba(139, 92, 246, 0.1)`;
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = C.border;
+        e.target.style.boxShadow = "none";
+      }}
       {...p}
     >
       {children}
@@ -440,23 +507,84 @@ export function Lbl({ children, required, hint }) {
   );
 }
 
-export function StatusBadge({ status, size = "sm" }) {
+export function StatusBadge({ status, size = "sm", glass = false }) {
   const m = STATUS_META[status];
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: size === "lg" ? "12px" : "10px", fontWeight: "700", fontFamily: FONT, padding: size === "lg" ? "5px 12px" : "3px 10px", borderRadius: "100px", background: m.bg, color: m.color, border: `1px solid ${m.border}`, whiteSpace: "nowrap", letterSpacing: "0.04em" }}>
-      <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: m.dot, display: "block", flexShrink: 0 }} />
+    <span
+      data-badge
+      {...(glass && { "data-glass-badge": true })}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        fontSize: size === "lg" ? "12px" : "10px",
+        fontWeight: "700",
+        fontFamily: FONT,
+        padding: size === "lg" ? "8px 14px" : "5px 11px",
+        borderRadius: "6px",
+        background: glass ? "rgba(139, 92, 246, 0.15)" : m.bg,
+        color: glass ? C.primary : m.color,
+        border: glass ? "1px solid rgba(139, 92, 246, 0.3)" : `1.5px solid ${m.border}`,
+        whiteSpace: "nowrap",
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
+        transition: "all 0.2s ease",
+        ...(glass && { backdropFilter: "blur(8px)", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.15)" }),
+        ...(!glass && { boxShadow: `0 2px 8px ${m.bg}30` }),
+      }}
+    >
+      {!glass && <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: m.dot, display: "block" }} />}
       {m.label}
     </span>
   );
 }
 
-export function TypeBadge({ type }) {
+export function TypeBadge({ type, glass = false }) {
   const col = TYPE_COLORS[type] || { bg: C.primaryLight, text: C.primary };
-  return <span style={{ fontSize: "10px", fontWeight: "600", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: col.bg, color: col.text, whiteSpace: "nowrap" }}>{type}</span>;
+  return (
+    <span
+      data-badge
+      {...(glass && { "data-glass-badge": true })}
+      style={{
+        fontSize: "11px",
+        fontWeight: "700",
+        fontFamily: FONT,
+        padding: "5px 11px",
+        borderRadius: "6px",
+        background: glass ? "rgba(139, 92, 246, 0.15)" : col.bg,
+        color: glass ? C.primary : col.text,
+        whiteSpace: "nowrap",
+        transition: "all 0.2s ease",
+        border: glass ? "1px solid rgba(139, 92, 246, 0.3)" : `1px solid ${col.text}15`,
+        display: "inline-block",
+        textTransform: "capitalize",
+        ...(glass && { backdropFilter: "blur(8px)", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.15)" }),
+      }}
+    >
+      {type}
+    </span>
+  );
 }
 
-export function Card({ children, style = {}, pad = "20px" }) {
-  return <div style={{ background: C.white, borderRadius: "14px", border: `1px solid ${C.border}`, boxShadow: "0 2px 12px rgba(5,54,104,.04)", padding: pad, ...style }}>{children}</div>;
+export function Card({ children, style = {}, pad = "20px", hover = true, glass = false }) {
+  return (
+    <div
+      data-card
+      {...(glass && { "data-glass-card": true })}
+      style={{
+        background: glass ? "rgba(255, 255, 255, 0.12)" : C.white,
+        borderRadius: "12px",
+        border: glass ? "1px solid rgba(255, 255, 255, 0.2)" : `1px solid ${C.border}`,
+        padding: pad,
+        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        cursor: hover ? "pointer" : "default",
+        ...(glass && { backdropFilter: "blur(10px)", boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)" }),
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function SectionHead({ label, children }) {
@@ -472,7 +600,7 @@ export function ToggleSwitch({ value, onChange, label }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
       <button type="button" onClick={() => onChange(!value)} style={{ position: "relative", width: "40px", height: "22px", borderRadius: "100px", background: value ? C.primary : C.borderDark, border: "none", cursor: "pointer", flexShrink: 0, transition: "background .2s" }}>
-        <span style={{ position: "absolute", top: "3px", left: value ? "20px" : "3px", width: "16px", height: "16px", borderRadius: "50%", background: C.white, transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)" }} />
+        <span style={{ position: "absolute", top: "3px", left: value ? "20px" : "3px", width: "16px", height: "16px", borderRadius: "50%", background: C.white, transition: "left .2s" }} />
       </button>
       {label && <span style={{ fontSize: "12px", color: C.textMuted, fontFamily: FONT }}>{label}</span>}
     </div>
@@ -496,7 +624,41 @@ export function Pills({ options, value, onChange, multi = false }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
       {options.map((o) => (
-        <button key={o} type="button" onClick={() => tog(o)} style={{ padding: "6px 14px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", fontFamily: FONT, transition: "all .15s", border: `1.5px solid ${sel(o) ? C.primary : C.border}`, background: sel(o) ? C.primaryLight : C.white, color: sel(o) ? C.primary : C.textMuted, fontWeight: sel(o) ? "700" : "400" }}>
+        <button
+          key={o}
+          type="button"
+          onClick={() => tog(o)}
+          style={{
+            padding: "8px 16px",
+            borderRadius: "20px",
+            fontSize: "12px",
+            fontWeight: sel(o) ? "700" : "500",
+            cursor: "pointer",
+            fontFamily: FONT,
+            transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            border: `1.5px solid ${sel(o) ? C.primary : C.border}`,
+            background: sel(o) ? C.primary : C.white,
+            color: sel(o) ? C.white : C.textMuted,
+            boxShadow: sel(o) ? `0 4px 12px ${C.primary}30` : "none",
+            transform: "scale(1)",
+          }}
+          onMouseEnter={(e) => {
+            if (!sel(o)) {
+              e.target.style.borderColor = C.primary;
+              e.target.style.background = C.primaryLight;
+              e.target.style.color = C.primary;
+              e.target.style.transform = "scale(1.03)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!sel(o)) {
+              e.target.style.borderColor = C.border;
+              e.target.style.background = C.white;
+              e.target.style.color = C.textMuted;
+              e.target.style.transform = "scale(1)";
+            }
+          }}
+        >
           {o}
         </button>
       ))}
@@ -525,8 +687,21 @@ export function InfoBox({ warn = false, children }) {
   );
 }
 
-export function InnerCard({ children }) {
-  return <div style={{ background: C.neutral, borderRadius: "12px", padding: "20px", border: `1px solid ${C.border}` }}>{children}</div>;
+export function InnerCard({ children, glass = false }) {
+  return (
+    <div
+      {...(glass && { "data-glass": true })}
+      style={{
+        background: glass ? "rgba(255, 255, 255, 0.15)" : C.neutral,
+        borderRadius: "12px",
+        padding: "20px",
+        border: glass ? "1px solid rgba(255, 255, 255, 0.25)" : `1px solid ${C.border}`,
+        ...(glass && { backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)" }),
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function FormToggle({ value, onChange }) {
@@ -538,17 +713,84 @@ export function FormToggle({ value, onChange }) {
 }
 
 export function FormBtn({ children, onClick, variant = "primary", disabled = false, style = {} }) {
-  const base = { padding: "11px 26px", borderRadius: "8px", fontSize: "13px", fontFamily: FONT, fontWeight: "700", cursor: disabled ? "not-allowed" : "pointer", border: "none", transition: "all .2s", ...style };
-  const v =
-    disabled
-      ? { background: C.borderDark, color: C.textDim, boxShadow: "none" }
-      : variant === "primary"
-      ? { background: C.primary, color: C.white, boxShadow: "0 4px 12px rgba(5,54,104,.25)" }
-      : variant === "secondary"
-      ? { background: C.secondary, color: C.white, boxShadow: "0 4px 16px rgba(255,113,0,.35)" }
-      : { background: C.white, color: C.primary, border: `1.5px solid ${C.primary}` };
+  const variantStyles = {
+    primary: {
+      bg: C.primary,
+      text: C.white,
+      hoverBg: "#7C3AED",
+      activeBg: "#6D28D9",
+      shadow: "0 4px 12px rgba(139, 92, 246, 0.25)",
+      hoverShadow: "0 8px 20px rgba(139, 92, 246, 0.35)",
+    },
+    secondary: {
+      bg: C.secondary,
+      text: C.white,
+      hoverBg: "#EA580C",
+      activeBg: "#C2410C",
+      shadow: "0 4px 12px rgba(255, 113, 0, 0.25)",
+      hoverShadow: "0 8px 20px rgba(255, 113, 0, 0.35)",
+    },
+    outline: {
+      bg: C.white,
+      text: C.primary,
+      hoverBg: C.primaryLight,
+      activeBg: "#EDE9FE",
+      shadow: "0 2px 8px rgba(139, 92, 246, 0.15)",
+      hoverShadow: "0 4px 12px rgba(139, 92, 246, 0.25)",
+    },
+  };
+
+  const v = disabled ? { bg: C.borderDark, text: C.textDim, shadow: "none" } : variantStyles[variant];
+  const base = {
+    padding: "12px 26px",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontFamily: FONT,
+    fontWeight: "700",
+    cursor: disabled ? "not-allowed" : "pointer",
+    border: variant === "outline" ? `1.5px solid ${C.primary}` : "none",
+    transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    opacity: disabled ? 0.6 : 1,
+    transform: "scale(1) translateY(0)",
+    boxShadow: v.shadow,
+    ...style,
+  };
+
   return (
-    <button onClick={!disabled ? onClick : undefined} style={{ ...base, ...v }}>
+    <button
+      onClick={!disabled ? onClick : undefined}
+      style={{
+        ...base,
+        background: v.bg,
+        color: v.text,
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.target.style.background = v.hoverBg;
+          e.target.style.boxShadow = v.hoverShadow;
+          e.target.style.transform = "scale(1.02) translateY(-2px)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) {
+          e.target.style.background = v.bg;
+          e.target.style.boxShadow = v.shadow;
+          e.target.style.transform = "scale(1) translateY(0)";
+        }
+      }}
+      onMouseDown={(e) => {
+        if (!disabled) {
+          e.target.style.background = v.activeBg;
+          e.target.style.transform = "scale(0.98) translateY(1px)";
+        }
+      }}
+      onMouseUp={(e) => {
+        if (!disabled) {
+          e.target.style.background = v.hoverBg;
+          e.target.style.transform = "scale(1.02) translateY(-2px)";
+        }
+      }}
+    >
       {children}
     </button>
   );

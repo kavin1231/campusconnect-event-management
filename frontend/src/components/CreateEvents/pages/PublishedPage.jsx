@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { C, FONT, Icon, StatusBadge, TypeBadge, Card, SectionHead } from "../designSystem";
+import { getEventImage } from "../imageUtils";
 
 export default function PublishedPage({ event, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
@@ -16,35 +17,40 @@ export default function PublishedPage({ event, onBack }) {
   ];
 
   return (
-    <div style={{ flex: 1, overflowY: "auto", padding: "32px 36px", display: "flex", flexDirection: "column", gap: "24px" }}>
-      <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "none", border: "none", cursor: "pointer", color: C.textMuted, fontSize: "13px", fontFamily: FONT, fontWeight: "600", padding: 0, width: "fit-content" }}>
-        <Icon.ArrowLeft size={15} /> Back to My Events
-      </button>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: FONT }}>
+      <div style={{ backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.4) 100%), url('${getEventImage(event.id, "Conference")}')`, backgroundSize: "cover", backgroundPosition: "center", padding: "24px 36px", flexShrink: 0, position: "relative", overflow: "hidden", minHeight: "280px" }}>
+        <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(255,255,255,.03)" }} />
+        <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,.15)", border: "none", cursor: "pointer", color: "rgba(255,255,255,.9)", fontSize: "12px", fontWeight: "600", padding: "6px 12px", borderRadius: "6px", marginBottom: "14px", backdropFilter: "blur(8px)" }}>
+          <Icon.ArrowLeft size={14} /> My Events
+        </button>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px", position: "relative", zIndex: 10 }}>
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.25)", borderRadius: "100px", padding: "6px 14px", marginBottom: "12px", backdropFilter: "blur(8px)" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "block" }} />
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "rgba(255,255,255,.95)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Published • Live</span>
+            </div>
+            <h1 style={{ margin: "0 0 6px", fontSize: "32px", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.02em", textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>{event.title}</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,.9)", textShadow: "0 1px 4px rgba(0,0,0,0.2)" }}>{event.date} • {event.venue}</p>
+          </div>
+          <div style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.2)", borderRadius: "14px", padding: "16px 24px", textAlign: "center", flexShrink: 0, backdropFilter: "blur(10px)" }}>
+            <div style={{ fontSize: "32px", fontWeight: "800", color: "#4ade80", lineHeight: 1 }}>{registrationPct}%</div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,.6)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "6px 0 10px", fontWeight: "600" }}>Registered</div>
+            <div style={{ background: "rgba(255,255,255,.15)", borderRadius: "100px", height: "5px", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${registrationPct}%`, background: "#4ade80", borderRadius: "100px", transition: "width 0.3s ease" }} />
+            </div>
+          </div>
+        </div>
 
-      <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "16px", padding: "24px 28px", display: "flex", alignItems: "flex-start", gap: "20px", boxShadow: "0 2px 12px rgba(5,54,104,.05)" }}>
-        <div style={{ width: "72px", height: "72px", borderRadius: "14px", background: C.successLight, border: "1.5px solid rgba(27,127,75,.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon.Review size={30} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px", flexWrap: "wrap" }}>
-            <h1 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: C.text, fontFamily: FONT, letterSpacing: "-0.02em" }}>{event.title}</h1>
-            <StatusBadge status="published" size="lg" />
-          </div>
-          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: C.textMuted, fontFamily: FONT }}><Icon.Calendar size={12} />{event.date}</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: C.textMuted, fontFamily: FONT }}><Icon.Clock size={12} />{event.time}</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: C.textMuted, fontFamily: FONT }}><Icon.MapPin size={12} />{event.venue}</span>
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-          <button style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 16px", background: C.neutral, color: C.primary, border: `1px solid ${C.border}`, borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}>
-            <Icon.Eye size={14} /> Preview
-          </button>
-          <button style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 16px", background: C.primary, color: C.white, border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", fontFamily: FONT }}>
-            <Icon.ExternalLink size={12} /> View Live
-          </button>
+        <div style={{ display: "flex", gap: "2px", marginTop: "20px" }}>
+          {TABS.map((tab) => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ display: "flex", alignItems: "center", gap: "7px", padding: "8px 18px", borderRadius: "8px 8px 0 0", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: activeTab === tab.key ? "700" : "500", background: activeTab === tab.key ? C.white : "rgba(255,255,255,.08)", color: activeTab === tab.key ? C.success : "rgba(255,255,255,.6)" }}>
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "28px 36px", display: "flex", flexDirection: "column", gap: "20px", background: C.neutral }}>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
         {[
@@ -61,12 +67,6 @@ export default function PublishedPage({ event, onBack }) {
             <div style={{ fontSize: "11px", fontWeight: "600", color: C.text, fontFamily: FONT, marginTop: "4px" }}>{s.label}</div>
             <div style={{ fontSize: "11px", color: C.textMuted, fontFamily: FONT }}>{s.sub}</div>
           </div>
-        ))}
-      </div>
-
-      <div style={{ display: "flex", gap: "2px", borderBottom: `2px solid ${C.border}` }}>
-        {TABS.map((tab) => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: "9px 20px", border: "none", background: "transparent", cursor: "pointer", fontFamily: FONT, fontSize: "13px", fontWeight: activeTab === tab.key ? "700" : "500", color: activeTab === tab.key ? C.primary : C.textMuted, borderBottom: `2px solid ${activeTab === tab.key ? C.secondary : "transparent"}`, marginBottom: "-2px", transition: "all .15s" }}>{tab.label}</button>
         ))}
       </div>
 
@@ -147,7 +147,7 @@ export default function PublishedPage({ event, onBack }) {
             <p style={{ margin: "0 0 14px", fontSize: "13px", color: C.textMuted, fontFamily: FONT, lineHeight: 1.8 }}>{event.description}</p>
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               <TypeBadge type={event.type} />
-              <span style={{ fontSize: "10px", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: C.primaryLight, color: C.primary, fontWeight: "600" }}>{event.category}</span>
+                <span style={{ fontSize: "10px", fontFamily: FONT, padding: "3px 9px", borderRadius: "100px", background: C.primaryLight, color: C.text, fontWeight: "600" }}>{event.category}</span>
             </div>
           </Card>
         </div>
@@ -216,6 +216,7 @@ export default function PublishedPage({ event, onBack }) {
           </Card>
         </div>
       )}
+      </div>
     </div>
   );
 }

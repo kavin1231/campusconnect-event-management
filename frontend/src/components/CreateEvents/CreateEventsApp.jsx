@@ -1,5 +1,16 @@
-import { useState } from "react";
-import { C, FONT, Icon } from "./designSystem";
+import { useState, createContext, useContext } from "react";
+import { THEMES, FONT, Icon } from "./designSystem";
+
+// Theme Context for child components
+const ThemeContext = createContext();
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within ThemeProvider");
+  }
+  return context;
+};
 import { MY_EVENTS } from "./data";
 import SidebarFull from "./SidebarFull";
 import DashboardPage from "./pages/DashboardPage";
@@ -13,10 +24,32 @@ import CalendarPage from "./pages/CalendarPage";
 import MerchPage from "./pages/MerchPage";
 
 export default function App() {
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState("create");
   const [selectedEvent, setSel] = useState(null);
   const [events, setEvents] = useState(MY_EVENTS);
   const [submitted, setSubmitted] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    // Load theme from localStorage or default to "light"
+    try {
+      const saved = localStorage.getItem("nexora-theme");
+      return saved || "light";
+    } catch {
+      return "light";
+    }
+  });
+
+  // Save theme preference when it changes
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    try {
+      localStorage.setItem("nexora-theme", newTheme);
+    } catch {
+      console.warn("Could not save theme preference");
+    }
+  };
+
+  // Get colors based on current theme
+  const C = THEMES[theme];
 
   const navigate = (key) => {
     setPage(key);
@@ -64,12 +97,96 @@ export default function App() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", fontFamily: FONT, background: C.neutral }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #D1DCE8; border-radius: 10px; }
-        ::placeholder { color: #A3B8CC; }
-        select option { background: #fff; color: #0D1F33; }
-        body, button, input, textarea, select { font-family: Montserrat, system-ui, sans-serif; }
+        
+        /* Smooth animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        body { animation: fadeIn 0.4s ease-out; }
+        
+        /* Enhanced scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: ${C.neutral}; }
+        ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: ${C.textMuted}; }
+        
+        /* Form elements */
+        ::placeholder { color: ${C.textMuted}; }
+        select option { background: ${C.white}; color: ${C.text}; }
+        
+        /* Smooth button transitions */
+        button { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        button:hover:not(:disabled) { transform: translateY(-2px); }
+        button:active:not(:disabled) { transform: translateY(0); }
+        
+        /* Glass Effect */
+        [data-glass] {
+          background: rgba(255, 255, 255, 0.15);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Card hover effects */
+        [data-card] { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        [data-card]:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(139, 92, 246, 0.15); }
+        
+        /* Glass Card */
+        [data-glass-card] {
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        [data-glass-card]:hover {
+          background: rgba(255, 255, 255, 0.18);
+          border-color: rgba(255, 255, 255, 0.3);
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
+        }
+        
+        /* Input focus states */
+        input, textarea, select { transition: all 0.2s ease; }
+        input:focus, textarea:focus, select:focus { 
+          border-color: ${C.primary} !important; 
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        /* Glass Input */
+        [data-glass-input] {
+          background: rgba(255, 255, 255, 0.15) !important;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.25) !important;
+          color: ${C.text};
+        }
+        [data-glass-input]:focus {
+          background: rgba(255, 255, 255, 0.2) !important;
+          border-color: rgba(255, 255, 255, 0.4) !important;
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15) !important;
+        }
+        
+        /* Badge animations */
+        [data-badge] { animation: scaleIn 0.3s ease-out; }
+        
+        /* Glass Badge */
+        [data-glass-badge] {
+          background: rgba(139, 92, 246, 0.15);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Loading state */
+        .skeleton { 
+          background: linear-gradient(90deg, ${C.white} 25%, ${C.border} 50%, ${C.white} 75%);
+          background-size: 1000px 100%;
+          animation: shimmer 2s infinite;
+        }
+        
+        font-family: Montserrat, system-ui, sans-serif;
       `}</style>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" />
 
@@ -82,7 +199,7 @@ export default function App() {
         {[ ["dashboard", "Dashboard"], ["events", "Events"], ["merch", "Merchandise"], ["calendar", "Logistics"], ["requests", "Finances"] ].map(([key, label]) => {
           const isActive = navbarActive === key || (key === "events" && ["events", "pending", "approved", "published", "create", "submit_success"].includes(page));
           return (
-            <a key={key} href="#" onClick={(e) => { e.preventDefault(); navigate(key); }} style={{ fontSize: "14px", fontWeight: isActive ? "700" : "500", color: isActive ? C.primary : C.textMuted, textDecoration: "none", borderBottom: isActive ? `2px solid ${C.secondary}` : "none", paddingBottom: "2px", transition: "color .15s" }}>
+            <a key={key} href="#" onClick={(e) => { e.preventDefault(); navigate(key); }} style={{ fontSize: "14px", fontWeight: isActive ? "700" : "500", color: isActive ? C.primary : C.textMuted, textDecoration: "none", borderBottom: isActive ? `3px solid ${C.primary}` : "2px solid transparent", paddingBottom: "1px", transition: "all .2s", padding: "0 0 1px", display: "flex", alignItems: "center" }}>
               {label}
             </a>
           );
@@ -98,6 +215,13 @@ export default function App() {
         <button style={{ width: "36px", height: "36px", borderRadius: "8px", border: `1px solid ${C.border}`, background: C.white, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.textMuted, position: "relative" }}>
           <Icon.Bell />
           <span style={{ position: "absolute", top: "-3px", right: "-3px", width: "14px", height: "14px", borderRadius: "50%", background: C.secondary, color: C.white, fontSize: "8px", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${C.white}` }}>4</span>
+        </button>
+        <button 
+          onClick={() => handleThemeChange(theme === "light" ? "dark" : "light")}
+          style={{ width: "36px", height: "36px", borderRadius: "8px", border: `1px solid ${C.border}`, background: C.white, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.textMuted, transition: "all 0.2s" }}
+          title={theme === "light" ? "Switch to Dark Theme" : "Switch to Light Theme"}
+        >
+          {theme === "light" ? <Icon.Moon /> : <Icon.Sun />}
         </button>
         <button style={{ width: "36px", height: "36px", borderRadius: "8px", border: `1px solid ${C.border}`, background: C.white, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.textMuted }}><Icon.Settings /></button>
 

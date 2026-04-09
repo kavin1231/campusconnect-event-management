@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
+import { useTheme } from "../../context/ThemeContext";
 import { logisticsAPI } from "../../services/api";
 import { motion } from "framer-motion";
 import {
@@ -13,10 +14,13 @@ import {
   Package,
   ShieldCheck,
   Truck,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const OrganizerDashboard = () => {
   const navigate = useNavigate();
+  const { isDarkMode, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
   const [stats, setStats] = useState(null);
@@ -101,27 +105,39 @@ const OrganizerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#0B0F19] text-[#E5E7EB]">
+    <div className={`min-h-screen flex ${isDarkMode ? "bg-[#0B0F19] text-[#E5E7EB]" : "bg-[#F9FAFB] text-[#053668]"}`}>
       <Sidebar isAdmin={true} />
 
       <div className="flex flex-col min-h-screen flex-1">
         <main className="flex-1 px-5 sm:px-8 pb-8 max-w-[1320px] mx-auto w-full">
           <motion.div
-            className="rounded-3xl border border-indigo-500/25 bg-gradient-to-r from-indigo-500/18 via-[#111827] to-[#111827] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)] mb-8"
+            className={`rounded-3xl border ${isDarkMode ? "border-indigo-500/25 bg-gradient-to-r from-indigo-500/18 via-[#111827] to-[#111827]" : "border-[#FF7100]/25 bg-gradient-to-r from-[#F7ECB5]/20 via-[#F9FAFB] to-[#F9FAFB]"} p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)] mb-8`}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
           >
-            <p className="text-indigo-200/80 text-xs tracking-[0.18em] uppercase mb-2">
-              Organizer Workspace
-            </p>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
-              Event Organizer Dashboard
-            </h1>
-            <p className="text-slate-300 max-w-2xl">
-              Manage event logistics, track inter-club asset sharing, and
-              monitor active requests.
-            </p>
+            <div className="flex justify-between items-start gap-4">
+              <div>
+                <p className={`${isDarkMode ? "text-indigo-200/80" : "text-[#FF7100]/80"} text-xs tracking-[0.18em] uppercase mb-2`}>
+                  Organizer Workspace
+                </p>
+                <h1 className={`text-3xl md:text-4xl font-black ${isDarkMode ? "text-white" : "text-[#053668]"} mb-2`}>
+                  Event Organizer Dashboard
+                </h1>
+                <p className={`${isDarkMode ? "text-slate-300" : "text-[#053668]/70"} max-w-2xl`}>
+                  Manage event logistics, track inter-club asset sharing, and
+                  monitor active requests.
+                </p>
+              </div>
+              <motion.button
+                onClick={toggleTheme}
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 ${isDarkMode ? "bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 hover:bg-indigo-500/30" : "bg-[#FF7100]/20 border border-[#FF7100]/30 text-[#FF7100] hover:bg-[#FF7100]/30"} transition`}
+                whileTap={{ scale: 0.98 }}
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              </motion.button>
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -131,41 +147,45 @@ const OrganizerDashboard = () => {
                 value: stats?.availableAssets || "0",
                 icon: Package,
                 color: "text-emerald-300",
+                lightColor: "text-[#053668]",
               },
               {
                 title: "Active Requests",
                 value: stats?.activeRequests || "0",
                 icon: ClipboardCheck,
                 color: "text-blue-300",
+                lightColor: "text-[#053668]",
               },
               {
                 title: "In Transit",
                 value: stats?.inTransit || "0",
                 icon: Truck,
                 color: "text-amber-300",
+                lightColor: "text-[#FF7100]",
               },
               {
                 title: "Overdue Returns",
                 value: stats?.overdueReturns || "0",
                 icon: AlertTriangle,
                 color: "text-red-300",
+                lightColor: "text-[#FF7100]",
               },
             ].map((card, i) => (
               <motion.div
                 key={i}
-                className="rounded-2xl p-4 border border-slate-700/70 bg-[#111827] hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition"
+                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] hover:shadow-indigo-500/10" : "border-[#FF7100]/30 bg-[#FFFFFF] hover:shadow-[#FF7100]/10"} hover:-translate-y-0.5 transition`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.25, ease: "easeOut" }}
                 whileHover={{ y: -3 }}
               >
-                <div className={`flex items-center gap-2 ${card.color}`}>
+                <div className={`flex items-center gap-2 ${isDarkMode ? card.color : card.lightColor}`}>
                   <card.icon size={16} />
-                  <p className="text-xs font-semibold uppercase tracking-wider">
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-slate-300" : "text-[#053668]"}`}>
                     {card.title}
                   </p>
                 </div>
-                <p className="text-3xl font-black text-white mt-2">
+                <p className={`text-3xl font-black ${isDarkMode ? "text-white" : "text-[#053668]"} mt-2`}>
                   {loading ? "..." : card.value}
                 </p>
               </motion.div>
@@ -178,15 +198,15 @@ const OrganizerDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12, duration: 0.3, ease: "easeOut" }}
           >
-            <section className="xl:col-span-2 rounded-2xl border border-slate-700/70 bg-[#111827]">
-              <div className="px-5 py-4 border-b border-slate-700/70 flex items-center justify-between">
-                <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300">
+            <section className={`xl:col-span-2 rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"}`}>
+              <div className={`px-5 py-4 border-b ${isDarkMode ? "border-slate-700/70" : "border-[#FF7100]/30"} flex items-center justify-between`}>
+                <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"}`}>
                   Recent Requests
                 </h2>
-                <span className="text-xs text-slate-400">{recent.length} items</span>
+                <span className={`text-xs ${isDarkMode ? "text-slate-400" : "text-[#FF7100]"}`}>{recent.length} items</span>
               </div>
 
-              <div className="divide-y divide-slate-700/70">
+              <div className={`divide-y ${isDarkMode ? "divide-slate-700/70" : "divide-[#FF7100]/20"}`}>
                 {recent.length === 0 ? (
                   <div className="px-5 py-6 text-slate-400">No request activity yet.</div>
                 ) : (
@@ -212,8 +232,8 @@ const OrganizerDashboard = () => {
             </section>
 
             <div className="flex flex-col gap-5">
-              <section className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5">
-                <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300 mb-4">
+            <section className={`rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"} p-5`}>
+              <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"} mb-4`}>
                   Quick Operations
                 </h2>
                 <div className="grid grid-cols-1 gap-3">
@@ -283,8 +303,8 @@ const OrganizerDashboard = () => {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5">
-                <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300 mb-4">
+              <section className={`rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"} p-5`}>
+                <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"} mb-4`}>
                   Status Overview
                 </h2>
                 <div className="space-y-3">
@@ -304,7 +324,7 @@ const OrganizerDashboard = () => {
           </motion.div>
         </main>
 
-        <footer className="border-t border-slate-700/70 py-5 text-center text-slate-500 text-sm bg-[#0B0F19]">
+        <footer className={`border-t ${isDarkMode ? "border-slate-700/70 text-slate-500 bg-[#0B0F19]" : "border-[#FF7100]/30 text-[#FF7100] bg-[#F9FAFB]"} py-5 text-center text-sm`}>
           © 2026 NEXORA Event Management System
         </footer>
       </div>

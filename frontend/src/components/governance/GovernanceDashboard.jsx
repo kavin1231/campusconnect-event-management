@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
+import { useTheme } from "../../context/ThemeContext";
 import { governanceAPI } from "../../services/api";
 import "./professional-theme.css";
 
 const GovernanceDashboard = () => {
   const navigate = useNavigate();
+  const { isDarkMode, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     pendingClubApprovals: 0,

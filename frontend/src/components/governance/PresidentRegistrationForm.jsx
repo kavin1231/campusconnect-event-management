@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import { governanceAPI } from "../../services/api";
 import "./PresidentRegistrationForm.css";
+import { CLUBS, FACULTIES } from "../../constants/staticData";
 
 const PresidentRegistrationForm = () => {
   const navigate = useNavigate();
@@ -22,26 +23,8 @@ const PresidentRegistrationForm = () => {
     email: "",
   });
 
-  const clubs = [
-    "Tech Club",
-    "Photography Club",
-    "Debate Club",
-    "Music Club",
-    "Sports Club",
-    "Literary Club",
-    "Art Club",
-    "Robotics Club",
-    "Entrepreneurship Club",
-  ];
-
-  const faculties = [
-    "Engineering",
-    "Science",
-    "Arts",
-    "Commerce",
-    "Medicine",
-    "Law",
-  ];
+  const clubs = CLUBS;
+  const faculties = FACULTIES;
 
   // Auth guard and fetch existing application
   useEffect(() => {

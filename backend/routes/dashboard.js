@@ -4,9 +4,9 @@ import { verifyToken, requireRole } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// All dashboard routes require a valid STUDENT token
+// Dashboard routes require a valid STUDENT or CLUB_PRESIDENT token
 router.use(verifyToken);
-router.use(requireRole('STUDENT'));
+router.use(requireRole(['STUDENT', 'CLUB_PRESIDENT']));
 
 // GET  /api/dashboard/stats
 router.get('/stats', DashboardController.getStats);

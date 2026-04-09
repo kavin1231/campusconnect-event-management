@@ -40,19 +40,19 @@ export default function Header() {
   return (
     <nav className="navbar">
       <div className="nav-left">
-        <Link to="/" className="logo">
+        <div className="logo">
           <img
             src="/logo/Nexora event logo design.png"
             alt="NEXORA"
             className="logo-image"
           />
           <span>NEXORA</span>
-        </Link>
+        </div>
         <div className="nav-links">
           <Link to="/" className="nav-link">
             Explore
           </Link>
-          <Link to="/dashboard" className="nav-link">
+          <Link to="/dashboard" className="nav-link active">
             Dashboard
           </Link>
           {user && user.role && user.role.toUpperCase() !== "STUDENT" && (
@@ -60,7 +60,12 @@ export default function Header() {
               Logistics
             </Link>
           )}
-          <a href="#clubs" className="nav-link">
+          {user && user.role && user.role.toUpperCase() !== "STUDENT" && (
+            <Link to="/create-events" className="nav-link">
+              Create Events
+            </Link>
+          )}
+          <a href="/#clubs" className="nav-link">
             Clubs
           </a>
         </div>
@@ -141,7 +146,9 @@ export default function Header() {
                   <div className="profile-info">
                     <h4>{user?.name}</h4>
                     <p>{user?.email}</p>
-                    <span className="user-role-badge">{user?.role}</span>
+                    <span className="user-role-badge">
+                      {user?.role === "CLUB_PRESIDENT" ? "STUDENT" : user?.role?.replaceAll("_", " ")}
+                    </span>
                     {user?.studentId && (
                       <span className="student-id">{user.studentId}</span>
                     )}

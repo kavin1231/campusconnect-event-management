@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
 import { groupLinksAPI, sportsAPI } from "../../services/api";
 import { Link2, Plus, Trash2, ExternalLink, Loader2, Trophy, Users } from "lucide-react";
@@ -209,7 +209,7 @@ const GroupLinksManagement = () => {
                   </div>
                   
                   <h3 className="text-lg font-bold text-white mb-1">{link.name}</h3>
-                  <p className="text-xs text-slate-400 mb-4">{link.platform} • {link.category}</p>
+                  <p className="text-xs text-slate-400 mb-4">{link.platform} ÔÇó {link.category}</p>
                   
                   <a 
                     href={link.url} 

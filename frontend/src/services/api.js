@@ -85,6 +85,14 @@ export const authAPI = {
     });
     return response.json();
   },
+
+  revokeRole: async (userId) => {
+    const response = await fetchWithAuth("/auth/revoke-role", {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    });
+    return response.json();
+  },
 };
 
 // ============================================

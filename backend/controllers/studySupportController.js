@@ -206,15 +206,9 @@ export const getStudentMaterials = async (req, res) => {
     const userId = req.user.id;
     const { semester, materialType } = req.query;
 
-    // Optionally get student info for year-specific logic if needed in future
-    const student = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, role: true }
-    });
-
-    if (!student) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
+    // We no longer strictly check if user exists in the User table here, 
+    // as regular students might be in the Student table, and verifyStudent middleware 
+    // already verified the token and role.
 
     const filter = {};
     if (semester && semester !== 'all') filter.semester = semester;

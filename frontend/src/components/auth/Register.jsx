@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authAPI } from "../../services/api";
 import "./Register.css";
+import { FACULTIES } from "../../constants/staticData";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -19,15 +20,7 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const departments = [
-    "Computer Science",
-    "Information Technology",
-    "Electronics & Communication",
-    "Mechanical Engineering",
-    "Civil Engineering",
-    "Business Administration",
-    "Arts & Sciences",
-  ];
+  const departments = FACULTIES;
 
   const handleChange = (e) => {
     const { name, value } = e.target;

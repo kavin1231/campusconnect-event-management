@@ -405,22 +405,6 @@ const StudentDashboard = () => {
 
         {/* ÔöÇÔöÇ Body ÔöÇÔöÇ */}
         <main className="sd-main">
-          {/* President Quick Access */}
-          {user?.role === "CLUB_PRESIDENT" && (
-            <div className="sd-president-workspace-card">
-              <div className="sd-pw-content">
-                <div className="sd-pw-text">
-                  <span className="sd-pw-badge">PRESIDENT ACCESS</span>
-                  <h3>Club President Workspace</h3>
-                  <p>Access management tools, approve club assets, and oversee your organization's activity.</p>
-                </div>
-                <Link to="/admin-dashboard" className="sd-pw-btn">
-                  Go to President Dashboard
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </Link>
-              </div>
-            </div>
-          )}
 
           {/* Stats row */}
           {filter !== "study" && filter !== "extracurricular" && (

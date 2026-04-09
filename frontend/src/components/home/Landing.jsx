@@ -247,6 +247,11 @@ const Landing = () => {
                 Logistics
               </Link>
             )}
+            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
+              <Link to="/create-events" className="nav-link">
+                Create Events
+              </Link>
+            )}
             <a href="#clubs" className="nav-link">
               Clubs
             </a>

@@ -46,6 +46,8 @@ class UserModel {
                 name: true,
                 email: true,
                 role: true,
+                clubOrFacultyName: true,
+                clubOrFacultyType: true,
                 profileImage: true,
                 createdAt: true
             }

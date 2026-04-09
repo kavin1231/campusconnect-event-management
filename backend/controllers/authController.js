@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import StudentModel from '../models/studentModel.js';
 import UserModel from '../models/userModel.js';
+import prisma from '../prisma/client.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -141,10 +142,20 @@ class AuthController {
         });
       }
 
+      // For CLUB_PRESIDENT, we must ensure the token payload uses their Student.id
+      // so student-facing dashboards work correctly.
+      let operationalId = userData.id;
+      if (role === 'CLUB_PRESIDENT') {
+        const student = await StudentModel.findByEmail(email);
+        if (student) {
+          operationalId = student.id;
+        }
+      }
+
       // Generate JWT token with role
       const token = jwt.sign(
         {
-          id: userData.id,
+          id: operationalId,
           email: userData.email,
           role: role
         },
@@ -152,16 +163,30 @@ class AuthController {
         { expiresIn: '7d' }
       );
 
+      // Fetch additional student metadata for hybrid accounts
+      let studentMetadata = {};
+      if (role === 'CLUB_PRESIDENT' || role === 'STUDENT') {
+        const student = await StudentModel.findByEmail(email);
+        if (student) {
+          studentMetadata = {
+            studentId: student.studentId,
+            department: student.department,
+            year: student.year
+          };
+        }
+      }
+
       res.status(200).json({
         success: true,
         message: 'Login successful',
         token,
         user: {
-          id: userData.id,
+          id: operationalId,
           name: userData.name,
           email: userData.email,
           role: role,
-          studentId: userData.studentId || undefined
+          entityName: userData.clubOrFacultyName || undefined,
+          ...studentMetadata
         }
       });
 
@@ -182,49 +207,39 @@ class AuthController {
       const userId = req.user.id;
       const email = req.user.email;
 
-      // Try User table first (Admin/Organizer/President)
-      const user = await UserModel.findByEmail(email);
-      if (user) {
-        return res.status(200).json({
-          success: true,
-          profile: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            profileImage: user.profileImage,
-            createdAt: user.createdAt
-          }
-        });
+      // Try to find both Student and User records
+      const [studentEntry, userEntry] = await Promise.all([
+        StudentModel.findByEmail(email),
+        UserModel.findByEmail(email)
+      ]);
+
+      if (!studentEntry && !userEntry) {
+        return res.status(404).json({ success: false, message: 'User not found' });
       }
 
-      // Try Student table next
-      const student = await StudentModel.findByEmail(email);
-      if (student) {
-        // Check if there's a corresponding User entry with CLUB_PRESIDENT role
-        let role = 'STUDENT';
-        const userAsStaff = await UserModel.findByEmail(email);
-        if (userAsStaff && userAsStaff.role === 'CLUB_PRESIDENT') {
-          role = 'CLUB_PRESIDENT';
-        }
+      // Merge data for hybrid accounts (e.g. Club President)
+      const isPresident = userEntry && userEntry.role === 'CLUB_PRESIDENT';
+      const role = userEntry ? userEntry.role : 'STUDENT';
+      const entityName = userEntry ? userEntry.clubOrFacultyName : undefined;
 
-        return res.status(200).json({
-          success: true,
-          profile: {
-            id: student.id,
-            name: student.name,
-            email: student.email,
-            studentId: student.studentId,
-            department: student.department,
-            year: student.year,
-            profileImage: student.profileImage,
-            createdAt: student.createdAt,
-            role: role
-          }
-        });
-      }
+      const profileData = {
+        id: studentEntry ? studentEntry.id : (userEntry ? userEntry.id : null),
+        name: userEntry ? userEntry.name : (studentEntry ? studentEntry.name : ''),
+        email: email,
+        role: role,
+        entityName: entityName,
+        profileImage: userEntry ? userEntry.profileImage : (studentEntry ? studentEntry.profileImage : null),
+        createdAt: userEntry ? userEntry.createdAt : (studentEntry ? studentEntry.createdAt : null),
+        // Student specific fields
+        studentId: studentEntry ? studentEntry.studentId : undefined,
+        department: studentEntry ? studentEntry.department : undefined,
+        year: studentEntry ? studentEntry.year : undefined,
+      };
 
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(200).json({
+        success: true,
+        profile: profileData
+      });
     } catch (error) {
       console.error('Get profile error:', error);
       res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -237,8 +252,8 @@ class AuthController {
       const userId = req.user.id;
       const role = req.user.role;
 
-      if (role !== 'STUDENT') {
-        return res.status(403).json({ success: false, message: 'Only students can update their profile here.' });
+      if (role !== 'STUDENT' && role !== 'CLUB_PRESIDENT') {
+        return res.status(403).json({ success: false, message: 'Only students and presidents can update student profiles.' });
       }
 
       const { name, department, year, profileImage } = req.body;
@@ -254,6 +269,17 @@ class AuthController {
         profileImage
       });
 
+      // Also update User table if they are a Club President to keep data in sync
+      if (role === 'CLUB_PRESIDENT') {
+        const userEntry = await UserModel.findByEmail(updated.email);
+        if (userEntry) {
+          await UserModel.update(userEntry.id, {
+            name,
+            profileImage
+          });
+        }
+      }
+
       res.status(200).json({
         success: true,
         message: 'Profile updated successfully',
@@ -266,7 +292,7 @@ class AuthController {
           year: updated.year,
           profileImage: updated.profileImage,
           createdAt: updated.createdAt,
-          role: 'STUDENT'
+          role: role // Return actual role
         }
       });
     } catch (error) {
@@ -311,8 +337,21 @@ class AuthController {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-      // Update password
+      // Update password in the current role's model
       await Model.update(userId, { password: hashedPassword });
+
+      // If they are a student AND a club president, we must sync the password in the OTHER table
+      if (role === 'CLUB_PRESIDENT') {
+        const student = await StudentModel.findByEmail(userData.email);
+        if (student) {
+          await StudentModel.update(student.id, { password: hashedPassword });
+        }
+      } else if (role === 'STUDENT') {
+        const user = await UserModel.findByEmail(userData.email);
+        if (user && user.role === 'CLUB_PRESIDENT') {
+          await UserModel.update(user.id, { password: hashedPassword });
+        }
+      }
 
       res.status(200).json({ success: true, message: 'Password changed successfully' });
 
@@ -442,6 +481,47 @@ class AuthController {
       res.status(500).json({
         success: false,
         message: 'Server error during role assignment',
+        error: error.message
+      });
+    }
+  }
+
+  // Revoke role (demote back to student)
+  static async revokeRole(req, res) {
+    const { userId } = req.body;
+    try {
+      if (!userId) {
+        return res.status(400).json({ success: false, message: 'User ID is required' });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: parseInt(userId) } });
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      if (user.role === 'SYSTEM_ADMIN') {
+        return res.status(400).json({ success: false, message: 'Cannot revoke System Admin role' });
+      }
+
+      // Update user role to STUDENT and clear organizational data
+      await prisma.user.update({
+        where: { id: parseInt(userId) },
+        data: {
+          role: 'STUDENT',
+          clubOrFacultyName: null,
+          clubOrFacultyType: null
+        }
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `Successfully revoked ${user.role} role from ${user.name}`
+      });
+    } catch (error) {
+      console.error('Revoke role error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error during role revocation',
         error: error.message
       });
     }

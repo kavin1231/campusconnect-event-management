@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import { governanceAPI } from "../../services/api";
 import "./PresidentApplicationManagement.css";
+import { ORGANIZING_BODIES } from "../../constants/staticData";
 
 export default function PresidentApplicationManagement() {
   const navigate = useNavigate();
@@ -47,21 +48,7 @@ export default function PresidentApplicationManagement() {
     }
   }, [navigate]);
 
-  const AVAILABLE_CLUBS = [
-    "Faculty of Computing",
-    "Faculty of Engineering",
-    "Faculty of Business",
-    "Robotics Club",
-    "FOSS Community",
-    "Mozi Club",
-    "Rotaract Club",
-    "Leo Club",
-    "IEEE Student Branch",
-    "AIESEC",
-    "Gavel Club",
-    "Sports Council",
-    "Arts Society"
-  ];
+  const AVAILABLE_CLUBS = ORGANIZING_BODIES;
 
   // Fetch president applications
   const fetchApplications = async () => {

@@ -4,11 +4,8 @@ import { Icon } from "../components/common/Icon";
 import { MONTH_NAMES, WEEK_DAYS, EVENTS_BY_DAY, CONFLICTS, CUR_YEAR, CUR_MONTH, TODAY, VENUE_DATA } from "../constants/staticData";
 import { getEventTypeColor } from "../utils/helpers";
 import { Btn } from "../components/common/Primitives";
-import Header from "../components/common/Header";
-import Sidebar from "../components/common/Sidebar";
-import "../components/dashboard/StudentDashboard.css";
 
-export function CalendarPage() {
+export function CalendarPage({ onBack }) {
   const [year, setYear] = useState(CUR_YEAR);
   const [month, setMonth] = useState(CUR_MONTH);
   const [selectedEvent, setSel] = useState(null);
@@ -26,26 +23,22 @@ export function CalendarPage() {
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
   return (
-    <>
-      <Header />
-      <div className="sd-layout">
-        <Sidebar activePage="calendar" />
-        <div className="sd-content-wrapper">
-          <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-            {/* Main calendar area */}
-            <div style={{ flex: 1, padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                <div>
-                  <h1 style={{ fontSize: "26px", fontWeight: "800", color: C.text, margin: "0 0 4px", fontFamily: FONT, letterSpacing: "-0.02em" }}>
-                    Academic Calendar
-                  </h1>
-                  <p style={{ fontSize: "13px", color: C.secondary, margin: 0, fontFamily: FONT, fontWeight: "600" }}>
-                    Scheduling & conflict detection for {MONTH_NAMES[month]} {year}.
-                  </p>
-                </div>
-              </div>
-
-              {/* Rest of the original calendar content... */}
+    <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+      {/* Main calendar area */}
+      <div style={{ flex: 1, padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <div>
+            <h1 style={{ fontSize: "26px", fontWeight: "800", color: C.text, margin: "0 0 4px", fontFamily: FONT, letterSpacing: "-0.02em" }}>
+              Academic Calendar
+            </h1>
+            <p style={{ fontSize: "13px", color: C.secondary, margin: 0, fontFamily: FONT, fontWeight: "600" }}>
+              Scheduling & conflict detection for {MONTH_NAMES[month]} {year}.
+            </p>
+          </div>
+          <Btn variant="outline" onClick={onBack}>
+            ← Back to Dashboard
+          </Btn>
+        </div>
 
         {/* Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
@@ -292,8 +285,5 @@ export function CalendarPage() {
         )}
       </div>
     </div>
-    </div>
-    </div>
-    </>
   );
 }

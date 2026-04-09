@@ -54,10 +54,10 @@ export const requireRole = (...allowedRoles) => {
 
 export const verifyStudent = (req, res, next) => {
     verifyToken(req, res, () => {
-        if (!req.user || req.user.role !== 'STUDENT') {
+        if (!req.user || !['STUDENT', 'CLUB_PRESIDENT'].includes(req.user.role)) {
             return res.status(403).json({
                 success: false,
-                message: 'Access denied. Student authorization required.'
+                message: 'Access denied. Student or President authorization required.'
             });
         }
         next();

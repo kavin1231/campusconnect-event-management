@@ -424,6 +424,54 @@ export const sportsAPI = {
   },
 };
 
+// GROUP LINKS ENDPOINTS
+// ============================================
+export const groupLinksAPI = {
+  getAllLinks: async () => {
+    const response = await fetchWithAuth("/group-links");
+    return response.json();
+  },
+
+  createLink: async (linkData) => {
+    const response = await fetchWithAuth("/group-links", {
+      method: "POST",
+      body: JSON.stringify(linkData),
+    });
+    return response.json();
+  },
+
+  updateLink: async (id, linkData) => {
+    const response = await fetchWithAuth(`/group-links/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(linkData),
+    });
+    return response.json();
+  },
+
+  deleteLink: async (id) => {
+    const response = await fetchWithAuth(`/group-links/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
+};
+
+// STUDY SUPPORT ENDPOINTS
+// ============================================
+export const studySupportAPI = {
+  getMaterials: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(`/study-support/materials${query ? `?${query}` : ''}`);
+    return response.json();
+  },
+
+  getSessions: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(`/study-support/sessions${query ? `?${query}` : ''}`);
+    return response.json();
+  },
+};
+
 export default {
   authAPI,
   dashboardAPI,
@@ -433,4 +481,6 @@ export default {
   eventsAPI,
   operationsAPI,
   sportsAPI,
+  groupLinksAPI,
+  studySupportAPI,
 };

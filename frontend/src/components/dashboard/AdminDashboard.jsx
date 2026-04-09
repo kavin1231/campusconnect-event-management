@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
   Box,
   ClipboardList,
+  Link,
   Moon,
   PackageCheck,
   Sun,
@@ -58,13 +59,15 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const [assetsResponse, requestsResponse] = await Promise.all([
+      const [assetsResponse, requestsResponse, linksResponse] = await Promise.all([
         logisticsAPI.listAssets(),
         logisticsAPI.listRequests(),
+        import("../../services/api").then(m => m.groupLinksAPI.getAllLinks())
       ]);
 
       const assetsData = assetsResponse?.assets || [];
       const requestsData = requestsResponse?.requests || [];
+      const linksData = linksResponse?.links || [];
 
       setAssets(assetsData);
       setRequests(requestsData);
@@ -94,6 +97,7 @@ const AdminDashboard = () => {
         activeRequests,
         inTransit,
         overdueReturns,
+        totalLinks: linksData.length,
       });
     } catch (error) {
       console.error("Failed to fetch stats:", error);
@@ -105,6 +109,7 @@ const AdminDashboard = () => {
         activeRequests: 0,
         inTransit: 0,
         overdueReturns: 0,
+        totalLinks: 0,
       });
     } finally {
       setLoading(false);
@@ -194,7 +199,7 @@ const AdminDashboard = () => {
           </motion.div>
 
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4 mb-8"
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-4 mb-8"
             variants={cardStagger}
             initial="hidden"
             animate="show"
@@ -206,6 +211,7 @@ const AdminDashboard = () => {
                 icon: Box,
                 color: "text-indigo-300",
                 lightColor: "text-[#053668]",
+                path: "/logistics/assets"
               },
               {
                 title: "Total Requests",
@@ -213,6 +219,7 @@ const AdminDashboard = () => {
                 icon: ClipboardList,
                 color: "text-cyan-300",
                 lightColor: "text-[#053668]",
+                path: "/logistics/admin"
               },
               {
                 title: "Available Assets",
@@ -220,6 +227,7 @@ const AdminDashboard = () => {
                 icon: PackageCheck,
                 color: "text-emerald-300",
                 lightColor: "text-[#053668]",
+                path: "/logistics/assets"
               },
               {
                 title: "Active Requests",
@@ -227,6 +235,7 @@ const AdminDashboard = () => {
                 icon: Activity,
                 color: "text-blue-300",
                 lightColor: "text-[#053668]",
+                path: "/logistics/admin"
               },
               {
                 title: "In Transit",
@@ -234,6 +243,7 @@ const AdminDashboard = () => {
                 icon: Truck,
                 color: "text-amber-300",
                 lightColor: "text-[#FF7100]",
+                path: "/logistics/admin"
               },
               {
                 title: "Overdue Returns",
@@ -241,14 +251,24 @@ const AdminDashboard = () => {
                 icon: AlertTriangle,
                 color: "text-red-300",
                 lightColor: "text-[#FF7100]",
+                path: "/logistics/admin"
+              },
+              {
+                title: "Group Links",
+                value: stats?.totalLinks || "0",
+                icon: Link,
+                color: "text-purple-300",
+                lightColor: "text-[#FF7100]",
+                path: "/admin/group-links"
               },
             ].map((card, i) => (
               <motion.div
                 key={i}
-                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] shadow-sm hover:shadow-indigo-500/10" : `border-[#FF7100]/30 bg-[#FFFFFF] shadow-sm hover:shadow-[#FF7100]/10`} hover:-translate-y-0.5 transition`}
+                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] shadow-sm hover:shadow-indigo-500/10" : `border-[#FF7100]/30 bg-[#FFFFFF] shadow-sm hover:shadow-[#FF7100]/10`} hover:-translate-y-0.5 transition cursor-pointer`}
                 variants={fadeUp}
                 transition={{ duration: 0.26, ease: "easeOut" }}
                 whileHover={{ y: -3 }}
+                onClick={() => card.path && navigate(card.path)}
               >
                 <div className={`flex items-center gap-2 ${isDarkMode ? card.color : card.lightColor}`}>
                   <card.icon size={16} />

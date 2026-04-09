@@ -220,6 +220,14 @@ const SportsManagement = () => {
                       <p className="sport-coach">
                         Coach: {sport.coachName || "N/A"}
                       </p>
+                      {sport.whatsappLink && (
+                        <p className="text-xs text-primary mt-1 font-bold flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">link</span>
+                          <a href={sport.whatsappLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                            WhatsApp Group
+                          </a>
+                        </p>
+                      )}
                       <div className="sport-actions">
                         <button
                           className="btn-edit"

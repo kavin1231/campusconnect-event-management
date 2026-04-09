@@ -12,6 +12,7 @@ import {
   Clock3,
   Building2,
   Package,
+  Link,
   ShieldCheck,
   Truck,
   Moon,
@@ -48,13 +49,15 @@ const OrganizerDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const [assetsResponse, requestsResponse] = await Promise.all([
+      const [assetsResponse, requestsResponse, linksResponse] = await Promise.all([
         logisticsAPI.listAssets(),
         logisticsAPI.listRequests(),
+        import("../../services/api").then(m => m.groupLinksAPI.getAllLinks())
       ]);
 
       const assets = assetsResponse?.assets || [];
       const requestsData = requestsResponse?.requests || [];
+      const linksData = linksResponse?.links || [];
       setRequests(requestsData);
 
       const availableAssets = assets.filter(
@@ -79,6 +82,7 @@ const OrganizerDashboard = () => {
         activeRequests,
         inTransit,
         overdueReturns,
+        totalLinks: linksData.length,
       });
     } catch (error) {
       console.error("Failed to fetch organizer stats:", error);
@@ -87,6 +91,7 @@ const OrganizerDashboard = () => {
         activeRequests: 0,
         inTransit: 0,
         overdueReturns: 0,
+        totalLinks: 0,
       });
     } finally {
       setLoading(false);
@@ -140,7 +145,7 @@ const OrganizerDashboard = () => {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {[
               {
                 title: "Available Assets",
@@ -148,6 +153,7 @@ const OrganizerDashboard = () => {
                 icon: Package,
                 color: "text-emerald-300",
                 lightColor: "text-[#053668]",
+                path: "/logistics/assets"
               },
               {
                 title: "Active Requests",
@@ -155,6 +161,7 @@ const OrganizerDashboard = () => {
                 icon: ClipboardCheck,
                 color: "text-blue-300",
                 lightColor: "text-[#053668]",
+                path: "/logistics/admin"
               },
               {
                 title: "In Transit",
@@ -162,6 +169,7 @@ const OrganizerDashboard = () => {
                 icon: Truck,
                 color: "text-amber-300",
                 lightColor: "text-[#FF7100]",
+                path: "/logistics/admin"
               },
               {
                 title: "Overdue Returns",
@@ -169,15 +177,25 @@ const OrganizerDashboard = () => {
                 icon: AlertTriangle,
                 color: "text-red-300",
                 lightColor: "text-[#FF7100]",
+                path: "/logistics/admin"
+              },
+              {
+                title: "Group Links",
+                value: stats?.totalLinks || "0",
+                icon: Link,
+                color: "text-purple-300",
+                lightColor: "text-[#FF7100]",
+                path: "/admin/group-links"
               },
             ].map((card, i) => (
               <motion.div
                 key={i}
-                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] hover:shadow-indigo-500/10" : "border-[#FF7100]/30 bg-[#FFFFFF] hover:shadow-[#FF7100]/10"} hover:-translate-y-0.5 transition`}
+                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] hover:shadow-indigo-500/10" : "border-[#FF7100]/30 bg-[#FFFFFF] hover:shadow-[#FF7100]/10"} hover:-translate-y-0.5 transition cursor-pointer`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.25, ease: "easeOut" }}
                 whileHover={{ y: -3 }}
+                onClick={() => card.path && navigate(card.path)}
               >
                 <div className={`flex items-center gap-2 ${isDarkMode ? card.color : card.lightColor}`}>
                   <card.icon size={16} />

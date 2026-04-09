@@ -285,10 +285,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const studentMenuItems = [
     { id: "home", label: "Home", path: "/", icon: "🏠" },
     { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
-    { id: "explore-sports", label: "Explore Sports", path: "/explore-sports", icon: "🏆" },
+    { id: "explore-sports", label: "Extracurricular activities", path: "/dashboard", icon: "🏆", query: "?filter=extracurricular" },
     { id: "calendar", label: "Calendar", path: "/calendar", icon: "📅" },
     // Students should not see Logistics in the sidebar
-    { id: "resources", label: "Resources", path: "/resources", icon: "📦" },
     {
       id: "study-materials",
       label: "Study Materials",

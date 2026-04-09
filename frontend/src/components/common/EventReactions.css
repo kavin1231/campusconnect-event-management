@@ -273,6 +273,36 @@
     margin: 12px 0 0 0;
 }
 
+.erc-btn-delete,
+.erc-btn-edit {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.erc-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.erc-btn-edit:hover {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+
+.erc-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 /* ── Empty State ── */
 
 .er-empty-state {

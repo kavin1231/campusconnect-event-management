@@ -192,7 +192,16 @@ export const updateEventReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
         const { reaction, comment } = req.body;
-        const studentId = req.user.id;
+        
+        // Consistent studentId extraction
+        const studentId = req.user?.id || req.user?.studentId || req.user?.userId;
+
+        if (!studentId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Student ID not found in token'
+            });
+        }
 
         // Find the review
         const existingReview = await prisma.eventReview.findUnique({
@@ -257,7 +266,16 @@ export const updateEventReview = async (req, res) => {
 export const deleteEventReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
-        const studentId = req.user.id;
+        
+        // Consistent studentId extraction
+        const studentId = req.user?.id || req.user?.studentId || req.user?.userId;
+
+        if (!studentId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Student ID not found in token'
+            });
+        }
 
         // Find the review
         const review = await prisma.eventReview.findUnique({
@@ -297,7 +315,16 @@ export const deleteEventReview = async (req, res) => {
 export const getStudentReview = async (req, res) => {
     try {
         const { eventId } = req.params;
-        const studentId = req.user.id;
+        
+        // Consistent studentId extraction
+        const studentId = req.user?.id || req.user?.studentId || req.user?.userId;
+
+        if (!studentId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Student ID not found in token'
+            });
+        }
 
         const review = await prisma.eventReview.findUnique({
             where: {

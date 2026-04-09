@@ -369,6 +369,15 @@ model Sport {
   createdAt    DateTime @default(now())
 }
 
+model GroupLink {
+  id        Int      @id @default(autoincrement())
+  name      String
+  platform  String
+  url       String
+  category  String
+  createdAt DateTime @default(now())
+}
+
 model StudyMaterial {
   id           Int      @id @default(autoincrement())
   semester     String   

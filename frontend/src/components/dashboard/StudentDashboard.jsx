@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
-import { dashboardAPI } from "../../services/api";
+import { dashboardAPI, sportsAPI, groupLinksAPI, studySupportAPI } from "../../services/api";
+import { FileText, Link as LinkIcon, Video, Calendar, AlertCircle, Trophy, Users, ExternalLink, Loader2 as LoaderIcon } from 'lucide-react';
 import "./StudentDashboard.css";
 
 // ÔöÇÔöÇ Filter options ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
@@ -12,6 +13,7 @@ const FILTERS = [
   { key: "past", label: "Past Events" },
   { key: "explore", label: "Explore" },
   { key: "study", label: "Study Materials" },
+  { key: "extracurricular", label: "Extracurriculars" },
 ];
 
 const CATEGORIES = [
@@ -48,6 +50,23 @@ const StudentDashboard = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef(null);
   const searchTimerRef = useRef(null);
+
+  // ÔöÇÔöÇ Study Support States ÔöÇÔöÇ
+  const [studyMaterials, setStudyMaterials] = useState([]);
+  const [studySessions, setStudySessions] = useState([]);
+  const [activeStudyTab, setActiveStudyTab] = useState('materials');
+  const [selectedSemester, setSelectedSemester] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
+  const [studySearchTerm, setStudySearchTerm] = useState('');
+  const [studyLoading, setStudyLoading] = useState(false);
+  const [studyError, setStudyError] = useState(null);
+
+  // ÔöÇÔöÇ Extracurricular States ÔöÇÔöÇ
+  const [sports, setSports] = useState([]);
+  const [extraLinks, setExtraLinks] = useState([]);
+  const [activeExtraTab, setActiveExtraTab] = useState('sports');
+  const [extraLoading, setExtraLoading] = useState(false);
+  const [extraError, setExtraError] = useState(null);
 
   // ÔöÇÔöÇ Auth guard ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
   useEffect(() => {
@@ -110,6 +129,111 @@ const StudentDashboard = () => {
       fetchEvents();
     }
   }, [user, fetchStats, fetchEvents]);
+
+  // ÔöÇÔöÇ Fetch Study Data ÔöÇÔöÇ
+  const fetchStudyData = useCallback(async () => {
+    if (filter !== "study") return;
+    setStudyLoading(true);
+    try {
+      const [materialsData, sessionsData] = await Promise.all([
+        studySupportAPI.getMaterials(),
+        studySupportAPI.getSessions()
+      ]);
+
+      if (materialsData.success) {
+        setStudyMaterials(materialsData.data || []);
+      }
+      if (sessionsData.success) {
+        setStudySessions(sessionsData.data || []);
+      }
+      setStudyError(null);
+    } catch (err) {
+      console.error('Error fetching study materials:', err);
+      setStudyError('Failed to load study materials');
+    } finally {
+      setStudyLoading(false);
+    }
+  }, [filter]);
+
+  // ÔöÇÔöÇ Extracurricular Data Fetching ÔöÇÔöÇ
+  const fetchExtraData = useCallback(async () => {
+    if (filter !== "extracurricular") return;
+    setExtraLoading(true);
+    setExtraError(null);
+    try {
+      const [sportsData, linksData] = await Promise.all([
+        sportsAPI.getAllSports(),
+        groupLinksAPI.getAllLinks()
+      ]);
+      
+      if (sportsData.success) setSports(sportsData.sports);
+      if (linksData.success) setExtraLinks(linksData.links);
+    } catch (err) {
+      console.error('Error fetching extracurricular data:', err);
+      setExtraError('Failed to load extracurricular content');
+    } finally {
+      setExtraLoading(false);
+    }
+  }, [filter]);
+
+  useEffect(() => {
+    if (user && filter === "study") {
+      fetchStudyData();
+    }
+    if (user && filter === "extracurricular") {
+      fetchExtraData();
+    }
+  }, [user, filter, fetchStudyData, fetchExtraData]);
+
+  const getFilteredMaterials = () => {
+    if (!Array.isArray(studyMaterials)) return [];
+    return studyMaterials.filter(material => {
+      const semesterMatch = selectedSemester === 'all' || material?.semester === selectedSemester;
+      const title = material?.title || '';
+      const desc = material?.description || '';
+      const searchMatch = title.toLowerCase().includes(studySearchTerm.toLowerCase()) || 
+                         desc.toLowerCase().includes(studySearchTerm.toLowerCase());
+      return semesterMatch && searchMatch;
+    });
+  };
+
+  const getFilteredSessions = () => {
+    if (!Array.isArray(studySessions)) return [];
+    return studySessions.filter(session => {
+      const semesterMatch = selectedSemester === 'all' || session?.semester === selectedSemester;
+      const title = session?.title || '';
+      const desc = session?.description || '';
+      const searchMatch = title.toLowerCase().includes(studySearchTerm.toLowerCase()) || 
+                         desc.toLowerCase().includes(studySearchTerm.toLowerCase());
+      return semesterMatch && searchMatch;
+    });
+  };
+
+  const handleDownloadOrOpen = (material) => {
+    if (!material.contentUrl) return;
+    const url = material.contentUrl.startsWith('http') 
+      ? material.contentUrl 
+      : `http://localhost:5000/${material.contentUrl}`;
+    window.open(url, '_blank');
+  };
+
+  const uniqueSemesters = Array.from(new Set([
+    'Y1S1', 'Y1S2', 'Y2S1', 'Y2S2', 
+    'Y3S1', 'Y3S2', 'Y4S1', 'Y4S2',
+    ...studyMaterials.map(m => m.semester),
+    ...studySessions.map(s => s.semester)
+  ].filter(Boolean))).sort((a, b) => {
+    const getValues = (str) => {
+      const match = str.match(/Y(\d)S(\d)/i);
+      if (match) return [parseInt(match[1]), parseInt(match[2])];
+      const numMatch = str.match(/\d+/);
+      return [9, numMatch ? parseInt(numMatch[0]) : 99];
+    };
+    const [yA, sA] = getValues(a);
+    const [yB, sB] = getValues(b);
+    if (yA !== yB) return yA - yB;
+    return sA - sB;
+  });
 
   // ÔöÇÔöÇ Sync filter with URL ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
   useEffect(() => {
@@ -257,8 +381,7 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* ÔöÇÔöÇ Dashboard Header ÔöÇÔöÇ */}
-        {filter !== "study" && (
+        {filter !== "study" && filter !== "extracurricular" && (
           <header className="sd-header">
             <div className="sd-header-content">
               <div className="sd-header-text">
@@ -300,7 +423,7 @@ const StudentDashboard = () => {
           )}
 
           {/* Stats row */}
-          {filter !== "study" && (
+          {filter !== "study" && filter !== "extracurricular" && (
             <div className="sd-stats-row">
               {[
                 {
@@ -346,9 +469,9 @@ const StudentDashboard = () => {
             </div>
           )}
 
-          {/* ÔöÇÔöÇ Filter + Category bar ÔöÇÔöÇ */}
-          <div className="sd-controls">
-            {filter !== "study" && (
+          {/* ── Filter + Category bar ── */}
+          {(filter !== "study" && filter !== "extracurricular") && (
+            <div className="sd-controls">
               <div className="sd-filter-tabs">
                 {FILTERS.map((f) => (
                   <button
@@ -363,8 +486,6 @@ const StudentDashboard = () => {
                   </button>
                 ))}
               </div>
-            )}
-            {filter !== "study" && (
               <div className="sd-category-chips">
                 {CATEGORIES.map((c) => (
                   <button
@@ -376,16 +497,16 @@ const StudentDashboard = () => {
                   </button>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* ÔöÇÔöÇ Events grid ÔöÇÔöÇ */}
-          {filter !== "study" && (
+          {/* Event Grid content */}
+          {filter !== "study" && filter !== "extracurricular" && (
             <>
           {loading ? (
             <div className="sd-loading">
               <div className="sd-spinner" />
-              <p>Loading eventsÔÇª</p>
+              <p>Loading events…</p>
             </div>
           ) : events.length === 0 ? (
             <div className="sd-empty">
@@ -592,53 +713,316 @@ const StudentDashboard = () => {
             </>
           )}
         </main>
-
+        
         {/* ÔöÇÔöÇ Study Support Section ÔöÇÔöÇ */}
         {filter === "study" && (
-        <section className="sd-study-support-section">
-          <div className="sd-study-support-container">
-            <div className="sd-study-support-content">
-              <div className="sd-study-support-header">
-                <h2>📚 Study Support & Materials</h2>
-                <p>Access curated study materials, PDFs, and join scheduled study sessions with your peers</p>
+          <div className="sd-study-integrated-view">
+            <header className="sd-study-header">
+              <div className="sd-study-search-wrap">
+                <i className="search-icon">🔍</i>
+                <input 
+                  type="text" 
+                  placeholder="Search materials, sessions, topics..." 
+                  value={studySearchTerm}
+                  onChange={(e) => setStudySearchTerm(e.target.value)}
+                />
               </div>
               
-              <div className="sd-study-features">
-                <div className="sd-study-feature-card">
-                  <div className="sd-feature-icon">📖</div>
-                  <h3>Study Materials</h3>
-                  <p>Access organized study PDFs, notes, and resources tailored for your semester</p>
-                </div>
-                
-                <div className="sd-study-feature-card">
-                  <div className="sd-feature-icon">🔗</div>
-                  <h3>Resource Links</h3>
-                  <p>Find curated external resources, tutorials, and reference materials</p>
-                </div>
-                
-                <div className="sd-study-feature-card">
-                  <div className="sd-feature-icon">👥</div>
-                  <h3>Study Sessions</h3>
-                  <p>Join scheduled study sessions and collaborate with other students</p>
-                </div>
-                
-                <div className="sd-study-feature-card">
-                  <div className="sd-feature-icon">🎓</div>
-                  <h3>Semester Specific</h3>
-                  <p>Get materials tailored to your current academic year and semester</p>
-                </div>
+              <div className="sd-study-filters">
+                <select 
+                  value={selectedSemester} 
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className="sd-study-select"
+                >
+                  <option value="all">All Semesters</option>
+                  {uniqueSemesters.map(sem => (
+                    <option key={sem} value={sem}>{sem}</option>
+                  ))}
+                </select>
               </div>
 
-              <Link to="/study-materials" className="sd-btn-study-support">
-                <span>Explore Study Materials</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </Link>
-            </div>
-            <div className="sd-study-support-visual">
-              <div className="sd-study-icon-large">📚</div>
+              <div className="sd-study-tabs">
+                <button 
+                  className={`sd-study-tab ${activeStudyTab === 'materials' ? 'active' : ''}`}
+                  onClick={() => setActiveStudyTab('materials')}
+                >
+                  <FileText size={18} />
+                  <span>Materials</span>
+                </button>
+                <button 
+                  className={`sd-study-tab ${activeStudyTab === 'sessions' ? 'active' : ''}`}
+                  onClick={() => setActiveStudyTab('sessions')}
+                >
+                  <Calendar size={18} />
+                  <span>Sessions</span>
+                </button>
+              </div>
+            </header>
+
+            <div className="sd-study-feed">
+              {studyLoading ? (
+                <div className="sd-study-loading">
+                  <div className="sd-study-spinner"></div>
+                  <p>Loading resources...</p>
+                </div>
+              ) : studyError ? (
+                <div className="sd-study-error">
+                  <AlertCircle size={32} />
+                  <h3>{studyError}</h3>
+                  <button onClick={fetchStudyData}>Try Again</button>
+                </div>
+              ) : activeStudyTab === 'materials' ? (
+                <div className="sd-study-table-wrapper">
+                  {getFilteredMaterials().length === 0 ? (
+                    <div className="sd-study-empty">
+                      <div className="empty-icon">📚</div>
+                      <h3>No materials found</h3>
+                      <p>Try adjusting your search or semester filter</p>
+                    </div>
+                  ) : (
+                    <table className="sd-study-table">
+                      <thead>
+                        <tr>
+                          <th>Material Title</th>
+                          <th>Semester</th>
+                          <th>Type</th>
+                          <th className="text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getFilteredMaterials().map((material, index) => (
+                          <tr key={material.id} style={{ '--delay': index }}>
+                            <td>
+                              <div className="table-title-cell">
+                                <div className="type-icon-small">
+                                  {material.materialType === 'pdf' ? <FileText size={16} /> : 
+                                   material.materialType === 'video' ? <Video size={16} /> : 
+                                   <LinkIcon size={16} />}
+                                </div>
+                                <div>
+                                  <div className="main-title">{material.title}</div>
+                                  <div className="sub-desc">{material.description}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td><span className="table-tag">{material.semester}</span></td>
+                            <td><span className="type-label">{material.materialType?.toUpperCase()}</span></td>
+                            <td className="text-right">
+                              <button className="table-btn-view" onClick={() => handleDownloadOrOpen(material)}>
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              ) : (
+                <div className="sd-study-table-wrapper">
+                  {getFilteredSessions().length === 0 ? (
+                    <div className="sd-study-empty">
+                      <div className="empty-icon">🎥</div>
+                      <h3>No sessions found</h3>
+                      <p>Try adjusting your search or semester filter</p>
+                    </div>
+                  ) : (
+                    <table className="sd-study-table">
+                      <thead>
+                        <tr>
+                          <th>Session Title</th>
+                          <th>Semester</th>
+                          <th>Date & Time</th>
+                          <th>Organizer</th>
+                          <th className="text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getFilteredSessions().map((session, index) => (
+                          <tr key={session.id} style={{ '--delay': index }}>
+                            <td>
+                              <div>
+                                <div className="main-title">{session.title}</div>
+                                <div className="sub-desc">{session.description}</div>
+                              </div>
+                            </td>
+                            <td><span className="table-tag">{session.semester}</span></td>
+                            <td>
+                              <div className="table-date-cell">
+                                <div>{new Date(session.sessionDate).toLocaleDateString()}</div>
+                                <div className="sub-time">{new Date(session.sessionDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="table-creator">
+                                <div className="avatar-small">🎓</div>
+                                <span>{session.creator?.name || 'Admin'}</span>
+                              </div>
+                            </td>
+                            <td className="text-right">
+                              {session.sessionLink ? (
+                                <button className="table-btn-join" onClick={() => {
+                                  const url = session.sessionLink.startsWith('http') 
+                                    ? session.sessionLink 
+                                    : `http://localhost:5000/${session.sessionLink}`;
+                                  window.open(url, '_blank');
+                                }}>
+                                  Join
+                                </button>
+                              ) : (
+                                <span className="pending-label">Link Pending</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        </section>
+        )}
+
+        {/* ÔöÇÔöÇ Extracurricular Section ÔöÇÔöÇ */}
+        {filter === "extracurricular" && (
+          <div className="sd-study-integrated-view">
+            <header className="sd-study-header">
+              <div className="sd-study-search-wrap">
+                <i className="search-icon">🔍</i>
+                <input 
+                  type="text" 
+                  placeholder="Search clubs, hubs, communities..." 
+                  value={studySearchTerm}
+                  onChange={(e) => setStudySearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="sd-study-tabs">
+                <button 
+                  className={`sd-study-tab ${activeExtraTab === 'sports' ? 'active' : ''}`}
+                  onClick={() => setActiveExtraTab('sports')}
+                >
+                  <Trophy size={18} />
+                  <span>Sports Clubs</span>
+                </button>
+                <button 
+                  className={`sd-study-tab ${activeExtraTab === 'links' ? 'active' : ''}`}
+                  onClick={() => setActiveExtraTab('links')}
+                >
+                  <Users size={18} />
+                  <span>Social Hub</span>
+                </button>
+              </div>
+            </header>
+
+            <div className="sd-study-feed">
+              {extraLoading ? (
+                <div className="sd-study-loading">
+                  <div className="sd-study-spinner"></div>
+                  <p>Loading hubs...</p>
+                </div>
+              ) : extraError ? (
+                <div className="sd-study-error">
+                  <AlertCircle size={32} />
+                  <h3>{extraError}</h3>
+                  <button onClick={fetchExtraData}>Try Again</button>
+                </div>
+              ) : activeExtraTab === 'sports' ? (
+                <div className="sd-study-table-wrapper">
+                  {sports.length === 0 ? (
+                    <div className="sd-study-empty">
+                      <div className="empty-icon">🏆</div>
+                      <h3>No sports clubs found</h3>
+                      <p>Check back later for active campus sports</p>
+                    </div>
+                  ) : (
+                    <table className="sd-study-table">
+                      <thead>
+                        <tr>
+                          <th>Club Name</th>
+                          <th>Coach</th>
+                          <th>Status</th>
+                          <th className="text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sports.map((sport) => (
+                          <tr key={sport.id}>
+                            <td>
+                              <div className="table-title-cell">
+                                <div className="type-icon-small"><Trophy size={16} /></div>
+                                <div>
+                                  <div className="main-title">{sport.name}</div>
+                                  <div className="sub-desc">{sport.description}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="table-creator">
+                                <div className="avatar-small">👤</div>
+                                <span>{sport.coachName || 'N/A'}</span>
+                              </div>
+                            </td>
+                            <td><span className="table-tag">Active</span></td>
+                            <td className="text-right">
+                              {sport.whatsappLink && (
+                                <button className="table-btn-join" onClick={() => window.open(sport.whatsappLink, '_blank')}>
+                                  Join
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              ) : (
+                <div className="sd-study-table-wrapper">
+                  {extraLinks.length === 0 ? (
+                    <div className="sd-study-empty">
+                      <div className="empty-icon">🔗</div>
+                      <h3>No social hubs found</h3>
+                      <p>Admin hasn't added any social groups yet</p>
+                    </div>
+                  ) : (
+                    <table className="sd-study-table">
+                      <thead>
+                        <tr>
+                          <th>Community Hub</th>
+                          <th>Category</th>
+                          <th>Platform</th>
+                          <th className="text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {extraLinks.map((link) => (
+                          <tr key={link.id}>
+                            <td>
+                              <div className="table-title-cell">
+                                <div className="type-icon-small"><LinkIcon size={16} /></div>
+                                <div>
+                                  <div className="main-title">{link.name}</div>
+                                  <div className="sub-desc">Official {link.platform} group</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td><span className="table-tag">{link.category}</span></td>
+                            <td><span className="type-label">{link.platform}</span></td>
+                            <td className="text-right">
+                              <button className="table-btn-join" onClick={() => window.open(link.url, '_blank')}>
+                                Join Hub
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

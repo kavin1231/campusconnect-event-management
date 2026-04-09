@@ -11,14 +11,10 @@ import presidentRoutes from "./routes/president.js";
 import adminRoutes from "./routes/admin.js";
 import operationsRoutes from "./routes/operations.js";
 import sportsRoutes from "./routes/sports.js";
-<<<<<<< HEAD
 import studySupportRoutes from "./routes/studySupport.js";
 import groupLinkRoutes from "./routes/groupLink.js";
 import path from "path";
 import { fileURLToPath } from "url";
-=======
-// import studySupportRoutes from "./routes/studySupport.js";  // TODO: Convert to ES modules
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
 
 dotenv.config();
 
@@ -31,13 +27,9 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-<<<<<<< HEAD
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-
-=======
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
 app.get("/", (req, res) => {
   res.send("NEXORA API running");
 });

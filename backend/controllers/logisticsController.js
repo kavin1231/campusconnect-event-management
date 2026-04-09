@@ -1,4 +1,11 @@
 import prisma from "../prisma/client.js";
+import {
+  validateAsset,
+  validateAssetRequest,
+  validateQuantityAvailability,
+  validateDateRange,
+  sanitizeInput,
+} from "../utils/logisticsValidations.js";
 
 class LogisticsController {
   // ========== CLUB MANAGEMENT ==========
@@ -166,6 +173,7 @@ class LogisticsController {
       const assets = await prisma.asset.findMany({
         where,
         include: {
+          club: { select: { id: true, name: true } },
           _count: { select: { bookings: true } },
         },
         skip,
@@ -179,8 +187,15 @@ class LogisticsController {
         id: asset.id,
         name: asset.name,
         description: asset.description,
+        category: asset.description || "",
+        condition: "Good",
         ownerId: asset.ownerId,
+        club: asset.club?.name || "Unknown",
+        owner: asset.club,
         status: asset.status,
+        quantity: asset.quantity,
+        available: asset.quantity,
+        availableQty: asset.quantity,
         bookingCount: asset._count.bookings,
         createdAt: asset.createdAt,
       }));
@@ -203,17 +218,36 @@ class LogisticsController {
 
   static async createAsset(req, res) {
     try {
-      const { name, description, ownerId } = req.body;
+      const { name, description, ownerId, quantity, imageUrl } = req.body;
       const userId = req.user?.id || req.userId;
+
+      // Validate input
+      const validation = validateAsset({
+        name,
+        description,
+        quantity,
+        imageUrl,
+      });
+      if (!validation.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: validation.errors,
+        });
+      }
 
       // Use provided ownerId or fallback to current user
       const assignedOwnerId = ownerId ? parseInt(ownerId) : userId;
 
       const asset = await prisma.asset.create({
         data: {
-          name,
-          description,
+          name: sanitizeInput(name),
+          description: sanitizeInput(description),
+          imageUrl:
+            imageUrl ||
+            "https://images.unsplash.com/photo-1505228395891-9a51e7e86e81?auto=format&fit=crop&q=80&w=400",
           ownerId: assignedOwnerId,
+          quantity: parseInt(quantity),
           status: "AVAILABLE",
         },
       });
@@ -230,7 +264,7 @@ class LogisticsController {
   static async updateAsset(req, res) {
     try {
       const { assetId } = req.params;
-      const { name, description, status } = req.body;
+      const { name, description, status, quantity } = req.body;
 
       const asset = await prisma.asset.update({
         where: { id: parseInt(assetId) },
@@ -238,6 +272,8 @@ class LogisticsController {
           ...(name && { name }),
           ...(description && { description }),
           ...(status && { status }),
+          ...(quantity !== undefined &&
+            quantity !== null && { quantity: parseInt(quantity) }),
         },
       });
 
@@ -270,6 +306,7 @@ class LogisticsController {
       const asset = await prisma.asset.findUnique({
         where: { id: parseInt(assetId) },
         include: {
+          club: { select: { id: true, name: true } },
           _count: { select: { bookings: true } },
         },
       });
@@ -280,7 +317,24 @@ class LogisticsController {
           .json({ success: false, message: "Asset not found" });
       }
 
-      res.json({ success: true, asset });
+      const formattedAsset = {
+        id: asset.id,
+        name: asset.name,
+        description: asset.description,
+        category: asset.description || "",
+        condition: "Good",
+        ownerId: asset.ownerId,
+        club: asset.club?.name || "Unknown",
+        owner: asset.club,
+        status: asset.status,
+        quantity: asset.quantity,
+        available: asset.quantity,
+        availableQty: asset.quantity,
+        bookingCount: asset._count.bookings,
+        createdAt: asset.createdAt,
+      };
+
+      res.json({ success: true, asset: formattedAsset });
     } catch (error) {
       console.error("Get asset by id error:", error);
       res.status(500).json({ success: false, message: error.message });
@@ -291,7 +345,7 @@ class LogisticsController {
 
   static async checkAvailability(req, res) {
     try {
-      const { assetId, startDate, endDate, quantityNeeded = 1 } = req.body;
+      const { assetId, startDate, endDate } = req.body;
 
       if (!assetId || !startDate || !endDate) {
         return res.status(400).json({
@@ -318,19 +372,6 @@ class LogisticsController {
 
       const asset = await prisma.asset.findUnique({
         where: { id: parseInt(assetId) },
-        include: {
-          bookings: {
-            where: {
-              status: { in: ["APPROVED", "CHECKED_OUT"] },
-              OR: [
-                {
-                  startDate: { lte: new Date(endDate) },
-                  endDate: { gte: new Date(startDate) },
-                },
-              ],
-            },
-          },
-        },
       });
 
       if (!asset) {
@@ -339,20 +380,27 @@ class LogisticsController {
           .json({ success: false, message: "Asset not found" });
       }
 
-      const bookedQuantity = asset.bookings.reduce(
-        (sum, booking) => sum + booking.quantityRequested,
-        0,
-      );
-      const availableQuantity = asset.quantity - bookedQuantity;
-      const isAvailable = availableQuantity >= parseInt(quantityNeeded);
+      // Check for conflicting bookings during the requested timeframe
+      const conflictingBooking = await prisma.assetBooking.findFirst({
+        where: {
+          assetId: parseInt(assetId),
+          status: { in: ["APPROVED", "CHECKED_OUT"] },
+          OR: [
+            {
+              startDate: { lte: new Date(endDate) },
+              endDate: { gte: new Date(startDate) },
+            },
+          ],
+        },
+      });
+
+      const isAvailable = !conflictingBooking;
 
       res.json({
         success: true,
         isAvailable,
-        availableQuantity,
-        totalQuantity: asset.quantity,
-        bookedQuantity,
-        requestedQuantity: parseInt(quantityNeeded),
+        assetId: asset.id,
+        assetName: asset.name,
       });
     } catch (error) {
       console.error("Check availability error:", error);
@@ -433,39 +481,40 @@ class LogisticsController {
       const { assetId } = req.params;
       const { quantity, neededDate, returnDate, purpose, contact } = req.body;
 
-      if (!assetId || !neededDate || !returnDate || !quantity) {
+      // Comprehensive validation
+      const validation = validateAssetRequest({
+        quantity,
+        neededDate,
+        returnDate,
+        purpose,
+        contact,
+      });
+
+      if (!validation.isValid) {
         return res.status(400).json({
           success: false,
-          message: "assetId, quantity, neededDate and returnDate are required",
+          message: "Validation failed",
+          errors: validation.errors,
+        });
+      }
+
+      // Verify user is authenticated
+      if (!req.user || !req.user.id) {
+        console.error("User not authenticated or missing user ID");
+        return res.status(401).json({
+          success: false,
+          message: "User authentication failed",
         });
       }
 
       const start = new Date(neededDate);
       const end = new Date(returnDate);
-
-      if (isNaN(start) || isNaN(end)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid date format" });
-      }
-
-      if (start > end) {
-        return res.status(400).json({
-          success: false,
-          message: "neededDate must be before or equal to returnDate",
-        });
-      }
-
       const qty = parseInt(quantity);
-      if (!qty || qty <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "quantity must be greater than 0",
-        });
-      }
 
+      // Find asset
       const asset = await prisma.asset.findUnique({
         where: { id: parseInt(assetId) },
+        include: { club: true },
       });
 
       if (!asset) {
@@ -474,7 +523,19 @@ class LogisticsController {
           .json({ success: false, message: "Asset not found" });
       }
 
-      const availability = await this.checkAssetAvailability(
+      // Check quantity availability
+      const quantityCheck = validateQuantityAvailability(asset.quantity, qty);
+      if (!quantityCheck.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: quantityCheck.errors,
+          availableQuantity: asset.quantity,
+        });
+      }
+
+      // Check date availability
+      const availability = await LogisticsController.checkAssetAvailability(
         asset.id,
         start,
         end,
@@ -484,55 +545,65 @@ class LogisticsController {
       if (!availability.isAvailable) {
         return res.status(400).json({
           success: false,
-          message: "Asset not available for requested dates or quantity",
+          message: "Asset not available for requested dates",
+          reason: availability.reason,
           availableQuantity: availability.availableQuantity,
         });
       }
 
-      // Try to resolve requesting club from user account, fall back to asset's club
-      let requestingClubId = asset.clubId;
-      try {
-        const currentUser = await prisma.user.findUnique({
-          where: { id: req.user.id },
-          select: { clubId: true },
+      // Get requesting user's club through club memberships
+      const currentUser = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: { id: true },
+      });
+
+      if (!currentUser) {
+        return res.status(401).json({
+          success: false,
+          message: "Current user not found",
         });
-        if (currentUser?.clubId) {
-          requestingClubId = currentUser.clubId;
-        }
-      } catch (e) {
-        // If lookup fails we keep fallback club
-        console.error("Resolve requesting club error:", e.message);
       }
 
-      const booking = await prisma.assetBooking.create({
-        data: {
-          assetId: asset.id,
-          requestingClubId,
-          owningClubId: asset.clubId,
-          requesterId: req.user.id,
-          quantityRequested: qty,
-          startDate: start,
-          endDate: end,
-          purpose: contact
-            ? `${purpose || ""} (Contact: ${contact})`.trim()
-            : purpose,
-          status: "PENDING",
-        },
-        include: {
-          asset: true,
-          requester: { select: { id: true, name: true, email: true } },
-          requestingClub: { select: { id: true, name: true } },
-          owningClub: { select: { id: true, name: true } },
-        },
+      // Get user's primary club membership if any
+      let userClubId = null;
+      const userClubMembership = await prisma.clubMember.findFirst({
+        where: { userId: req.user.id },
+        select: { clubId: true },
       });
 
-      res.status(201).json({
-        success: true,
-        message: "Request submitted successfully",
-        request: booking,
-      });
+      if (userClubMembership) {
+        userClubId = userClubMembership.clubId;
+      }
+
+      // Create booking request
+      try {
+        const booking = await prisma.assetBooking.create({
+          data: {
+            assetId: asset.id,
+            requestingClubId: userClubId,
+            owningClubId: asset.clubId,
+            requesterId: req.user.id,
+            quantityRequested: qty,
+            startDate: start,
+            endDate: end,
+            purpose: sanitizeInput(purpose),
+            status: "PENDING",
+          },
+          include: {
+            asset: { select: { id: true, name: true, description: true } },
+            requester: { select: { id: true, name: true, email: true } },
+          },
+        });
+
+        res
+          .status(201)
+          .json({ success: true, message: "Booking request created", booking });
+      } catch (bookingError) {
+        console.error("Booking creation error:", bookingError);
+        throw bookingError;
+      }
     } catch (error) {
-      console.error("Request asset error:", error);
+      console.error("Asset request error:", error);
       res.status(500).json({ success: false, message: error.message });
     }
   }
@@ -589,7 +660,14 @@ class LogisticsController {
       const { status, page = 1, limit = 20 } = req.query;
       const skip = (page - 1) * limit;
 
+      // Admins see all requests, others see only their own
       const where = {};
+
+      // Only filter by user if not an admin
+      if (req.user.role !== "SYSTEM_ADMIN") {
+        where.requesterId = req.user.id;
+      }
+
       if (status) {
         if (status === "active") {
           where.status = "CHECKED_OUT";
@@ -607,6 +685,8 @@ class LogisticsController {
         include: {
           asset: { select: { id: true, name: true, description: true } },
           requester: { select: { id: true, name: true, email: true } },
+          requestingClub: { select: { id: true, name: true } },
+          owningClub: { select: { id: true, name: true } },
         },
         skip,
         take: parseInt(limit),
@@ -627,12 +707,29 @@ class LogisticsController {
 
         return {
           id: b.id,
-          asset: b.asset.name,
-          requester: b.requester.name,
-          quantity: 1,
+          asset: b.asset.name, // Return just the asset name as string
+          assetDetails: {
+            id: b.asset.id,
+            name: b.asset.name,
+            description: b.asset.description,
+          },
+          owner: b.requester.name, // Return just the requester name as string
+          ownerEmail: b.requester.email, // Include email separately if needed
+          ownerDetails: {
+            id: b.requester.id,
+            name: b.requester.name,
+            email: b.requester.email,
+          },
+          club: b.owningClub?.name || "Unknown Club", // Return just the club name as string
+          clubDetails: b.owningClub, // Full club object for reference
+          quantity: b.quantityRequested,
+          quantityRequested: b.quantityRequested,
           status: statusLabel,
+          neededDate: dateToString(b.startDate),
+          returnDate: dateToString(b.endDate),
           startDate: dateToString(b.startDate),
           endDate: dateToString(b.endDate),
+          requestDate: dateToString(b.createdAt),
           createdAt: dateToString(b.createdAt),
           approvedAt: dateToString(b.approvedAt),
         };
@@ -905,31 +1002,52 @@ class LogisticsController {
     assetId,
     startDate,
     endDate,
-    quantityNeeded,
+    requestedQuantity,
   ) {
     const asset = await prisma.asset.findUnique({
       where: { id: assetId },
-      include: {
-        bookings: {
-          where: {
-            status: { in: ["APPROVED", "CHECKED_OUT"] },
-            OR: [{ startDate: { lte: endDate }, endDate: { gte: startDate } }],
-          },
-        },
+    });
+
+    if (!asset)
+      return {
+        isAvailable: false,
+        reason: "Asset not found",
+        availableQuantity: 0,
+      };
+
+    // Check quantity available
+    if (asset.quantity < requestedQuantity) {
+      return {
+        isAvailable: false,
+        reason: "Insufficient quantity available",
+        availableQuantity: asset.quantity,
+      };
+    }
+
+    // Check if there are any conflicting approved or checked out bookings
+    const conflictingBookings = await prisma.assetBooking.findMany({
+      where: {
+        assetId: assetId,
+        status: { in: ["APPROVED", "CHECKED_OUT"] },
+        OR: [{ startDate: { lte: endDate }, endDate: { gte: startDate } }],
       },
     });
 
-    if (!asset) return { isAvailable: false, reason: "Asset not found" };
+    // Calculate available quantity after accounting for active bookings
+    let bookedQuantity = 0;
+    for (const booking of conflictingBookings) {
+      bookedQuantity += booking.quantityRequested;
+    }
 
-    const bookedQuantity = asset.bookings.reduce(
-      (sum, booking) => sum + booking.quantityRequested,
-      0,
-    );
     const availableQuantity = asset.quantity - bookedQuantity;
 
     return {
-      isAvailable: availableQuantity >= quantityNeeded,
-      availableQuantity,
+      isAvailable: availableQuantity >= requestedQuantity,
+      reason:
+        availableQuantity < requestedQuantity
+          ? "Insufficient quantity available for the requested period"
+          : null,
+      availableQuantity: Math.max(0, availableQuantity),
     };
   }
 
@@ -937,7 +1055,6 @@ class LogisticsController {
 
   static async getLogisticsStats(req, res) {
     try {
-      const totalClubs = await prisma.club.count();
       const totalAssets = await prisma.asset.count();
       const pendingRequests = await prisma.assetBooking.count({
         where: { status: "PENDING" },
@@ -948,29 +1065,33 @@ class LogisticsController {
       const rejectedRequests = await prisma.assetBooking.count({
         where: { status: "REJECTED" },
       });
-      const totalDamageReports = await prisma.damageReport.count();
-      const totalPenalties = await prisma.damageReport.aggregate({
-        _sum: { penalty: true },
+      const checkedOutRequests = await prisma.assetBooking.count({
+        where: { status: "CHECKED_OUT" },
+      });
+      const returnedRequests = await prisma.assetBooking.count({
+        where: { status: "RETURNED" },
       });
 
       const recentBookings = await prisma.assetBooking.findMany({
         take: 5,
         orderBy: { createdAt: "desc" },
-        include: { asset: true, requestingClub: true, owningClub: true },
+        include: {
+          asset: { select: { id: true, name: true, description: true } },
+          requester: { select: { id: true, name: true, email: true } },
+        },
       });
 
       res.json({
         success: true,
         stats: {
-          totalClubs,
           totalAssets,
           bookingStats: {
             pending: pendingRequests,
             approved: approvedRequests,
             rejected: rejectedRequests,
+            checkedOut: checkedOutRequests,
+            returned: returnedRequests,
           },
-          damageReports: totalDamageReports,
-          totalPenalties: totalPenalties._sum.penalty || 0,
           recentBookings,
         },
       });

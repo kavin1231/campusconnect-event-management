@@ -9,8 +9,8 @@ import AdminDashboard from "./components/dashboard/AdminDashboard";
 import OrganizerDashboard from "./components/dashboard/OrganizerDashboard"; // Original OrganizerDashboard
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
-import StudentManagement from "./components/admin/StudentManagement";
 import UserManagement from "./components/admin/UserManagement";
+import StudentManagement from "./components/admin/StudentManagement";
 import GroupLinksManagement from "./components/admin/GroupLinksManagement";
 import SportsManagement from "./components/admin/SportsManagement";
 import SportsList from "./components/sports/SportsList";
@@ -256,6 +256,15 @@ function App() {
           }
         />
         <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute
+              element={UserManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
           path="/admin/study-support"
           element={
             <ProtectedRoute
@@ -446,6 +455,19 @@ function App() {
             <ProtectedRoute
               element={CheckoutReturnTracking}
               allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/logistics/checkout"
+          element={
+            <ProtectedRoute
+              element={CheckoutReturnTracking}
+              allowedRoles={[
+                "EVENT_ORGANIZER",
+                "SYSTEM_ADMIN",
+                "CLUB_PRESIDENT",
+              ]}
             />
           }
         />

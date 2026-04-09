@@ -163,6 +163,7 @@ model Asset {
   id               Int                 @id @default(autoincrement())
   name             String
   description      String?
+  imageUrl         String?             @default("https://images.unsplash.com/photo-1505228395891-9a51e7e86e81?auto=format&fit=crop&q=80&w=400")
   ownerId          Int                 
   clubId           Int?                
   status           AssetStatus         @default(AVAILABLE)

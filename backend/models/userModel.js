@@ -59,6 +59,14 @@ class UserModel {
         });
         return !!user;
     }
+
+    // Update user role
+    static async updateRole(id, role) {
+        return await prisma.user.update({
+            where: { id },
+            data: { role }
+        });
+    }
 }
 
 export default UserModel;

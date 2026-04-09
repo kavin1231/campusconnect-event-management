@@ -22,6 +22,9 @@ const StudySupportAdmin = () => {
         sessionLink: '',
         sessionNotes: ''
     });
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [uploadSuccess, setUploadSuccess] = useState(false);
 
     const SEMESTERS = ['Y1S1', 'Y1S2', 'Y2S1', 'Y2S2', 'Y3S1', 'Y3S2', 'Y4S1', 'Y4S2'];
     const MATERIAL_TYPES = ['pdf', 'link', 'video', 'other'];
@@ -82,6 +85,8 @@ const StudySupportAdmin = () => {
             sessionLink: '',
             sessionNotes: ''
         });
+        setSelectedFile(null);
+        setUploadSuccess(false);
         setShowForm(true);
     };
 
@@ -91,12 +96,14 @@ const StudySupportAdmin = () => {
             semester: item.semester,
             title: item.title,
             description: item.description || '',
-            materialType: item.materialType || item.sessionDate ? 'session' : 'pdf',
+            materialType: item.materialType || (item.sessionDate ? 'session' : 'pdf'),
             contentUrl: item.contentUrl || item.sessionLink || '',
             sessionDate: item.sessionDate ? new Date(item.sessionDate).toISOString().slice(0, 16) : '',
             sessionLink: item.sessionLink || '',
             sessionNotes: item.sessionNotes || ''
         });
+        setSelectedFile(null);
+        setUploadSuccess(false);
         setShowForm(true);
     };
 
@@ -126,11 +133,63 @@ const StudySupportAdmin = () => {
         }
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file && file.type === 'application/pdf') {
+            setSelectedFile(file);
+            setUploadSuccess(false);
+        } else {
+            alert('Please select a valid PDF file');
+            e.target.value = null;
+        }
+    };
+
+    const handleFileUpload = async () => {
+        if (!selectedFile) return null;
+
+        try {
+            setUploading(true);
+            const token = localStorage.getItem('token');
+            const formDataUpload = new FormData();
+            formDataUpload.append('pdf', selectedFile);
+
+            const res = await fetch('http://localhost:5000/api/study-support/upload-pdf', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formDataUpload
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setUploadSuccess(true);
+                return data.url;
+            } else {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Upload failed');
+            }
+        } catch (err) {
+            console.error('Error uploading file:', err);
+            setError('Failed to upload PDF: ' + err.message);
+            return null;
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
             const isSession = activeTab === 'sessions';
+            let currentContentUrl = formData.contentUrl;
+
+            // Upload PDF if selected and it's a material
+            if (!isSession && formData.materialType === 'pdf' && selectedFile) {
+                const uploadedUrl = await handleFileUpload();
+                if (!uploadedUrl) return; // Error handled in handleFileUpload
+                currentContentUrl = uploadedUrl;
+            }
+
             const endpoint = isSession
                 ? editingId
                     ? `/api/study-support/sessions/${editingId}`
@@ -152,7 +211,7 @@ const StudySupportAdmin = () => {
                     title: formData.title,
                     description: formData.description,
                     materialType: formData.materialType,
-                    contentUrl: formData.contentUrl
+                    contentUrl: currentContentUrl
                 };
 
             const res = await fetch(`http://localhost:5000${endpoint}`, {
@@ -180,6 +239,8 @@ const StudySupportAdmin = () => {
                     }
                 }
                 setShowForm(false);
+                setSelectedFile(null);
+                setUploadSuccess(false);
             }
         } catch (err) {
             console.error('Error submitting form:', err);
@@ -473,15 +534,34 @@ const StudySupportAdmin = () => {
                                     </div>
 
                                     <div className="form-group">
-                                        <label>Content URL *</label>
-                                        <input
-                                            type="url"
-                                            name="contentUrl"
-                                            value={formData.contentUrl}
-                                            onChange={handleInputChange}
-                                            placeholder="https://example.com/material.pdf"
-                                            required
-                                        />
+                                        <label>Content URL (or Upload PDF) *</label>
+                                        <div className="file-upload-wrapper">
+                                            <input
+                                                type={formData.materialType === 'pdf' ? 'text' : 'url'}
+                                                name="contentUrl"
+                                                value={formData.contentUrl}
+                                                onChange={handleInputChange}
+                                                placeholder={formData.materialType === 'pdf' ? 'URL will be generated after upload' : 'https://example.com/material'}
+                                                required={!selectedFile && !formData.contentUrl}
+                                                disabled={uploading}
+                                            />
+                                            {formData.materialType === 'pdf' && (
+                                                <div className="file-input-container">
+                                                    <input
+                                                        type="file"
+                                                        id="pdf-upload"
+                                                        accept=".pdf"
+                                                        onChange={handleFileChange}
+                                                        className="hidden-file-input"
+                                                    />
+                                                    <label htmlFor="pdf-upload" className="btn-upload">
+                                                        {uploading ? 'Uploading...' : selectedFile ? 'Change PDF' : 'Choose PDF'}
+                                                    </label>
+                                                    {selectedFile && <span className="file-name">{selectedFile.name}</span>}
+                                                    {uploadSuccess && <CheckCircle size={16} className="text-green-500" />}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </>
                             ) : (

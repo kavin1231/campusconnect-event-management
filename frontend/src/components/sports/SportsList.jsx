@@ -41,7 +41,7 @@ const SportsList = () => {
               <div className="hero-content">
                 <span className="hero-badge">Student Life</span>
                 <p>
-                  Explore sports available on campus, connect with coaches, and
+                  Extracurricular activities available on campus, connect with coaches, and
                   join vibrant student communities to stay active and engaged.
                 </p>
               </div>

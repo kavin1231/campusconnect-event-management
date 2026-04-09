@@ -7,7 +7,6 @@ import StudentProfile from "./components/profile/StudentProfile";
 import StudentDashboard from "./components/dashboard/StudentDashboard";
 import AdminDashboard from "./components/dashboard/AdminDashboard";
 import OrganizerDashboard from "./components/dashboard/OrganizerDashboard"; // Original OrganizerDashboard
-import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
 import StudentManagement from "./components/admin/StudentManagement";

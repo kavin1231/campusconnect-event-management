@@ -1,4 +1,4 @@
-const prisma = require('../prisma/client');
+import prisma from '../prisma/client.js';
 
 // Semester validation
 const VALID_SEMESTERS = ['Y1S1', 'Y1S2', 'Y2S1', 'Y2S2', 'Y3S1', 'Y3S2', 'Y4S1', 'Y4S2'];
@@ -12,7 +12,7 @@ const getStudentSemester = (year) => {
 };
 
 // ADMIN: Create Study Material
-exports.createStudyMaterial = async (req, res) => {
+export const createStudyMaterial = async (req, res) => {
     try {
         const { semester, title, description, materialType, contentUrl } = req.body;
         const userId = req.user.id;
@@ -70,7 +70,7 @@ exports.createStudyMaterial = async (req, res) => {
 };
 
 // ADMIN: Update Study Material
-exports.updateStudyMaterial = async (req, res) => {
+export const updateStudyMaterial = async (req, res) => {
     try {
         const { id } = req.params;
         const { semester, title, description, materialType, contentUrl } = req.body;
@@ -119,7 +119,7 @@ exports.updateStudyMaterial = async (req, res) => {
 };
 
 // ADMIN: Delete Study Material
-exports.deleteStudyMaterial = async (req, res) => {
+export const deleteStudyMaterial = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -142,7 +142,7 @@ exports.deleteStudyMaterial = async (req, res) => {
 };
 
 // ADMIN: Get all materials (for management dashboard)
-exports.getAllMaterials = async (req, res) => {
+export const getAllMaterials = async (req, res) => {
     try {
         const { semester, materialType, page = 1, limit = 20 } = req.query;
 
@@ -192,20 +192,27 @@ exports.getAllMaterials = async (req, res) => {
 };
 
 // STUDENT: Get materials for their semester
-exports.getStudentMaterials = async (req, res) => {
+export const getStudentMaterials = async (req, res) => {
     try {
-        const studentId = req.student.id;
-        const year = req.student.year;
+        const userId = req.user.id;
+        const { semester, materialType } = req.query;
 
-        // Get materials for both semesters of student's year
-        const semesters = getStudentSemester(year);
+        // Optionally get student info for year-specific logic if needed in future
+        const student = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true }
+        });
+
+        if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+
+        const filter = {};
+        if (semester && semester !== 'all') filter.semester = semester;
+        if (materialType && materialType !== 'all') filter.materialType = materialType;
 
         const materials = await prisma.studyMaterial.findMany({
-            where: {
-                semester: {
-                    in: semesters
-                }
-            },
+            where: filter,
             include: {
                 creator: {
                     select: {
@@ -220,8 +227,6 @@ exports.getStudentMaterials = async (req, res) => {
 
         res.json({
             success: true,
-            studentYear: year,
-            availableSemesters: semesters,
             data: materials
         });
     } catch (error) {
@@ -235,7 +240,7 @@ exports.getStudentMaterials = async (req, res) => {
 };
 
 // ADMIN: Create Study Session
-exports.createStudySession = async (req, res) => {
+export const createStudySession = async (req, res) => {
     try {
         const { semester, title, description, sessionDate, sessionLink, sessionNotes } = req.body;
         const userId = req.user.id;
@@ -285,7 +290,7 @@ exports.createStudySession = async (req, res) => {
 };
 
 // ADMIN: Update Study Session
-exports.updateStudySession = async (req, res) => {
+export const updateStudySession = async (req, res) => {
     try {
         const { id } = req.params;
         const { semester, title, description, sessionDate, sessionLink, sessionNotes } = req.body;
@@ -335,7 +340,7 @@ exports.updateStudySession = async (req, res) => {
 };
 
 // ADMIN: Delete Study Session
-exports.deleteStudySession = async (req, res) => {
+export const deleteStudySession = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -358,7 +363,7 @@ exports.deleteStudySession = async (req, res) => {
 };
 
 // ADMIN: Get all sessions (for management dashboard)
-exports.getAllSessions = async (req, res) => {
+export const getAllSessions = async (req, res) => {
     try {
         const { semester, page = 1, limit = 20 } = req.query;
 
@@ -407,20 +412,16 @@ exports.getAllSessions = async (req, res) => {
 };
 
 // STUDENT: Get sessions for their semester
-exports.getStudentSessions = async (req, res) => {
+export const getStudentSessions = async (req, res) => {
     try {
-        const studentId = req.student.id;
-        const year = req.student.year;
+        const userId = req.user.id;
+        const { semester } = req.query;
 
-        // Get sessions for both semesters of student's year
-        const semesters = getStudentSemester(year);
+        const filter = {};
+        if (semester && semester !== 'all') filter.semester = semester;
 
         const sessions = await prisma.studySession.findMany({
-            where: {
-                semester: {
-                    in: semesters
-                }
-            },
+            where: filter,
             include: {
                 creator: {
                     select: {
@@ -430,13 +431,11 @@ exports.getStudentSessions = async (req, res) => {
                     }
                 }
             },
-            orderBy: { sessionDate: 'desc' }
+            orderBy: { sessionDate: 'asc' }
         });
 
         res.json({
             success: true,
-            studentYear: year,
-            availableSemesters: semesters,
             data: sessions
         });
     } catch (error) {
@@ -450,7 +449,7 @@ exports.getStudentSessions = async (req, res) => {
 };
 
 // ADMIN: Get combined study support dashboard data
-exports.getStudySupportDashboard = async (req, res) => {
+export const getStudySupportDashboard = async (req, res) => {
     try {
         const [materials, sessions] = await Promise.all([
             prisma.studyMaterial.findMany({
@@ -482,4 +481,18 @@ exports.getStudySupportDashboard = async (req, res) => {
             error: error.message
         });
     }
+};
+
+export default {
+    createStudyMaterial,
+    updateStudyMaterial,
+    deleteStudyMaterial,
+    getAllMaterials,
+    getStudentMaterials,
+    createStudySession,
+    updateStudySession,
+    deleteStudySession,
+    getAllSessions,
+    getStudentSessions,
+    getStudySupportDashboard
 };

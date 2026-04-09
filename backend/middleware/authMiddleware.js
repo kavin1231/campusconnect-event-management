@@ -16,7 +16,6 @@ export const verifyToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        console.log('Token decoded successfully:', { id: decoded.id, email: decoded.email, role: decoded.role });
         req.user = decoded;
         next();
     } catch (error) {
@@ -39,7 +38,10 @@ export const requireRole = (...allowedRoles) => {
             });
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
+        // Flatten allowedRoles in case an array was passed as a single argument
+        const flatRoles = allowedRoles.flat();
+
+        if (!flatRoles.includes(req.user.role)) {
             return res.status(403).json({
                 success: false,
                 message: `Access denied. Role '${req.user.role}' is not authorized.`
@@ -48,4 +50,16 @@ export const requireRole = (...allowedRoles) => {
 
         next();
     };
+};
+
+export const verifyStudent = (req, res, next) => {
+    verifyToken(req, res, () => {
+        if (!req.user || req.user.role !== 'STUDENT') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Student authorization required.'
+            });
+        }
+        next();
+    });
 };

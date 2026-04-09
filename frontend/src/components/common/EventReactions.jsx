@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Trash2, Pencil } from 'lucide-react';
 import './EventReactions.css';
 
 const EventReactions = ({ eventId, isLoggedIn, studentId, onlyShowReactions = false, onlyShowComments = false }) => {
@@ -56,6 +56,8 @@ const EventReactions = ({ eventId, isLoggedIn, studentId, onlyShowReactions = fa
 
             if (data.success && data.data) {
                 setStudentReaction(data.data);
+            } else if (data.success && !data.data) {
+                setStudentReaction(null);
             }
         } catch (err) {
             console.error('Failed to load student reaction:', err);
@@ -131,6 +133,47 @@ const EventReactions = ({ eventId, isLoggedIn, studentId, onlyShowReactions = fa
         }
     };
 
+    const handleDeleteComment = async (reaction) => {
+        if (!window.confirm('Are you sure you want to delete your comment?')) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            
+            if (reaction.reaction) {
+                // If there's a reaction, we just clear the comment but keep the record
+                const response = await fetch(`http://localhost:5000/api/events/${eventId}/reviews`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        reaction: reaction.reaction,
+                        comment: null
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchReactions();
+                    fetchStudentReaction();
+                }
+            } else {
+                // If no reaction, delete the whole review/comment record
+                const response = await fetch(`http://localhost:5000/api/events/reviews/${reaction.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchReactions();
+                    fetchStudentReaction();
+                }
+            }
+        } catch (err) {
+            console.error('Failed to delete comment:', err);
+        }
+    };
+
     const renderReactionBubbles = () => {
         return REACTION_TYPES.map(({ type, emoji, label }) => (
             <button
@@ -166,13 +209,13 @@ const EventReactions = ({ eventId, isLoggedIn, studentId, onlyShowReactions = fa
             )}
 
             {/* Add Comment Section - Only show when not in reactions-only mode */}
-            {!onlyShowReactions && isLoggedIn && !showAddReaction && (
+            {!onlyShowReactions && isLoggedIn && !studentReaction?.comment && !showAddReaction && (
                 <button
                     className="er-btn-add-comment"
                     onClick={() => setShowAddReaction(true)}
                 >
                     <MessageCircle size={18} />
-                    {studentReaction?.comment ? 'Edit Comment' : 'Add Comment'}
+                    Add Comment
                 </button>
             )}
 
@@ -229,6 +272,24 @@ const EventReactions = ({ eventId, isLoggedIn, studentId, onlyShowReactions = fa
                                                 </p>
                                             </div>
                                         </div>
+                                        {isLoggedIn && studentId === reaction.student.id && (
+                                            <div className="erc-actions">
+                                                <button 
+                                                    className="erc-btn-edit"
+                                                    onClick={() => setShowAddReaction(true)}
+                                                    title="Edit comment"
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+                                                <button 
+                                                    className="erc-btn-delete"
+                                                    onClick={() => handleDeleteComment(reaction)}
+                                                    title="Delete comment"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <p className="erc-comment-text">{reaction.comment}</p>

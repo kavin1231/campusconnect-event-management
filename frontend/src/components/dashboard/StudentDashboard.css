@@ -16,12 +16,12 @@
     flex-direction: column;
     min-width: 0;
     /* important for responsive */
-    background: #f8fafc;
+    background: var(--bg-dark);
 }
 
 /* ÔöÇÔöÇ Dashboard Header ÔöÇÔöÇ */
 .sd-header {
-    background: #fff;
+    background: var(--bg-nav);
     padding: 40px 48px;
     border-bottom: 1px solid var(--border-color);
 }
@@ -47,7 +47,7 @@
 .sd-header-text h1 {
     font-size: 2rem;
     font-weight: 800;
-    color: #1e293b;
+    color: var(--text-main);
     margin: 0;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .sd-header-stat {
-    background: #f1f5f9;
+    background: var(--bg-input);
     padding: 16px 24px;
     border-radius: 16px;
     display: flex;
@@ -81,7 +81,7 @@
 .sd-stat-text {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-muted);
     text-transform: uppercase;
 }
 
@@ -286,7 +286,7 @@
     border: 1px solid var(--border-color);
     border-radius: 14px;
     width: 250px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+    box-shadow: var(--glass-shadow);
     z-index: 200;
     animation: sd-drop 0.2s ease;
 }
@@ -431,7 +431,7 @@
 }
 
 .sd-btn-outline:hover {
-    background: rgba(79, 70, 229, 0.07);
+    background: var(--bg-input);
 }
 
 /* ÔöÇÔöÇ President Workspace Card ÔöÇÔöÇ */
@@ -440,8 +440,8 @@
     border-radius: 20px;
     padding: 24px 32px;
     margin-bottom: 32px;
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--glass-shadow);
     position: relative;
     overflow: hidden;
 }
@@ -1017,11 +1017,11 @@
     min-width: 300px;
     display: flex;
     align-items: center;
-    background: #fff;
-    border: 1.5px solid #e2e8f0;
+    background: var(--bg-nav);
+    border: 1.5px solid var(--border-color);
     border-radius: 12px;
     padding: 10px 18px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    box-shadow: var(--glass-shadow);
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -1045,7 +1045,7 @@
 
 .sd-study-tabs {
     display: flex;
-    background: #f1f5f9;
+    background: var(--bg-input);
     padding: 4px;
     border-radius: 10px;
     gap: 4px;
@@ -1067,7 +1067,7 @@
 }
 
 .sd-study-tab.active {
-    background: #fff;
+    background: var(--bg-nav);
     color: var(--primary-accent);
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
@@ -1089,9 +1089,9 @@
     width: 100%;
     padding: 10px 16px;
     border-radius: 12px;
-    background: #fff;
-    border: 1.5px solid #e2e8f0;
-    color: #1e293b;
+    background: var(--bg-nav);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-main);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -1102,7 +1102,7 @@
     background-position: right 12px center;
     padding-right: 40px;
     transition: all 0.2s;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    box-shadow: var(--glass-shadow);
 }
 
 .semester-dropdown:focus {
@@ -1130,11 +1130,11 @@
 
 /* Premium Table Styles */
 .sd-study-table-wrapper {
-    background: #fff;
+    background: var(--bg-nav);
     border-radius: 20px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
     overflow: hidden; /* For rounded corners */
-    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    box-shadow: var(--glass-shadow);
     animation: slideUp 0.5s ease;
 }
 
@@ -1145,15 +1145,15 @@
 }
 
 .sd-study-table thead {
-    background: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .sd-study-table th {
     padding: 16px 24px;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #64748b;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -1161,8 +1161,8 @@
 .sd-study-table td {
     padding: 20px 24px;
     font-size: 0.95rem;
-    color: #1e293b;
-    border-bottom: 1px solid #f1f5f9;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
 }
 
@@ -1171,7 +1171,7 @@
 }
 
 .sd-study-table tbody tr:hover {
-    background: #f8fafc;
+    background: var(--bg-input);
 }
 
 .sd-study-table tbody tr:last-child td {
@@ -1197,13 +1197,13 @@
 
 .main-title {
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-main);
     margin-bottom: 2px;
 }
 
 .sub-desc {
     font-size: 0.8rem;
-    color: #64748b;
+    color: var(--text-muted);
     max-width: 300px;
     white-space: nowrap;
     overflow: hidden;
@@ -1222,8 +1222,8 @@
 .type-label {
     font-size: 0.7rem;
     font-weight: 800;
-    color: #64748b;
-    background: #f1f5f9;
+    color: var(--text-muted);
+    background: var(--bg-nav);
     padding: 2px 8px;
     border-radius: 4px;
 }
@@ -1254,7 +1254,7 @@
 
 .sub-time {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--text-muted);
     margin-top: 2px;
 }
 
@@ -1263,7 +1263,7 @@
 }
 
 .table-btn-view, .table-btn-join {
-    background: #fff;
+    background: var(--bg-card);
     border: 1.5px solid var(--primary-accent);
     color: var(--primary-accent);
     padding: 6px 18px;
@@ -1289,7 +1289,7 @@
 .sd-study-empty {
     text-align: center;
     padding: 60px 0;
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 .sd-study-empty .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }

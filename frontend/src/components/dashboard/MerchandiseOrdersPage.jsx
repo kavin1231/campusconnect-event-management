@@ -478,8 +478,8 @@ export default function MerchandiseOrdersPage() {
   return (
     <OrganizerShell page="events">
       <div style={{ flex: 1, overflowY: 'auto', padding: '32px 36px', display: 'flex', flexDirection: 'column', gap: '18px', background: C.neutral, fontFamily: FONT }}>
-        <button onClick={() => navigate(`/my-events/${id}/published`)} style={{ border: 'none', background: 'none', color: C.secondary, fontSize: '11px', fontWeight: '700', letterSpacing: '0.07em', textTransform: 'uppercase', cursor: 'pointer', width: 'fit-content', fontFamily: FONT }}>
-          {'<'} Back to Published Event
+        <button onClick={() => id ? navigate(`/my-events/${id}/published`) : navigate('/organizer-dashboard')} style={{ border: 'none', background: 'none', color: C.secondary, fontSize: '11px', fontWeight: '700', letterSpacing: '0.07em', textTransform: 'uppercase', cursor: 'pointer', width: 'fit-content', fontFamily: FONT }}>
+          {'<'} Back to {id ? 'Published Event' : 'Dashboard'}
         </button>
 
         <div style={{ background: C.white, borderRadius: '16px', border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(5,54,104,.04)', padding: '18px' }}>

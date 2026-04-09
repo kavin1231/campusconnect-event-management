@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Header.css";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -124,6 +125,8 @@ export default function Header() {
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
         </button>
+
+        <ThemeToggle />
 
         {user ? (
           <div className="profile-container" ref={profileRef}>

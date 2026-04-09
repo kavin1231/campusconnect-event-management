@@ -146,14 +146,24 @@ const AdminDashboard = () => {
 
   return (
     <div
-      className={`min-h-screen flex ${isDarkMode ? "bg-[#0B0F19] text-[#E5E7EB]" : "bg-[#F9FAFB] text-[#053668]"}`}
+      className="min-h-screen flex"
+      style={{
+        backgroundColor: "var(--bg-darker)",
+        color: "var(--text-main)"
+      }}
     >
       <Sidebar isAdmin={true} />
 
       <div className="flex flex-col min-h-screen flex-1">
         <main className="flex-1 px-5 sm:px-8 pb-8 max-w-[1320px] mx-auto w-full">
           <motion.div
-            className={`rounded-3xl border ${isDarkMode ? "border-indigo-500/25 bg-gradient-to-r from-indigo-500/18 via-[#111827] to-[#111827]" : "border-[#FF7100]/25 bg-gradient-to-r from-[#F7ECB5]/20 via-[#F9FAFB] to-[#F9FAFB]"} p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)] mb-8`}
+            className="rounded-3xl border p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)] mb-8"
+            style={{
+              borderColor: "var(--border-color)",
+              background: isDarkMode 
+                ? "linear-gradient(to right, rgba(99, 102, 241, 0.1), var(--bg-card))" 
+                : "linear-gradient(to right, rgba(255, 107, 53, 0.05), var(--bg-nav))"
+            }}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
@@ -161,17 +171,20 @@ const AdminDashboard = () => {
             <div className="flex flex-wrap justify-between gap-4 items-start">
               <div>
                 <p
-                  className={`${isDarkMode ? "text-indigo-200/80" : "text-[#FF7100]/80"} text-xs tracking-[0.18em] uppercase mb-2`}
+                  className="text-xs tracking-[0.18em] uppercase mb-2"
+                  style={{ color: "var(--primary-accent)", opacity: 0.8 }}
                 >
                   System Command Center
                 </p>
                 <h1
-                  className={`text-3xl md:text-4xl font-black ${isDarkMode ? "text-white" : "text-[#053668]"}`}
+                  className="text-3xl md:text-4xl font-black"
+                  style={{ color: "var(--text-main)" }}
                 >
                   Welcome back, {user?.name?.split(" ")[0] || "Admin"}
                 </h1>
                 <p
-                  className={`${isDarkMode ? "text-slate-300" : "text-[#053668]/70"} mt-2 max-w-2xl`}
+                  className="mt-2 max-w-2xl"
+                  style={{ color: "var(--text-muted)" }}
                 >
                   Monitor platform operations, oversee logistics flow, and
                   respond to critical requests in real time.
@@ -179,17 +192,11 @@ const AdminDashboard = () => {
               </div>
               <div className="flex gap-3">
                 <motion.button
-                  onClick={toggleTheme}
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 ${isDarkMode ? "bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 hover:bg-indigo-500/30" : "bg-[#FF7100]/20 border border-[#FF7100]/30 text-[#FF7100] hover:bg-[#FF7100]/30"} transition`}
-                  whileTap={{ scale: 0.98 }}
-                  title={
-                    isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
-                  }
-                >
-                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                </motion.button>
-                <motion.button
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 ${isDarkMode ? "bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 hover:bg-indigo-500/30" : "bg-[#FF7100]/20 border border-[#FF7100]/30 text-[#FF7100] hover:bg-[#FF7100]/30"} transition`}
+                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2 transition"
+                  style={{
+                    backgroundColor: "var(--primary-accent)",
+                    color: "#fff"
+                  }}
                   whileTap={{ scale: 0.98 }}
                 >
                   Export Snapshot <ArrowUpRight size={16} />
@@ -264,19 +271,23 @@ const AdminDashboard = () => {
             ].map((card, i) => (
               <motion.div
                 key={i}
-                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] shadow-sm hover:shadow-indigo-500/10" : `border-[#FF7100]/30 bg-[#FFFFFF] shadow-sm hover:shadow-[#FF7100]/10`} hover:-translate-y-0.5 transition cursor-pointer`}
+                className="rounded-2xl p-4 border transition cursor-pointer"
+                style={{
+                  borderColor: "var(--border-color)",
+                  backgroundColor: "var(--bg-card)",
+                }}
                 variants={fadeUp}
                 transition={{ duration: 0.26, ease: "easeOut" }}
-                whileHover={{ y: -3 }}
+                whileHover={{ y: -3, boxShadow: "var(--sp-shadow-lg)" }}
                 onClick={() => card.path && navigate(card.path)}
               >
-                <div className={`flex items-center gap-2 ${isDarkMode ? card.color : card.lightColor}`}>
+                <div className="flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
                   <card.icon size={16} />
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-slate-300" : "text-[#053668]"}`}>
+                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                     {card.title}
                   </p>
                 </div>
-                <p className={`text-2xl font-black ${isDarkMode ? "text-white" : "text-[#053668]"} mt-2`}>
+                <p className="text-2xl font-black mt-2" style={{ color: "var(--text-main)" }}>
                   {loading ? "..." : card.value}
                 </p>
               </motion.div>
@@ -289,9 +300,9 @@ const AdminDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.32, ease: "easeOut" }}
           >
-            <section className={`xl:col-span-2 rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"}`}>
-              <div className={`px-5 py-4 border-b ${isDarkMode ? "border-slate-700/70" : "border-[#FF7100]/30"} flex items-center justify-between`}>
-                <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"}`}>
+            <section className="xl:col-span-2 rounded-2xl border" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}>
+              <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border-color)" }}>
+                <h2 className="text-sm uppercase tracking-[0.15em]" style={{ color: "var(--text-main)" }}>
                   Recent Logistics Activity
                 </h2>
                 <span className={`text-xs ${isDarkMode ? "text-slate-400" : "text-[#FF7100]"}`}>
@@ -301,8 +312,8 @@ const AdminDashboard = () => {
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left min-w-[700px]">
-                  <thead className={`${isDarkMode ? "bg-slate-900/70" : "bg-[#F7ECB5]/30"} sticky top-0`}>
-                    <tr className={`${isDarkMode ? "text-slate-400" : "text-[#FF7100]"} uppercase text-xs tracking-wider`}>
+                  <thead className="sticky top-0" style={{ backgroundColor: "var(--bg-input)" }}>
+                    <tr style={{ color: "var(--primary-accent)" }} className="uppercase text-xs tracking-wider">
                       <th className="px-5 py-3">Asset</th>
                       <th className="px-5 py-3">Owner</th>
                       <th className="px-5 py-3">Requester</th>
@@ -310,7 +321,7 @@ const AdminDashboard = () => {
                       <th className="px-5 py-3">Due Date</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isDarkMode ? "divide-slate-700/70" : "divide-[#FF7100]/20"}`}>
+                  <tbody className="divide-y" style={{ borderColor: "var(--border-color)" }}>
                     {recentRequests.length === 0 ? (
                       <tr>
                         <td className={`px-5 py-6 ${isDarkMode ? "text-slate-400" : "text-[#FF7100]"}`} colSpan={5}>
@@ -321,18 +332,22 @@ const AdminDashboard = () => {
                       recentRequests.map((item) => (
                         <motion.tr
                           key={item.id}
-                          className={`${isDarkMode ? "hover:bg-slate-800/40" : "hover:bg-[#F7ECB5]/30"} transition`}
+                          className="transition"
+                          style={{
+                             backgroundColor: "transparent",
+                          }}
+                          whileHover={{ backgroundColor: "var(--bg-nav)" }}
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2, ease: "easeOut" }}
                         >
-                          <td className={`px-5 py-4 font-medium ${isDarkMode ? "text-slate-100" : "text-[#053668]"}`}>
+                          <td className="px-5 py-4 font-medium" style={{ color: "var(--text-main)" }}>
                             {item.asset || "Unnamed Asset"}
                           </td>
-                          <td className={`px-5 py-4 ${isDarkMode ? "text-slate-400" : "text-[#FF7100]"}`}>
+                          <td className="px-5 py-4" style={{ color: "var(--text-muted)" }}>
                             {item.owner || "Unknown"}
                           </td>
-                          <td className={`px-5 py-4 ${isDarkMode ? "text-slate-400" : "text-[#FF7100]"}`}>
+                          <td className="px-5 py-4" style={{ color: "var(--text-muted)" }}>
                             {item.club || "Unknown"}
                           </td>
                           <td className="px-5 py-4">
@@ -342,7 +357,7 @@ const AdminDashboard = () => {
                               {(item.status || "pending").replaceAll("_", " ")}
                             </span>
                           </td>
-                          <td className={`px-5 py-4 ${isDarkMode ? "text-slate-300" : "text-[#053668]"}`}>
+                          <td className="px-5 py-4" style={{ color: "var(--text-main)" }}>
                             {item.dueDate || "-"}
                           </td>
                         </motion.tr>
@@ -353,8 +368,8 @@ const AdminDashboard = () => {
               </div>
             </section>
 
-            <section className={`rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"} p-5`}>
-              <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"} mb-4`}>
+            <section className="rounded-2xl border p-5" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}>
+              <h2 className="text-sm uppercase tracking-[0.15em] mb-4" style={{ color: "var(--text-main)" }}>
                 System Insights
               </h2>
 
@@ -382,7 +397,7 @@ const AdminDashboard = () => {
           </motion.div>
         </main>
 
-        <footer className={`border-t ${isDarkMode ? "border-slate-700/70 text-slate-500 bg-[#0B0F19]" : "border-[#FF7100]/30 text-[#FF7100] bg-[#F9FAFB]"} py-5 text-center text-sm`}>
+        <footer className="border-t py-5 text-center text-sm" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-darker)", color: "var(--text-muted)" }}>
           © 2026 NEXORA Event Management System
         </footer>
       </div>

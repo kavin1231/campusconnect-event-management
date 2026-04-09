@@ -155,6 +155,15 @@ function App() {
           }
         />
         <Route
+          path="/merch-orders"
+          element={
+            <ProtectedRoute
+              element={MerchandiseOrdersPage}
+              allowedRoles={["EVENT_ORGANIZER", "SYSTEM_ADMIN"]}
+            />
+          }
+        />
+        <Route
           path="/create-event"
           element={
             <ProtectedRoute

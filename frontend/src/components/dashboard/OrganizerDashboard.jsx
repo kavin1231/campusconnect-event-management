@@ -116,38 +116,51 @@ const OrganizerDashboard = () => {
   };
 
   return (
-    <div className={`min-h-screen flex ${isDarkMode ? "bg-[#0B0F19] text-[#E5E7EB]" : "bg-[#F9FAFB] text-[#053668]"}`}>
+    <div 
+      className="min-h-screen flex"
+      style={{
+        backgroundColor: "var(--bg-darker)",
+        color: "var(--text-main)"
+      }}
+    >
       <Sidebar isAdmin={true} />
 
       <div className="flex flex-col min-h-screen flex-1">
         <main className="flex-1 px-5 sm:px-8 pb-8 max-w-[1320px] mx-auto w-full">
           <motion.div
-            className={`rounded-3xl border ${isDarkMode ? "border-indigo-500/25 bg-gradient-to-r from-indigo-500/18 via-[#111827] to-[#111827]" : "border-[#FF7100]/25 bg-gradient-to-r from-[#F7ECB5]/20 via-[#F9FAFB] to-[#F9FAFB]"} p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)] mb-8`}
+            className="rounded-3xl border p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)] mb-8"
+            style={{
+              borderColor: "var(--border-color)",
+              background: isDarkMode 
+                ? "linear-gradient(to right, rgba(99, 102, 241, 0.1), var(--bg-card))" 
+                : "linear-gradient(to right, rgba(255, 107, 53, 0.05), var(--bg-nav))"
+            }}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
           >
             <div className="flex justify-between items-start gap-4">
               <div>
-                <p className={`${isDarkMode ? "text-indigo-200/80" : "text-[#FF7100]/80"} text-xs tracking-[0.18em] uppercase mb-2`}>
+                <p 
+                  className="text-xs tracking-[0.18em] uppercase mb-2"
+                  style={{ color: "var(--primary-accent)", opacity: 0.8 }}
+                >
                   Organizer Workspace
                 </p>
-                <h1 className={`text-3xl md:text-4xl font-black ${isDarkMode ? "text-white" : "text-[#053668]"} mb-2`}>
+                <h1 
+                  className="text-3xl md:text-4xl font-black mb-2"
+                  style={{ color: "var(--text-main)" }}
+                >
                   Event Organizer Dashboard
                 </h1>
-                <p className={`${isDarkMode ? "text-slate-300" : "text-[#053668]/70"} max-w-2xl`}>
+                <p 
+                  className="max-w-2xl"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Manage event logistics, track inter-club asset sharing, and
                   monitor active requests.
                 </p>
               </div>
-              <motion.button
-                onClick={toggleTheme}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 ${isDarkMode ? "bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 hover:bg-indigo-500/30" : "bg-[#FF7100]/20 border border-[#FF7100]/30 text-[#FF7100] hover:bg-[#FF7100]/30"} transition`}
-                whileTap={{ scale: 0.98 }}
-                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              >
-                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-              </motion.button>
             </div>
           </motion.div>
 
@@ -196,20 +209,24 @@ const OrganizerDashboard = () => {
             ].map((card, i) => (
               <motion.div
                 key={i}
-                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] hover:shadow-indigo-500/10" : "border-[#FF7100]/30 bg-[#FFFFFF] hover:shadow-[#FF7100]/10"} hover:-translate-y-0.5 transition cursor-pointer`}
+                className="rounded-2xl p-4 border transition cursor-pointer"
+                style={{
+                  borderColor: "var(--border-color)",
+                  backgroundColor: "var(--bg-card)",
+                }}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.25, ease: "easeOut" }}
-                whileHover={{ y: -3 }}
+                whileHover={{ y: -3, boxShadow: "var(--sp-shadow-lg)" }}
                 onClick={() => card.path && navigate(card.path)}
               >
-                <div className={`flex items-center gap-2 ${isDarkMode ? card.color : card.lightColor}`}>
+                <div className="flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
                   <card.icon size={16} />
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-slate-300" : "text-[#053668]"}`}>
+                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                     {card.title}
                   </p>
                 </div>
-                <p className={`text-3xl font-black ${isDarkMode ? "text-white" : "text-[#053668]"} mt-2`}>
+                <p className="text-3xl font-black mt-2" style={{ color: "var(--text-main)" }}>
                   {loading ? "..." : card.value}
                 </p>
               </motion.div>
@@ -222,29 +239,30 @@ const OrganizerDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12, duration: 0.3, ease: "easeOut" }}
           >
-            <section className={`xl:col-span-2 rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"}`}>
-              <div className={`px-5 py-4 border-b ${isDarkMode ? "border-slate-700/70" : "border-[#FF7100]/30"} flex items-center justify-between`}>
-                <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"}`}>
+            <section className="xl:col-span-2 rounded-2xl border" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}>
+              <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border-color)" }}>
+                <h2 className="text-sm uppercase tracking-[0.15em]" style={{ color: "var(--text-main)" }}>
                   Recent Requests
                 </h2>
-                <span className={`text-xs ${isDarkMode ? "text-slate-400" : "text-[#FF7100]"}`}>{recent.length} items</span>
+                <span className="text-xs" style={{ color: "var(--primary-accent)" }}>{recent.length} items</span>
               </div>
 
-              <div className={`divide-y ${isDarkMode ? "divide-slate-700/70" : "divide-[#FF7100]/20"}`}>
+              <div className="divide-y" style={{ borderColor: "var(--border-color)" }}>
                 {recent.length === 0 ? (
-                  <div className="px-5 py-6 text-slate-400">No request activity yet.</div>
+                  <div className="px-5 py-6" style={{ color: "var(--text-muted)" }}>No request activity yet.</div>
                 ) : (
                   recent.map((r) => (
                     <motion.div
                       key={r.id}
-                      className="px-5 py-4 flex items-center justify-between gap-3 hover:bg-slate-800/35 transition"
+                      className="px-5 py-4 flex items-center justify-between gap-3 transition"
+                      whileHover={{ backgroundColor: "var(--bg-nav)" }}
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
                     >
                       <div>
-                        <p className="font-semibold text-slate-100">{r.asset || "Unnamed Asset"}</p>
-                        <p className="text-sm text-slate-400">Needed: {r.neededDate || "-"} | Return: {r.returnDate || "-"}</p>
+                        <p className="font-semibold" style={{ color: "var(--text-main)" }}>{r.asset || "Unnamed Asset"}</p>
+                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Needed: {r.neededDate || "-"} | Return: {r.returnDate || "-"}</p>
                       </div>
                       <span className={`px-2.5 py-1 rounded-full border text-xs uppercase font-semibold ${statusClass(r.status)}`}>
                         {(r.status || "pending").replaceAll("_", " ")}
@@ -412,7 +430,7 @@ const OrganizerDashboard = () => {
           </motion.div>
         </main>
 
-        <footer className={`border-t ${isDarkMode ? "border-slate-700/70 text-slate-500 bg-[#0B0F19]" : "border-[#FF7100]/30 text-[#FF7100] bg-[#F9FAFB]"} py-5 text-center text-sm`}>
+        <footer className="border-t py-5 text-center text-sm" style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-darker)", color: "var(--text-muted)" }}>
           © 2026 NEXORA Event Management System
         </footer>
       </div>

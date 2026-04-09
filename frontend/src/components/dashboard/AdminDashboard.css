@@ -1,7 +1,7 @@
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #0f172a;
+  background-color: var(--bg-dark);
 }
 
 .admin-content-wrapper {
@@ -21,18 +21,19 @@
 .admin-page-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 /* Header */
 .admin-header {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: var(--bg-nav);
   border-radius: 1.5rem;
   padding: 3rem;
   position: relative;
   overflow: hidden;
   margin-bottom: 3rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--border-color);
 }
 
 .admin-header-content {
@@ -54,14 +55,14 @@
 }
 
 .admin-header h1 {
-  color: white;
+  color: var(--text-main);
   font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 0.75rem;
 }
 
 .admin-header p {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 1.1rem;
 }
 
@@ -73,15 +74,15 @@
   margin-bottom: 3rem;
 }
 
-.admin-stat-card {
-  background: var(--dark-card, #1e293b);
+.admin-stat_card {
+  background: var(--bg-card);
   padding: 2rem;
   border-radius: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--border-color);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
@@ -126,22 +127,22 @@
 .admin-stat-value {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 .admin-stat-label {
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 /* Actions Section */
 .admin-section {
-  background: var(--dark-card, #1e293b);
+  background: var(--bg-card);
   border-radius: 1.5rem;
   padding: 2.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--border-color);
 }
 
 .admin-section-header {
@@ -151,7 +152,7 @@
 .admin-section-header h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 .admin-actions-grid {
@@ -202,7 +203,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #0f172a;
+  background: var(--bg-dark);
 }
 
 .admin-spinner {

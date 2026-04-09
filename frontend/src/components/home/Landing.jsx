@@ -30,7 +30,8 @@ const Footer = () => (
                     <ul>
                         <li><a href="/">Home</a></li>
                         <li><a href="#explore">Explore Events</a></li>
-                        <li><a href="#clubs">Clubs</a></li>
+                        <li><Link to="/faculty">Faculty</Link></li>
+                        <li><Link to="/clubs">Clubs</Link></li>
                         <li><a href="#logistics">Logistics</a></li>
                     </ul>
                 </div>
@@ -194,8 +195,9 @@ const Landing = () => {
                     <div className="nav-links">
                         <a href="#explore" className="nav-link active">Explore</a>
                         <Link to="/dashboard" className="nav-link">Dashboard</Link>
+                        <Link to="/faculty" className="nav-link">Faculty</Link>
                         <a href="#logistics" className="nav-link">Logistics</a>
-                        <a href="#clubs" className="nav-link">Clubs</a>
+                        <Link to="/clubs" className="nav-link">Clubs</Link>
                     </div>
                 </div>
                 <div className="nav-right">

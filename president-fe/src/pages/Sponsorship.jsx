@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Handshake, Plus } from 'lucide-react'
+import { ArrowUpDown, Handshake, Plus } from 'lucide-react'
 import sponsorshipSeed from '../../asset/json/sporsorship.json'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
 import SponsorshipForm from '../components/sponsorship/SponsorshipForm'
 import SponsorshipTable from '../components/sponsorship/SponsorshipTable'
+import useSortedRecords from '../hooks/useSortedRecords'
 import { normalizeSponsorshipSeed } from '../utils/sponsorshipAdapters'
 
 const INITIAL_SPONSORSHIPS = normalizeSponsorshipSeed(sponsorshipSeed)
@@ -29,6 +30,14 @@ export default function Sponsorship() {
       return byName || byEvent
     })
   }, [searchTerm, sponsorships])
+
+  const {
+    sortBy,
+    sortDirection,
+    setSortBy,
+    toggleDirection,
+    sortedRecords,
+  } = useSortedRecords(filteredRows, 'date', 'desc')
 
   function openCreateModal() {
     setEditingSponsorship(null)
@@ -96,17 +105,38 @@ export default function Sponsorship() {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-primary-700 dark:bg-primary-900/30">
-        <Input
-          id="sponsorship-search"
-          label="Search Sponsorships"
-          placeholder="Search by sponsor or event name"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Input
+            id="sponsorship-search"
+            label="Search Sponsorships"
+            placeholder="Search by sponsor or event name"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+
+          <div className="grid gap-2 sm:grid-cols-2 sm:items-end">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Sort By
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-primary-700 dark:bg-primary-900 dark:text-white"
+              >
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+                <option value="name">Sponsor Name</option>
+              </select>
+            </label>
+            <Button variant="secondary" className="gap-2" onClick={toggleDirection}>
+              <ArrowUpDown size={15} />
+              {sortDirection === 'desc' ? 'Descending' : 'Ascending'}
+            </Button>
+          </div>
+        </div>
       </div>
 
       <SponsorshipTable
-        rows={filteredRows}
+        rows={sortedRecords}
         onEdit={openEditModal}
         onDelete={handleDeleteSponsorship}
       />

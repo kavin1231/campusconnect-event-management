@@ -12,43 +12,95 @@ const DEFAULT_VALUES = {
 }
 
 const CONTACT_PATTERN = /^\+?[\d\s-]{7,20}$/
+const SPONSOR_NAME_MAX_LENGTH = 80
+const EVENT_NAME_MAX_LENGTH = 120
+const REMARK_MAX_LENGTH = 200
 
 function normalizeContact(value) {
   return value.replace(/\s+/g, ' ').trim()
 }
 
+function validateField(field, values) {
+  if (field === 'name') {
+    const name = values.name.trim()
+    if (!name) {
+      return 'Sponsor name is required'
+    }
+
+    if (name.length > SPONSOR_NAME_MAX_LENGTH) {
+      return `Sponsor name should be ${SPONSOR_NAME_MAX_LENGTH} characters or less`
+    }
+
+    return ''
+  }
+
+  if (field === 'amount') {
+    const amountValue = Number(values.amount)
+    if (!Number.isInteger(amountValue) || amountValue <= 0) {
+      return 'Amount must be a positive integer'
+    }
+
+    return ''
+  }
+
+  if (field === 'eventName') {
+    const eventName = values.eventName.trim()
+    if (!eventName) {
+      return 'Event name is required'
+    }
+
+    if (eventName.length > EVENT_NAME_MAX_LENGTH) {
+      return `Event name should be ${EVENT_NAME_MAX_LENGTH} characters or less`
+    }
+
+    return ''
+  }
+
+  if (field === 'contact') {
+    const contactValue = normalizeContact(values.contact)
+    if (!contactValue) {
+      return 'Contact is required'
+    }
+
+    if (!CONTACT_PATTERN.test(contactValue)) {
+      return 'Use a valid phone format (digits, spaces, and optional +)'
+    }
+
+    return ''
+  }
+
+  if (field === 'date') {
+    if (!values.date) {
+      return 'Date is required'
+    }
+
+    if (Number.isNaN(Date.parse(values.date))) {
+      return 'Date is invalid'
+    }
+
+    return ''
+  }
+
+  if (field === 'remark') {
+    if (values.remark.length > REMARK_MAX_LENGTH) {
+      return `Remark should be ${REMARK_MAX_LENGTH} characters or less`
+    }
+
+    return ''
+  }
+
+  return ''
+}
+
 function validate(values) {
   const errors = {}
 
-  if (!values.name.trim()) {
-    errors.name = 'Sponsor name is required'
-  }
-
-  const amountValue = Number(values.amount)
-  if (!Number.isInteger(amountValue) || amountValue <= 0) {
-    errors.amount = 'Amount must be a positive integer'
-  }
-
-  if (!values.eventName.trim()) {
-    errors.eventName = 'Event name is required'
-  }
-
-  const contactValue = normalizeContact(values.contact)
-  if (!contactValue) {
-    errors.contact = 'Contact is required'
-  } else if (!CONTACT_PATTERN.test(contactValue)) {
-    errors.contact = 'Use a valid phone format (digits, spaces, and optional +)'
-  }
-
-  if (!values.date) {
-    errors.date = 'Date is required'
-  } else if (Number.isNaN(Date.parse(values.date))) {
-    errors.date = 'Date is invalid'
-  }
-
-  if (values.remark.length > 200) {
-    errors.remark = 'Remark should be 200 characters or less'
-  }
+  ;['name', 'amount', 'eventName', 'contact', 'date', 'remark'].forEach((field) => {
+    const message = validateField(field, values)
+    if (message) {
+      errors[field] = message
+    }
+  })
 
   return errors
 }
@@ -72,6 +124,11 @@ export default function SponsorshipForm({ mode = 'add', initialValues, onSubmit,
   function updateField(field, nextValue) {
     setValues((prev) => ({ ...prev, [field]: nextValue }))
     setErrors((prev) => ({ ...prev, [field]: '' }))
+  }
+
+  function handleFieldBlur(field) {
+    const message = validateField(field, values)
+    setErrors((prev) => ({ ...prev, [field]: message }))
   }
 
   function handleSubmit(event) {
@@ -100,6 +157,8 @@ export default function SponsorshipForm({ mode = 'add', initialValues, onSubmit,
         label="Sponsor Name"
         value={values.name}
         onChange={(event) => updateField('name', event.target.value)}
+        onBlur={() => handleFieldBlur('name')}
+        maxLength={SPONSOR_NAME_MAX_LENGTH}
         error={errors.name}
         required
       />
@@ -112,6 +171,7 @@ export default function SponsorshipForm({ mode = 'add', initialValues, onSubmit,
         step="1"
         value={values.amount}
         onChange={(event) => updateField('amount', event.target.value)}
+        onBlur={() => handleFieldBlur('amount')}
         error={errors.amount}
         required
       />
@@ -121,6 +181,8 @@ export default function SponsorshipForm({ mode = 'add', initialValues, onSubmit,
         label="Event Name"
         value={values.eventName}
         onChange={(event) => updateField('eventName', event.target.value)}
+        onBlur={() => handleFieldBlur('eventName')}
+        maxLength={EVENT_NAME_MAX_LENGTH}
         error={errors.eventName}
         required
       />
@@ -130,6 +192,9 @@ export default function SponsorshipForm({ mode = 'add', initialValues, onSubmit,
         label="Contact"
         value={values.contact}
         onChange={(event) => updateField('contact', event.target.value)}
+        onBlur={() => handleFieldBlur('contact')}
+        maxLength={20}
+        inputMode="tel"
         error={errors.contact}
         placeholder="+94 77 100 2000"
         required
@@ -141,6 +206,7 @@ export default function SponsorshipForm({ mode = 'add', initialValues, onSubmit,
         type="date"
         value={values.date}
         onChange={(event) => updateField('date', event.target.value)}
+        onBlur={() => handleFieldBlur('date')}
         error={errors.date}
         required
       />
@@ -154,6 +220,8 @@ export default function SponsorshipForm({ mode = 'add', initialValues, onSubmit,
           rows={3}
           value={values.remark}
           onChange={(event) => updateField('remark', event.target.value)}
+          onBlur={() => handleFieldBlur('remark')}
+          maxLength={REMARK_MAX_LENGTH}
           className={`
             w-full rounded-md border px-3 py-2 text-sm
             bg-white dark:bg-primary-800

@@ -1,16 +1,27 @@
 import { useMemo } from 'react'
-import { Tent } from 'lucide-react'
+import { ArrowUpDown, Tent } from 'lucide-react'
 import stallData from '../../asset/json/stall.json'
 import vendorData from '../../asset/json/vendor.json'
 import { normalizeStalls } from '../utils/stallAdapters'
+import Button from '../components/ui/Button'
 import StallMap from '../components/stall/StallMap'
 import ReservedStallList from '../components/stall/ReservedStallList'
+import useSortedRecords from '../hooks/useSortedRecords'
 
 export default function Stall() {
   const stalls = useMemo(() => normalizeStalls(stallData, vendorData), [])
 
   const availableCount = stalls.filter((s) => s.isAvailable).length
   const reservedCount  = stalls.filter((s) => !s.isAvailable).length
+  const reservedStalls = stalls.filter((s) => !s.isAvailable)
+
+  const {
+    sortBy,
+    sortDirection,
+    setSortBy,
+    toggleDirection,
+    sortedRecords: sortedReservedStalls,
+  } = useSortedRecords(reservedStalls, 'stallName', 'asc')
 
   return (
     <div className="space-y-6">
@@ -31,7 +42,7 @@ export default function Stall() {
         </div>
 
         {/* Legend chips */}
-        <div className="flex items-center gap-3 self-start">
+        <div className="flex flex-wrap items-center gap-3 self-start">
           <div className="flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-3 py-1.5 dark:border-primary-700 dark:bg-primary-900/40">
             <span className="h-3 w-3 rounded-sm bg-primary-400 dark:bg-primary-500" />
             <span className="text-xs font-medium text-primary-800 dark:text-primary-200">
@@ -44,6 +55,23 @@ export default function Stall() {
               Reserved ({reservedCount})
             </span>
           </div>
+
+          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+            <span className="sr-only">Sort reserved stalls</span>
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs dark:border-primary-700 dark:bg-primary-900 dark:text-white"
+            >
+              <option value="stallName">Stall</option>
+              <option value="vendorName">Vendor</option>
+            </select>
+          </label>
+
+          <Button variant="secondary" className="gap-2 px-3 py-1.5 text-xs" onClick={toggleDirection}>
+            <ArrowUpDown size={13} />
+            {sortDirection === 'desc' ? 'Descending' : 'Ascending'}
+          </Button>
         </div>
       </div>
 
@@ -56,7 +84,7 @@ export default function Stall() {
 
         {/* Reserved stalls sidebar */}
         <div className="w-full lg:w-72 lg:flex-shrink-0">
-          <ReservedStallList stalls={stalls} />
+          <ReservedStallList stalls={sortedReservedStalls} />
         </div>
       </div>
     </div>

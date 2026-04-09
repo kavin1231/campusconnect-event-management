@@ -1,0 +1,10 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture faculty banner">
+  <defs>
+    <linearGradient id="a1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#92400e" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="700" fill="url(#a1)" />
+  <text x="80" y="365" font-family="Arial, sans-serif" font-size="74" fill="#ffffff" font-weight="700">Faculty of Architecture</text>
+</svg>

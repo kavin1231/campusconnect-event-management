@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Store } from 'lucide-react'
+import { ArrowUpDown, Plus, Store } from 'lucide-react'
 import seedVendors from '../../asset/json/vendor.json'
 import stallData from '../../asset/json/stall.json'
 import Button from '../components/ui/Button'
@@ -7,6 +7,7 @@ import Input from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
 import VendorForm from '../components/vendor/VendorForm'
 import VendorTable from '../components/vendor/VendorTable'
+import useSortedRecords from '../hooks/useSortedRecords'
 import { normalizeVendorSeed, getSelectableStalls } from '../utils/vendorAdapters'
 
 const INITIAL_VENDORS = normalizeVendorSeed(seedVendors)
@@ -30,6 +31,14 @@ export default function Vendor() {
       return nameMatch || eventNameMatch
     })
   }, [searchTerm, vendors])
+
+  const {
+    sortBy,
+    sortDirection,
+    setSortBy,
+    toggleDirection,
+    sortedRecords,
+  } = useSortedRecords(filteredVendors, 'name', 'asc')
 
   const selectableStalls = useMemo(
     () => getSelectableStalls(stallData, vendors, editingVendor),
@@ -102,17 +111,38 @@ export default function Vendor() {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-primary-700 dark:bg-primary-900/30">
-        <Input
-          id="vendor-search"
-          label="Search Vendors"
-          placeholder="Search by name or event name"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Input
+            id="vendor-search"
+            label="Search Vendors"
+            placeholder="Search by name or event name"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+
+          <div className="grid gap-2 sm:grid-cols-2 sm:items-end">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Sort By
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-primary-700 dark:bg-primary-900 dark:text-white"
+              >
+                <option value="name">Name</option>
+                <option value="eventName">Event Name</option>
+                <option value="fee">Fee</option>
+              </select>
+            </label>
+            <Button variant="secondary" className="gap-2" onClick={toggleDirection}>
+              <ArrowUpDown size={15} />
+              {sortDirection === 'desc' ? 'Descending' : 'Ascending'}
+            </Button>
+          </div>
+        </div>
       </div>
 
       <VendorTable
-        vendors={filteredVendors}
+        vendors={sortedRecords}
         stalls={stallData}
         onEdit={openEditModal}
         onDelete={handleDeleteVendor}

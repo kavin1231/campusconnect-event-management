@@ -12,37 +12,84 @@ const DEFAULT_VALUES = {
 }
 
 const CONTACT_REGEX = /^(?:\+94\d{9}|0\d{9})$/
+const VENDOR_NAME_MAX_LENGTH = 80
+const EVENT_NAME_MAX_LENGTH = 120
 
 function normalizeContact(value) {
   return value.replace(/[\s-]/g, '')
 }
 
+function validateField(field, values, allowedStallIds) {
+  if (field === 'name') {
+    const name = values.name.trim()
+    if (!name) {
+      return 'Name is required'
+    }
+
+    if (name.length > VENDOR_NAME_MAX_LENGTH) {
+      return `Name should be ${VENDOR_NAME_MAX_LENGTH} characters or less`
+    }
+
+    return ''
+  }
+
+  if (field === 'stallId') {
+    if (!values.stallId || !allowedStallIds.has(values.stallId)) {
+      return 'Please select a valid stall'
+    }
+
+    return ''
+  }
+
+  if (field === 'contactNumber') {
+    const rawContact = values.contactNumber.trim()
+    const normalizedContact = normalizeContact(rawContact)
+
+    if (!rawContact) {
+      return 'Contact number is required'
+    }
+
+    if (!CONTACT_REGEX.test(normalizedContact)) {
+      return 'Use +94XXXXXXXXX or 0XXXXXXXXX format'
+    }
+
+    return ''
+  }
+
+  if (field === 'eventName') {
+    const eventName = values.eventName.trim()
+    if (!eventName) {
+      return 'Event name is required'
+    }
+
+    if (eventName.length > EVENT_NAME_MAX_LENGTH) {
+      return `Event name should be ${EVENT_NAME_MAX_LENGTH} characters or less`
+    }
+
+    return ''
+  }
+
+  if (field === 'fee') {
+    const numericFee = Number(values.fee)
+    if (!Number.isFinite(numericFee) || numericFee <= 0) {
+      return 'Fee must be a positive number'
+    }
+
+    return ''
+  }
+
+  return ''
+}
+
 function validate(values, allowedStallIds) {
   const errors = {}
 
-  if (!values.name.trim()) {
-    errors.name = 'Name is required'
-  }
-
-  if (!values.stallId || !allowedStallIds.has(values.stallId)) {
-    errors.stallId = 'Please select a valid stall'
-  }
-
-  const normalizedContact = normalizeContact(values.contactNumber.trim())
-  if (!values.contactNumber.trim()) {
-    errors.contactNumber = 'Contact number is required'
-  } else if (!CONTACT_REGEX.test(normalizedContact)) {
-    errors.contactNumber = 'Use +94XXXXXXXXX or 0XXXXXXXXX format'
-  }
-
-  if (!values.eventName.trim()) {
-    errors.eventName = 'Event name is required'
-  }
-
-  const numericFee = Number(values.fee)
-  if (!Number.isFinite(numericFee) || numericFee <= 0) {
-    errors.fee = 'Fee must be a positive number'
-  }
+  ;['name', 'stallId', 'contactNumber', 'eventName', 'fee'].forEach((field) => {
+    const message = validateField(field, values, allowedStallIds)
+    if (message) {
+      errors[field] = message
+    }
+  })
 
   return errors
 }
@@ -67,6 +114,11 @@ export default function VendorForm({ mode = 'add', initialValues, stalls, onCanc
   function updateField(field, nextValue) {
     setValues((prev) => ({ ...prev, [field]: nextValue }))
     setErrors((prev) => ({ ...prev, [field]: '' }))
+  }
+
+  function handleFieldBlur(field) {
+    const message = validateField(field, values, allowedStallIds)
+    setErrors((prev) => ({ ...prev, [field]: message }))
   }
 
   function handleSubmit(event) {
@@ -94,6 +146,8 @@ export default function VendorForm({ mode = 'add', initialValues, stalls, onCanc
         label="Name"
         value={values.name}
         onChange={(event) => updateField('name', event.target.value)}
+        onBlur={() => handleFieldBlur('name')}
+        maxLength={VENDOR_NAME_MAX_LENGTH}
         error={errors.name}
         required
       />
@@ -113,6 +167,9 @@ export default function VendorForm({ mode = 'add', initialValues, stalls, onCanc
         label="Contact Number"
         value={values.contactNumber}
         onChange={(event) => updateField('contactNumber', event.target.value)}
+        onBlur={() => handleFieldBlur('contactNumber')}
+        maxLength={16}
+        inputMode="tel"
         error={errors.contactNumber}
         placeholder="+94771234567"
         required
@@ -123,6 +180,8 @@ export default function VendorForm({ mode = 'add', initialValues, stalls, onCanc
         label="Event Name"
         value={values.eventName}
         onChange={(event) => updateField('eventName', event.target.value)}
+        onBlur={() => handleFieldBlur('eventName')}
+        maxLength={EVENT_NAME_MAX_LENGTH}
         error={errors.eventName}
         required
       />
@@ -135,6 +194,7 @@ export default function VendorForm({ mode = 'add', initialValues, stalls, onCanc
         step="1"
         value={values.fee}
         onChange={(event) => updateField('fee', event.target.value)}
+        onBlur={() => handleFieldBlur('fee')}
         error={errors.fee}
         required
       />

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Landing from "./components/home/Landing";
@@ -8,6 +8,8 @@ import StudentDashboard from "./components/dashboard/StudentDashboard";
 import AdminDashboard from "./components/dashboard/AdminDashboard";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
+import FacultyPage from "./components/faculty/FacultyPage";
+import ClubsPage from "./components/clubs/ClubsPage";
 
 // Governance Components
 import {
@@ -50,6 +52,8 @@ function App() {
         <Route path="/admin/study-support" element={<StudySupportAdmin />} />
 
         {/* Governance Routes */}
+        <Route path="/faculty" element={<FacultyPage />} />
+        <Route path="/clubs" element={<ClubsPage />} />
         <Route path="/governance" element={<GovernanceDashboard />} />
         <Route path="/governance/dashboard" element={<GovernanceDashboard />} />
         <Route
@@ -83,6 +87,9 @@ function App() {
           path="/logistics/checkout"
           element={<CheckoutReturnTracking />}
         />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );

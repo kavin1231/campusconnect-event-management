@@ -47,8 +47,9 @@ export default function Header() {
         <div className="nav-links">
           <Link to="/" className="nav-link">Explore</Link>
           <Link to="/dashboard" className="nav-link">Dashboard</Link>
+          <Link to="/faculty" className="nav-link">Faculty</Link>
           <a href="#logistics" className="nav-link">Logistics</a>
-          <a href="#clubs" className="nav-link">Clubs</a>
+          <Link to="/clubs" className="nav-link">Clubs</Link>
         </div>
       </div>
 

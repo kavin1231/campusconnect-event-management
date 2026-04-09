@@ -8,16 +8,20 @@ import {
   AlertTriangle,
   ArrowRight,
   Brain,
+  Calendar,
   ClipboardCheck,
   Clock3,
   Building2,
   Package,
   Link,
+  MapPin,
   ShieldCheck,
+  Ticket,
   Truck,
   Moon,
   Sun,
 } from "lucide-react";
+import { UPCOMING_EVENTS, CONFLICTS } from "../../constants/staticData";
 
 const OrganizerDashboard = () => {
   const navigate = useNavigate();
@@ -83,6 +87,8 @@ const OrganizerDashboard = () => {
         inTransit,
         overdueReturns,
         totalLinks: linksData.length,
+        totalEvents: UPCOMING_EVENTS.length,
+        activeConflicts: CONFLICTS.length,
       });
     } catch (error) {
       console.error("Failed to fetch organizer stats:", error);
@@ -148,6 +154,22 @@ const OrganizerDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {[
               {
+                title: "Total Events",
+                value: stats?.totalEvents || "0",
+                icon: Ticket,
+                color: "text-indigo-300",
+                lightColor: "text-[#053668]",
+                path: "/my-events"
+              },
+              {
+                title: "Active Conflicts",
+                value: stats?.activeConflicts || "0",
+                icon: MapPin,
+                color: "text-red-300",
+                lightColor: "text-[#FF7100]",
+                path: "/calendar"
+              },
+              {
                 title: "Available Assets",
                 value: stats?.availableAssets || "0",
                 icon: Package,
@@ -170,22 +192,6 @@ const OrganizerDashboard = () => {
                 color: "text-amber-300",
                 lightColor: "text-[#FF7100]",
                 path: "/logistics/admin"
-              },
-              {
-                title: "Overdue Returns",
-                value: stats?.overdueReturns || "0",
-                icon: AlertTriangle,
-                color: "text-red-300",
-                lightColor: "text-[#FF7100]",
-                path: "/logistics/admin"
-              },
-              {
-                title: "Group Links",
-                value: stats?.totalLinks || "0",
-                icon: Link,
-                color: "text-purple-300",
-                lightColor: "text-[#FF7100]",
-                path: "/admin/group-links"
               },
             ].map((card, i) => (
               <motion.div
@@ -323,19 +329,83 @@ const OrganizerDashboard = () => {
 
               <section className={`rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"} p-5`}>
                 <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"} mb-4`}>
-                  Status Overview
+                  Event Operations
+                </h2>
+                <div className="grid grid-cols-1 gap-3">
+                  <button 
+                    onClick={() => navigate('/create-events')}
+                    className="flex items-center justify-between p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                        <Ticket size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-indigo-300 transition">New Event Request</p>
+                        <p className="text-xs text-slate-400">Submit a new event for permission</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    onClick={() => navigate('/calendar')}
+                    className="flex items-center justify-between p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                        <Calendar size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-amber-300 transition">Conflict Calendar</p>
+                        <p className="text-xs text-slate-400">Check venue and date availability</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                  </button>
+
+                  <button 
+                    onClick={() => navigate('/my-events')}
+                    className="flex items-center justify-between p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                        <ArrowRight size={20} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white group-hover:text-emerald-300 transition">My Events</p>
+                        <p className="text-xs text-slate-400">Track and manage your events</p>
+                      </div>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                  </button>
+                </div>
+              </section>
+
+              <section className={`rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"} p-5`}>
+                <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"} mb-4`}>
+                  Upcoming Events
                 </h2>
                 <div className="space-y-3">
-                  <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3">
-                    <p className="text-xs text-indigo-200 uppercase tracking-wider">Response Window</p>
-                    <p className="font-bold text-indigo-100 mt-1 inline-flex items-center gap-1">
-                      <Clock3 size={14} /> Under 24h
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-                    <p className="text-xs text-emerald-200 uppercase tracking-wider">Fulfillment Rate</p>
-                    <p className="font-bold text-emerald-100 mt-1">{stats?.activeRequests ? Math.max(0, 100 - Math.round((stats.activeRequests / (requests.length || 1)) * 100)) : 100}%</p>
-                  </div>
+                  {UPCOMING_EVENTS.slice(0, 3).map((ev) => (
+                    <div key={ev.id} className={`p-3 rounded-xl border ${isDarkMode ? "border-slate-700/50 bg-slate-800/30" : "border-[#FF7100]/20 bg-[#F7ECB5]/10"}`}>
+                      <p className={`font-bold text-sm ${isDarkMode ? "text-white" : "text-[#053668]"}`}>{ev.title}</p>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <p className="text-[10px] text-slate-400 inline-flex items-center gap-1">
+                          <Calendar size={10} /> {ev.date}
+                        </p>
+                        <p className="text-[10px] text-slate-400 inline-flex items-center gap-1">
+                          <MapPin size={10} /> {ev.venue}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => navigate('/my-events')}
+                    className={`w-full py-2 text-xs font-bold text-center rounded-lg border ${isDarkMode ? "border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10" : "border-[#FF7100]/30 text-[#FF7100] hover:bg-[#FF7100]/10"} transition`}
+                  >
+                    View All Events
+                  </button>
                 </div>
               </section>
             </div>

@@ -10,11 +10,8 @@ import {
   ArrowUpRight,
   Box,
   ClipboardList,
-<<<<<<< HEAD
   Link,
-=======
   Moon,
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
   PackageCheck,
   Sun,
   Truck,
@@ -213,62 +210,47 @@ const AdminDashboard = () => {
                 value: stats?.totalAssets || "0",
                 icon: Box,
                 color: "text-indigo-300",
-<<<<<<< HEAD
-                path: "/logistics/assets"
-=======
                 lightColor: "text-[#053668]",
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
+                path: "/logistics/assets"
               },
               {
                 title: "Total Requests",
                 value: stats?.totalRequests || "0",
                 icon: ClipboardList,
                 color: "text-cyan-300",
-<<<<<<< HEAD
-                path: "/logistics/admin"
-=======
                 lightColor: "text-[#053668]",
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
+                path: "/logistics/admin"
               },
               {
                 title: "Available Assets",
                 value: stats?.availableAssets || "0",
                 icon: PackageCheck,
                 color: "text-emerald-300",
-<<<<<<< HEAD
-                path: "/logistics/assets"
-=======
                 lightColor: "text-[#053668]",
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
+                path: "/logistics/assets"
               },
               {
                 title: "Active Requests",
                 value: stats?.activeRequests || "0",
                 icon: Activity,
                 color: "text-blue-300",
-<<<<<<< HEAD
-                path: "/logistics/admin"
-=======
                 lightColor: "text-[#053668]",
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
+                path: "/logistics/admin"
               },
               {
                 title: "In Transit",
                 value: stats?.inTransit || "0",
                 icon: Truck,
                 color: "text-amber-300",
-<<<<<<< HEAD
-                path: "/logistics/admin"
-=======
                 lightColor: "text-[#FF7100]",
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
+                path: "/logistics/admin"
               },
               {
                 title: "Overdue Returns",
                 value: stats?.overdueReturns || "0",
                 icon: AlertTriangle,
                 color: "text-red-300",
-<<<<<<< HEAD
+                lightColor: "text-[#FF7100]",
                 path: "/logistics/admin"
               },
               {
@@ -276,19 +258,13 @@ const AdminDashboard = () => {
                 value: stats?.totalLinks || "0",
                 icon: Link,
                 color: "text-purple-300",
-                path: "/admin/group-links"
-=======
                 lightColor: "text-[#FF7100]",
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
+                path: "/admin/group-links"
               },
             ].map((card, i) => (
               <motion.div
                 key={i}
-<<<<<<< HEAD
-                className="rounded-2xl p-4 border border-slate-700/70 bg-[#111827] shadow-sm hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition cursor-pointer"
-=======
-                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] shadow-sm hover:shadow-indigo-500/10" : `border-[#FF7100]/30 bg-[#FFFFFF] shadow-sm hover:shadow-[#FF7100]/10`} hover:-translate-y-0.5 transition`}
->>>>>>> aadc276f88b0ca444505a08caa5e8831b415ede2
+                className={`rounded-2xl p-4 border ${isDarkMode ? "border-slate-700/70 bg-[#111827] shadow-sm hover:shadow-indigo-500/10" : `border-[#FF7100]/30 bg-[#FFFFFF] shadow-sm hover:shadow-[#FF7100]/10`} hover:-translate-y-0.5 transition cursor-pointer`}
                 variants={fadeUp}
                 transition={{ duration: 0.26, ease: "easeOut" }}
                 whileHover={{ y: -3 }}

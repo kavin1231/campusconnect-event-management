@@ -62,21 +62,44 @@ const GovernanceDashboard = () => {
   if (!user) return <div className="p-10">Loading...</div>;
 
   return (
-    <div className="flex min-h-screen bg-[#0B0F19]">
+    <div 
+      className="flex min-h-screen"
+      style={{
+        backgroundColor: "var(--bg-darker)",
+        color: "var(--text-main)"
+      }}
+    >
       <Sidebar isAdmin={true} />
       <div className="flex-1 flex flex-col">
         {/* HEADER */}
         <div className="px-5 sm:px-8 pt-8 pb-6">
-          <div className="rounded-3xl border border-indigo-500/25 bg-gradient-to-r from-indigo-500/18 via-[#111827] to-[#111827] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
+          <div 
+            className="rounded-3xl border p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
+            style={{
+              borderColor: "var(--border-color)",
+              background: isDarkMode 
+                ? "linear-gradient(to right, rgba(99, 102, 241, 0.1), var(--bg-card))" 
+                : "linear-gradient(to right, rgba(255, 107, 53, 0.05), var(--bg-card))"
+            }}
+          >
             <div className="flex flex-wrap justify-between gap-4 items-start">
               <div>
-                <p className="text-indigo-200/80 text-xs tracking-[0.18em] uppercase mb-2">
+                <p 
+                  className="text-xs tracking-[0.18em] uppercase mb-2"
+                  style={{ color: "var(--primary-accent)", opacity: 0.8 }}
+                >
                   Governance Management
                 </p>
-                <h1 className="text-3xl md:text-4xl font-black text-white">
+                <h1 
+                  className="text-3xl md:text-4xl font-black"
+                  style={{ color: "var(--text-main)" }}
+                >
                   Governance Hub
                 </h1>
-                <p className="text-slate-300 mt-2 max-w-2xl">
+                <p 
+                  className="mt-2 max-w-2xl"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Manage approvals, roles & permissions
                 </p>
               </div>
@@ -118,15 +141,25 @@ const GovernanceDashboard = () => {
               ].map((stat, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl p-4 border border-slate-700/70 bg-[#111827] shadow-sm hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition"
+                  className="rounded-2xl p-4 border shadow-sm hover:-translate-y-0.5 transition"
+                  style={{
+                    borderColor: "var(--border-color)",
+                    backgroundColor: "var(--bg-card)"
+                  }}
                 >
                   <div className={`flex items-center gap-2 ${stat.color}`}>
                     <span className="text-lg">{stat.icon}</span>
-                    <p className="text-xs font-semibold uppercase tracking-wider">
+                    <p 
+                      className="text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {stat.title}
                     </p>
                   </div>
-                  <p className="text-2xl font-black text-white mt-2">
+                  <p 
+                    className="text-2xl font-black mt-2"
+                    style={{ color: "var(--text-main)" }}
+                  >
                     {loading ? "..." : stat.value}
                   </p>
                 </div>
@@ -139,16 +172,19 @@ const GovernanceDashboard = () => {
             <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300 mb-4">
               Dashboard
             </h2>
-            <div className="flex gap-2 border-b border-slate-700/70 mb-6">
+            <div className="flex gap-2 border-b mb-6" style={{ borderColor: "var(--border-color)" }}>
               {["overview", "approvals", "permissions"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-6 py-3 font-semibold transition-all text-sm uppercase tracking-wider ${
                     activeTab === tab
-                      ? "text-indigo-300 border-b-2 border-indigo-500"
-                      : "text-slate-400 hover:text-slate-300"
+                      ? "text-indigo-400 border-b-2 border-indigo-500"
+                      : "hover:text-indigo-400"
                   }`}
+                  style={{
+                    color: activeTab === tab ? "var(--primary-accent)" : "var(--text-muted)"
+                  }}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
@@ -172,14 +208,20 @@ const OverviewTab = () => {
   return (
     <div className="space-y-6">
       {/* QUICK ACTIONS */}
-      <div className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5">
-        <div className="mb-5 flex items-center gap-2 text-indigo-300">
+      <div 
+        className="rounded-2xl border p-5"
+        style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
+      >
+        <div className="mb-5 flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
           <span className="text-xl">⚡</span>
           <div>
-            <h3 className="text-sm uppercase tracking-[0.15em] text-slate-300 font-semibold">
+            <h3 
+              className="text-sm uppercase tracking-[0.15em] font-semibold"
+              style={{ color: "var(--text-main)" }}
+            >
               Quick Actions
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
               Common management tasks
             </p>
           </div>
@@ -207,14 +249,20 @@ const OverviewTab = () => {
       </div>
 
       {/* RECENT ACTIVITIES */}
-      <div className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5">
-        <div className="mb-5 flex items-center gap-2 text-amber-300">
+      <div 
+        className="rounded-2xl border p-5"
+        style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
+      >
+        <div className="mb-5 flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
           <span className="text-xl">📋</span>
           <div>
-            <h3 className="text-sm uppercase tracking-[0.15em] text-slate-300 font-semibold">
+            <h3 
+              className="text-sm uppercase tracking-[0.15em] font-semibold"
+              style={{ color: "var(--text-main)" }}
+            >
               Recent Activities
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
               Latest actions on the platform
             </p>
           </div>
@@ -254,15 +302,22 @@ const OverviewTab = () => {
 const ActionButton = ({ icon, title, desc, href }) => (
   <button
     onClick={() => (window.location.href = href)}
-    className="p-6 bg-slate-800/50 hover:bg-slate-800 border-2 border-slate-700 hover:border-indigo-500/50 rounded-lg text-left transition group"
+    className="p-6 border-2 rounded-lg text-left transition group"
+    style={{
+      backgroundColor: "var(--bg-input)",
+      borderColor: "var(--border-color)",
+    }}
   >
     <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">
       {icon}
     </div>
-    <h3 className="font-bold text-slate-100 mb-1 group-hover:text-indigo-300 transition">
+    <h3 
+      className="font-bold mb-1 group-hover:text-indigo-600 transition"
+      style={{ color: "var(--text-main)" }}
+    >
       {title}
     </h3>
-    <p className="text-sm text-slate-400">{desc}</p>
+    <p className="text-sm" style={{ color: "var(--text-muted)" }}>{desc}</p>
   </button>
 );
 
@@ -270,30 +325,30 @@ const ActivityItem = ({ title, time, status }) => {
   const statusConfig = {
     success: {
       badge: "✓",
-      color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+      color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
     },
     danger: {
       badge: "✕",
-      color: "bg-red-500/20 text-red-300 border-red-500/30",
+      color: "bg-red-500/10 text-red-600 border-red-500/20",
     },
     pending: {
       badge: "⏳",
-      color: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+      color: "bg-amber-500/10 text-amber-600 border-amber-500/20",
     },
   };
 
   const config = statusConfig[status];
 
   return (
-    <div className="py-4 first:pt-0 last:pb-0 flex items-start gap-4">
+    <div className="py-4 first:pt-0 last:pb-0 flex items-start gap-4" style={{ borderColor: "var(--border-color)" }}>
       <div
         className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${config.color}`}
       >
         {config.badge}
       </div>
       <div className="flex-1">
-        <p className="text-slate-100 font-medium">{title}</p>
-        <p className="text-sm text-slate-400 mt-0.5">{time}</p>
+        <p className="font-medium" style={{ color: "var(--text-main)" }}>{title}</p>
+        <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>{time}</p>
       </div>
     </div>
   );
@@ -347,15 +402,24 @@ const ApprovalsTab = () => {
   ]);
 
   return (
-    <div className="rounded-2xl border border-slate-700/70 bg-[#111827]">
-      <div className="px-5 py-4 border-b border-slate-700/70 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-cyan-300">
+    <div 
+      className="rounded-2xl border"
+      style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
+    >
+      <div 
+        className="px-5 py-4 border-b flex items-center justify-between"
+        style={{ borderColor: "var(--border-color)" }}
+      >
+        <div className="flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
           <span className="text-lg">📋</span>
           <div>
-            <h3 className="text-sm uppercase tracking-[0.15em] text-slate-300 font-semibold">
+            <h3 
+              className="text-sm uppercase tracking-[0.15em] font-semibold"
+              style={{ color: "var(--text-main)" }}
+            >
               Pending & Managed Approvals
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
               All club and event submissions
             </p>
           </div>
@@ -366,8 +430,14 @@ const ApprovalsTab = () => {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left min-w-[700px]">
-          <thead className="bg-slate-900/70 sticky top-0">
-            <tr className="text-slate-400 uppercase text-xs tracking-wider">
+          <thead 
+            className="sticky top-0"
+            style={{ backgroundColor: "var(--bg-darker)" }}
+          >
+            <tr 
+              className="uppercase text-xs tracking-wider border-b"
+              style={{ color: "var(--text-muted)", borderColor: "var(--border-color)" }}
+            >
               <th className="px-5 py-3">Type</th>
               <th className="px-5 py-3">Name</th>
               <th className="px-5 py-3">Submitted By</th>
@@ -376,24 +446,32 @@ const ApprovalsTab = () => {
               <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/70">
+          <tbody className="divide-y" style={{ borderColor: "var(--border-color)" }}>
             {approvals.map((approval) => (
               <tr
                 key={approval.id}
-                className="hover:bg-slate-800/40 transition"
+                className="transition"
+                style={{ borderBottom: "1px solid var(--border-color)" }}
               >
                 <td className="px-5 py-4">
-                  <span className="inline-block px-3 py-1 bg-slate-700/50 text-slate-300 border border-slate-600 rounded-lg text-sm font-medium">
+                  <span 
+                    className="inline-block px-3 py-1 border rounded-lg text-sm font-medium"
+                    style={{ 
+                      backgroundColor: "var(--bg-input)", 
+                      color: "var(--text-muted)",
+                      borderColor: "var(--border-color)"
+                    }}
+                  >
                     {approval.type}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-slate-100 font-medium">
+                <td className="px-5 py-4 font-medium" style={{ color: "var(--text-main)" }}>
                   {approval.name}
                 </td>
-                <td className="px-5 py-4 text-slate-400">
+                <td className="px-5 py-4" style={{ color: "var(--text-muted)" }}>
                   {approval.submittedBy}
                 </td>
-                <td className="px-5 py-4 text-slate-400">{approval.date}</td>
+                <td className="px-5 py-4" style={{ color: "var(--text-muted)" }}>{approval.date}</td>
                 <td className="px-5 py-4">
                   <span
                     className={`px-2.5 py-1 rounded-full border text-xs font-semibold uppercase ${
@@ -409,7 +487,14 @@ const ApprovalsTab = () => {
                 </td>
                 <td className="px-5 py-4 text-right">
                   <div className="flex gap-2 justify-end">
-                    <button className="px-3 py-1.5 rounded-lg bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-700 transition text-xs font-semibold uppercase">
+                    <button 
+                      className="px-3 py-1.5 rounded-lg border transition text-xs font-semibold uppercase"
+                      style={{ 
+                        backgroundColor: "var(--bg-input)", 
+                        borderColor: "var(--border-color)",
+                        color: "var(--text-main)"
+                      }}
+                    >
                       View
                     </button>
                     {approval.status === "pending" && (
@@ -458,16 +543,27 @@ const PermissionsTab = () => {
       {roles.map((role) => (
         <div
           key={role.id}
-          className="rounded-2xl border border-slate-700/70 bg-[#111827] p-5"
+          className="rounded-2xl border p-5"
+          style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
         >
-          <div className="flex items-start justify-between mb-5 pb-5 border-b border-slate-700/70">
+          <div 
+            className="flex items-start justify-between mb-5 pb-5 border-b"
+            style={{ borderColor: "var(--border-color)" }}
+          >
             <div>
-              <h3 className="text-lg font-semibold text-slate-100">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-main)" }}>
                 {role.name}
               </h3>
-              <p className="text-sm text-slate-400 mt-1">{role.description}</p>
+              <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{role.description}</p>
             </div>
-            <button className="px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-700 transition text-sm font-semibold">
+            <button 
+              className="px-4 py-2 rounded-lg border transition text-sm font-semibold"
+              style={{
+                backgroundColor: "var(--bg-input)",
+                borderColor: "var(--border-color)",
+                color: "var(--text-main)"
+              }}
+            >
               Edit Permissions
             </button>
           </div>

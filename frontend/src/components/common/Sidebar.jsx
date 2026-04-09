@@ -16,10 +16,14 @@ import {
   LogOut,
   Menu,
   Package,
+  Plus,
   Search,
   Settings,
   ShieldCheck,
   ShieldAlert,
+  ShoppingBag,
+  FileText,
+  MapPin,
   Trophy,
   UserRound,
   Users,
@@ -27,6 +31,7 @@ import {
   X,
 } from "lucide-react";
 import { authAPI } from "../../services/api";
+import ThemeToggle from "./ThemeToggle";
 
 const Sidebar = ({ activePage, isAdmin = false }) => {
   const navigate = useNavigate();
@@ -185,16 +190,67 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   const organizerMenuItems = [
     {
-      id: "organizer-logistics",
-      label: "Logistics",
-      icon: "📦",
+      id: "event-management",
+      label: "Event Management",
+      icon: "🎉",
+      badge: "NEW",
       subItems: [
         {
           id: "organizer-home",
-          label: "Organizer Home",
+          label: "Overview",
           path: "/organizer-dashboard",
           icon: "📊",
         },
+        {
+          id: "my-events",
+          label: "My Events",
+          path: "/my-events",
+          icon: "📅",
+        },
+        {
+          id: "create-events",
+          label: "Request Permission",
+          path: "/create-events",
+          icon: "➕",
+          badge: "NEW",
+        },
+        {
+          id: "calendar-conflict",
+          label: "Conflict Calendar",
+          path: "/calendar",
+          icon: "📅",
+        },
+        {
+          id: "merch-orders",
+          label: "Merch & Orders",
+          path: "/merch-orders",
+          icon: "🛍️",
+        },
+        {
+          id: "venues-mgmt",
+          label: "Venues",
+          path: "/operations/stalls",
+          icon: "📍",
+        },
+        {
+          id: "my-requests",
+          label: "My Requests",
+          path: "/logistics/request",
+          icon: "📄",
+        },
+        {
+          id: "staffing-mgmt",
+          label: "Staffing",
+          path: "/operations",
+          icon: "👥",
+        },
+      ],
+    },
+    {
+      id: "organizer-logistics",
+      label: "Logistics Hub",
+      icon: "📦",
+      subItems: [
         {
           id: "browse-resources",
           label: "Browse Resources",
@@ -222,15 +278,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       subItems: [
         {
           id: "ops-home",
-          label: "Operations Home",
+          label: "Operations Dashboard",
           path: "/operations",
           icon: "📊",
-        },
-        {
-          id: "ops-org",
-          label: "Organization",
-          path: "/operations/organizations",
-          icon: "🏢",
         },
         {
           id: "ops-spon",
@@ -239,22 +289,10 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           icon: "🤝",
         },
         {
-          id: "ops-budget",
-          label: "Budgeting",
-          path: "/operations/budgets",
-          icon: "💰",
-        },
-        {
           id: "ops-vendors",
           label: "Vendor Management",
           path: "/operations/vendors",
           icon: "🏪",
-        },
-        {
-          id: "ops-stalls",
-          label: "Stall Allocation",
-          path: "/operations/stalls",
-          icon: "🎪",
         },
         {
           id: "ops-intel",
@@ -355,6 +393,11 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       home: <Home className={iconClass} />,
       dashboard: <LayoutDashboard className={iconClass} />,
       "my-events": <CalendarDays className={iconClass} />,
+      "create-events": <Plus className={iconClass} />,
+      "merch-orders": <ShoppingBag className={iconClass} />,
+      "my-requests": <FileText className={iconClass} />,
+      "venues-mgmt": <MapPin className={iconClass} />,
+      "staffing-mgmt": <Users className={iconClass} />,
       "explore-sports": <Trophy className={iconClass} />,
       calendar: <CalendarDays className={iconClass} />,
       resources: <Package className={iconClass} />,
@@ -429,14 +472,17 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           </div>
 
           <div className="sd-topbar-right">
-            <button
-              className="sd-notify-btn"
-              type="button"
-              aria-label="Notifications"
-            >
-              <Bell size={16} />
-              <span className="sd-notify-badge" />
-            </button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                className="sd-notify-btn"
+                type="button"
+                aria-label="Notifications"
+              >
+                <Bell size={16} />
+                <span className="sd-notify-badge" />
+              </button>
+            </div>
 
             <div className="sd-user-menu" ref={profileRef}>
               <button

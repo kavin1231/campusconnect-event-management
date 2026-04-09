@@ -35,8 +35,9 @@
 }
 
 .er-reaction-bubble:hover {
-    background: #f1f5f9;
+    background: var(--bg-card);
     transform: scale(1.05);
+    border-color: var(--primary-accent);
 }
 
 .er-reaction-bubble.active {
@@ -81,7 +82,7 @@
 }
 
 .er-btn-add-comment:hover {
-    background: #e2e8f0;
+    background: var(--bg-card);
     border-color: var(--primary-accent);
     color: var(--primary-accent);
 }
@@ -89,7 +90,7 @@
 /* ── Comment Form ── */
 
 .er-comment-form {
-    background: #f8fafc;
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-card);
     padding: 16px;
@@ -162,7 +163,7 @@
 }
 
 .er-btn-cancel:hover {
-    background: #e2e8f0;
+    background: var(--bg-card);
 }
 
 /* ── Comments Section ── */
@@ -185,7 +186,7 @@
 }
 
 .er-comment-card {
-    background: #f8fafc;
+    background: var(--bg-input);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 16px;
@@ -216,7 +217,7 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    background: #e2e8f0;
+    background: var(--bg-card);
 }
 
 .erc-name {

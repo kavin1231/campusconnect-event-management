@@ -7,7 +7,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 48px;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: var(--bg-nav);
+    opacity: 0.98;
     border-bottom: 1px solid var(--border-color);
     position: relative;
     top: 0;
@@ -166,7 +167,7 @@
     border: 1px solid var(--border-color);
     border-radius: 16px;
     width: 280px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--glass-shadow);
     animation: dropdownSlide 0.3s ease-out;
     z-index: 1000;
 }
@@ -229,8 +230,8 @@
 
 .user-role-badge {
     display: inline-block;
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--primary-color);
+    background: var(--bg-input);
+    color: var(--primary-accent);
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.7rem;
@@ -239,8 +240,8 @@
 
 .student-id {
     display: inline-block;
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--primary-color);
+    background: var(--bg-input);
+    color: var(--primary-accent);
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 0.7rem;

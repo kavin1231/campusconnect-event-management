@@ -94,3 +94,40 @@ export const NOTIFICATIONS = [
   { id:3, text:"Reminder: IEEE Symposium is in 4 days.",                 time:"1d ago",  type:"reminder" },
   { id:4, text:"'Bio Lab Workshop' request was rejected. See feedback.", time:"2d ago",  type:"rejected" },
 ];
+
+export const FACULTIES = [
+  "Faculty of Computing",
+  "Faculty of Engineering",
+  "Faculty of Business",
+  "Faculty of Humanities & Sciences",
+  "Faculty of Graduate Studies",
+  "School of Architecture",
+  "SLIIT Academy",
+  "Faculty of Hospitality & Culinary"
+];
+
+export const CLUBS = [
+  "SLIIT FOSS Community",
+  "SLIIT Robotics Club",
+  "SLIIT Mozi Club",
+  "Rotaract Club of SLIIT",
+  "SLIIT Leo Club",
+  "SLIIT IEEE Student Branch",
+  "SLIIT Gavel Club",
+  "SLIIT AIESEC",
+  "SLIIT Sports Council",
+  "SLIIT Arts Society",
+  "SLIIT Music Club",
+  "SLIIT Drama Society",
+  "SLIIT Photography Club",
+  "SLIIT Nature Club",
+  "SLIIT Media Unit",
+  "SLIIT Gaming Community",
+  "Software Engineering Community (SEC)",
+  "Interactive Media Association (IMA)",
+  "Cyber Security Community (CSC)",
+  "Data Science Community (DSC)"
+];
+
+export const ORGANIZING_BODIES = [...FACULTIES, ...CLUBS];
+

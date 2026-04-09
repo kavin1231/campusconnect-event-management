@@ -29,6 +29,9 @@ router.get('/users', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.ge
 // POST /api/auth/assign-role - Assign role to student (Admin only)
 router.post('/assign-role', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.assignRole);
 
+// POST /api/auth/revoke-role - Revoke role from user (Admin only)
+router.post('/revoke-role', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.revokeRole);
+
 export default router;
 
 

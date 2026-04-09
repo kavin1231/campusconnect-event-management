@@ -2,7 +2,7 @@ import { useState } from "react";
 import { C, FONT } from "../constants/colors";
 import { Icon } from "../components/common/Icon";
 import { Lbl, Inp, Txta, Sel, Pills, SecHead, InfoBox, InnerCard, Toggle, Btn, Grid2 } from "../components/common/Primitives";
-import { EVENT_TYPES, PURPOSES, AUDIENCES, VENUES_LIST, FUND_SOURCES, FORM_STEPS, VENUE_DATA, EVENTS_BY_DAY } from "../constants/staticData";
+import { EVENT_TYPES, PURPOSES, AUDIENCES, VENUES_LIST, FUND_SOURCES, FORM_STEPS, VENUE_DATA, EVENTS_BY_DAY, FACULTIES, ORGANIZING_BODIES } from "../constants/staticData";
 import { checkVenueConflict, getVenueStatus } from "../utils/helpers";
 
 function Step1({ d, set }) {
@@ -48,7 +48,13 @@ function Step2({ d, set }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:"24px" }}>
       <SecHead icon={<Icon.Users />} title="Organizer Details" subtitle="The university needs to know who is accountable for this event." />
-      <div><Lbl required>Name of Organizing Body</Lbl><Inp placeholder="e.g. IEEE Student Branch, Student Council, Drama Society" value={d.org_name||""} onChange={e => set({...d, org_name:e.target.value})} /></div>
+      <div>
+        <Lbl required>Name of Organizing Body</Lbl>
+        <Sel value={d.org_name||""} onChange={e => set({...d, org_name:e.target.value})}>
+          <option value="" disabled>Select a Club or Faculty...</option>
+          {ORGANIZING_BODIES.map(org => <option key={org} value={org}>{org}</option>)}
+        </Sel>
+      </div>
       <InnerCard>
         <p style={{ margin:"0 0 14px", fontSize:"10px", fontWeight:"700", color:C.primary, textTransform:"uppercase", letterSpacing:"0.07em", fontFamily:FONT }}>Primary Contact Person</p>
         <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
@@ -66,7 +72,13 @@ function Step2({ d, set }) {
         <div style={{ display:"flex", flexDirection:"column", gap:"14px", marginTop:"16px" }}>
           <div><Lbl required>Supervisor Name</Lbl><Inp placeholder="e.g. Dr. Nimali Fernando" value={d.supervisor_name||""} onChange={e => set({...d, supervisor_name:e.target.value})} /></div>
           <Grid2>
-            <div><Lbl required>Department</Lbl><Inp placeholder="e.g. Faculty of Engineering" value={d.supervisor_dept||""} onChange={e => set({...d, supervisor_dept:e.target.value})} /></div>
+            <div>
+              <Lbl required>Faculty / Department</Lbl>
+              <Sel value={d.supervisor_dept||""} onChange={e => set({...d, supervisor_dept:e.target.value})}>
+                <option value="" disabled>Select Faculty...</option>
+                {FACULTIES.map(fac => <option key={fac} value={fac}>{fac}</option>)}
+              </Sel>
+            </div>
             <div><Lbl>Contact Number</Lbl><Inp type="tel" placeholder="011 234 5678" value={d.supervisor_phone||""} onChange={e => set({...d, supervisor_phone:e.target.value})} /></div>
           </Grid2>
         </div>

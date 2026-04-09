@@ -19,6 +19,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  ShieldAlert,
   Trophy,
   UserRound,
   Users,
@@ -41,9 +42,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     const refreshProfile = async () => {
       try {
         const response = await authAPI.getProfile();
-        if (response.success && response.user) {
-          localStorage.setItem("user", JSON.stringify(response.user));
-          setUserState(response.user);
+        if (response.success && response.profile) {
+          localStorage.setItem("user", JSON.stringify(response.profile));
+          setUserState(response.profile);
         }
       } catch (err) {
         console.error("Failed to refresh profile:", err);
@@ -80,8 +81,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const showStaffMenu =
     isAdmin ||
     role === "SYSTEM_ADMIN" ||
-    role === "EVENT_ORGANIZER" ||
-    role === "CLUB_PRESIDENT";
+    role === "EVENT_ORGANIZER";
 
   const adminMenuItems = [
     {
@@ -302,7 +302,19 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   if (role === "EVENT_ORGANIZER") {
     menuItems = organizerMenuItems;
   } else if (role === "CLUB_PRESIDENT") {
-    menuItems = presidentMenuItems;
+    // If in Admin view (isAdmin), show president menu + back to student
+    // If in Student view (!isAdmin), show student menu + president workspace
+    if (isAdmin) {
+      menuItems = [
+        ...presidentMenuItems,
+        { id: "switch-to-student", label: "Student View", path: "/dashboard", icon: "🏠" }
+      ];
+    } else {
+      menuItems = [
+        ...studentMenuItems,
+        { id: "president-workspace", label: "President Workspace", path: "/admin-dashboard", icon: "🛡️" }
+      ];
+    }
   } else if (isAdmin || role === "SYSTEM_ADMIN") {
     menuItems = adminMenuItems;
   } else {
@@ -369,6 +381,8 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "checkout-tracking": <Wrench className={iconClass} />,
       "availability-engine": <Settings className={iconClass} />,
       "ops-intel": <Brain className={iconClass} />,
+      "president-workspace": <ShieldAlert className={`${iconClass} text-emerald-400`} />,
+      "switch-to-student": <Home className={`${iconClass} text-primary`} />,
     };
     if (iconMap[id]) return iconMap[id];
     return isSection ? (
@@ -380,8 +394,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   const roleLabel = useMemo(() => {
     if (!role) return "USER";
+    if (!isAdmin && role === "CLUB_PRESIDENT") return "STUDENT";
+    if (isAdmin && role === "CLUB_PRESIDENT" && user?.entityName) {
+      return `${user.entityName} President`;
+    }
     return role.replaceAll("_", " ");
-  }, [role]);
+  }, [role, isAdmin, user?.entityName]);
 
   const dashboardPath = useMemo(() => {
     if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT") return "/admin-dashboard";
@@ -391,9 +409,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   return (
     <>
-      {role !== "STUDENT" && (
+      {isAdmin && (
         <header
-          className={`sd-topbar ${role === "STUDENT" ? "sd-student-theme" : ""}`}
+          className="sd-topbar"
         >
           <div className="sd-topbar-left">
             <button
@@ -483,9 +501,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       )}
 
       <aside
-        className={`sd-sidebar ${mobileOpen ? "sd-mobile-open" : ""} ${role === "STUDENT" ? "sd-student-theme" : ""}`}
+        className={`sd-sidebar ${mobileOpen ? "sd-mobile-open" : ""} ${!isAdmin ? "sd-student-theme" : ""}`}
       >
-        {role !== "STUDENT" && (
+        {isAdmin && (
           <div className="sd-side-header">
             <div className="sd-logo-wrap">
               <div className="sd-logo-mark" />

@@ -86,7 +86,7 @@ function App() {
           element={
             <ProtectedRoute
               element={StudentDashboard}
-              allowedRoles={["STUDENT"]}
+              allowedRoles={["STUDENT", "CLUB_PRESIDENT"]}
             />
           }
         />
@@ -200,7 +200,7 @@ function App() {
           element={
             <ProtectedRoute
               element={SportsList}
-              allowedRoles={["STUDENT", "SYSTEM_ADMIN"]}
+              allowedRoles={["STUDENT", "SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
             />
           }
         />
@@ -209,7 +209,7 @@ function App() {
           element={
             <ProtectedRoute
               element={StudyMaterials}
-              allowedRoles={["STUDENT", "SYSTEM_ADMIN"]}
+              allowedRoles={["STUDENT", "SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
             />
           }
         />

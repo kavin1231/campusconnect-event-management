@@ -25,11 +25,11 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(data.user));
 
         // Redirect based on role
-        if (
-          data.user.role === "SYSTEM_ADMIN" ||
-          data.user.role === "CLUB_PRESIDENT"
-        ) {
+        if (data.user.role === "SYSTEM_ADMIN") {
           navigate("/admin-dashboard");
+        } else if (data.user.role === "CLUB_PRESIDENT") {
+          // Club Presidents land on Student Dashboard first
+          navigate("/dashboard");
         } else if (data.user.role === "EVENT_ORGANIZER") {
           navigate("/organizer-dashboard");
         } else {

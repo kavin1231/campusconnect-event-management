@@ -393,6 +393,162 @@ class PresidentController {
         .json({ success: false, message: "Server error", error: err.message });
     }
   }
+
+  // vendor management for president dashboard
+  static async listVendors(req, res) {
+    try {
+      const { search = "", status = "ALL", serviceCategory = "ALL" } = req.query;
+
+      const where = {};
+      if (status && status !== "ALL") {
+        where.status = status.toUpperCase();
+      }
+      if (serviceCategory && serviceCategory !== "ALL") {
+        where.serviceCategory = serviceCategory;
+      }
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { companyName: { contains: search, mode: "insensitive" } },
+          { serviceCategory: { contains: search, mode: "insensitive" } },
+          { contactName: { contains: search, mode: "insensitive" } },
+          { contactEmail: { contains: search, mode: "insensitive" } },
+          { address: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      const vendors = await prisma.vendorPartner.findMany({
+        where,
+        include: {
+          organization: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      res.json({ success: true, vendors });
+    } catch (err) {
+      console.error("List vendors error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async createVendor(req, res) {
+    try {
+      const {
+        organizationId,
+        name,
+        companyName,
+        serviceCategory,
+        contactName,
+        contactPhone,
+        contactEmail,
+        address,
+        status = "ACTIVE",
+        requirements,
+      } = req.body;
+
+      if (!name || !companyName || !serviceCategory || !contactName || !contactPhone || !address) {
+        return res.status(400).json({
+          success: false,
+          message: "name, companyName, serviceCategory, contactName, contactPhone and address are required",
+        });
+      }
+
+      const vendor = await prisma.vendorPartner.create({
+        data: {
+          name,
+          companyName,
+          serviceCategory,
+          contactName,
+          contactPhone,
+          contactEmail: contactEmail || null,
+          address,
+          status,
+          requirements: requirements || null,
+          ...(organizationId
+            ? { organization: { connect: { id: Number(organizationId) } } }
+            : {}),
+        },
+        include: {
+          organization: { select: { id: true, name: true } },
+        },
+      });
+
+      res.status(201).json({ success: true, vendor });
+    } catch (err) {
+      console.error("Create vendor error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async updateVendor(req, res) {
+    try {
+      const id = parseInt(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Invalid vendor id" });
+      }
+
+      const {
+        organizationId,
+        name,
+        companyName,
+        serviceCategory,
+        contactName,
+        contactPhone,
+        contactEmail,
+        address,
+        status,
+        requirements,
+      } = req.body;
+
+      const vendor = await prisma.vendorPartner.update({
+        where: { id },
+        data: {
+          ...(organizationId !== undefined
+            ? organizationId
+              ? { organization: { connect: { id: Number(organizationId) } } }
+              : { organization: { disconnect: true } }
+            : {}),
+          ...(name !== undefined ? { name } : {}),
+          ...(companyName !== undefined ? { companyName } : {}),
+          ...(serviceCategory !== undefined ? { serviceCategory } : {}),
+          ...(contactName !== undefined ? { contactName } : {}),
+          ...(contactPhone !== undefined ? { contactPhone } : {}),
+          ...(contactEmail !== undefined ? { contactEmail } : {}),
+          ...(address !== undefined ? { address } : {}),
+          ...(status !== undefined ? { status } : {}),
+          ...(requirements !== undefined ? { requirements } : {}),
+        },
+        include: {
+          organization: { select: { id: true, name: true } },
+        },
+      });
+
+      res.json({ success: true, vendor });
+    } catch (err) {
+      console.error("Update vendor error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async deleteVendor(req, res) {
+    try {
+      const id = parseInt(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Invalid vendor id" });
+      }
+
+      await prisma.$transaction([
+        prisma.stallSlot.updateMany({ where: { vendorId: id }, data: { vendorId: null } }),
+        prisma.vendorPartner.delete({ where: { id } }),
+      ]);
+
+      res.json({ success: true, message: "Vendor deleted successfully" });
+    } catch (err) {
+      console.error("Delete vendor error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
 }
 
 

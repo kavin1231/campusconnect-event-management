@@ -4,7 +4,18 @@ class UserModel {
     // Find user by email
     static async findByEmail(email) {
         return await prisma.user.findUnique({
-            where: { email }
+            where: { email },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                password: true,
+                role: true,
+                clubOrFacultyName: true,
+                clubOrFacultyType: true,
+                profileImage: true,
+                createdAt: true
+            }
         });
     }
 
@@ -57,7 +68,10 @@ class UserModel {
     // Check if email exists
     static async emailExists(email) {
         const user = await prisma.user.findUnique({
-            where: { email }
+            where: { email },
+            select: {
+                id: true
+            }
         });
         return !!user;
     }

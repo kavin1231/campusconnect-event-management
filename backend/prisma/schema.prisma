@@ -324,20 +324,23 @@ model OrganizationBudget {
 }
 
 model VendorPartner {
-  id            Int      @id @default(autoincrement())
-  organizationId Int
-  name          String
-  contactName   String
-  contactPhone  String
-  contactEmail  String?
-  requirements  String?
-  status        String   @default("PENDING") 
-  agreementStatus String @default("NOT_STARTED") 
-  approvedById  Int?
-  approvedBy    User?    @relation(fields: [approvedById], references: [id])
-  createdAt     DateTime @default(now())
-  
-  organization Organization @relation(fields: [organizationId], references: [id])
+  id              Int      @id @default(autoincrement())
+  organizationId  Int?
+  name            String
+  companyName     String   @default("")
+  serviceCategory String   @default("")
+  contactName     String
+  contactPhone    String
+  contactEmail    String?
+  address         String   @default("")
+  requirements    String?
+  status          String   @default("ACTIVE")
+  agreementStatus String   @default("NOT_STARTED")
+  approvedById    Int?
+  approvedBy      User?    @relation(fields: [approvedById], references: [id])
+  createdAt       DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
   stalls       StallSlot[]
 }
 

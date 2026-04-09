@@ -115,6 +115,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           icon: "📅",
           badge: "12",
         },
+        {
+          id: "vendor-management",
+          label: "Vendor Management",
+          path: "/governance/vendors",
+          icon: "🏪",
+        },
       ],
     },
     {
@@ -316,6 +322,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           path: "/governance",
           icon: "📊",
         },
+        {
+          id: "vendor-management",
+          label: "Vendor Management",
+          path: "/governance/vendors",
+          icon: "🏪",
+        },
       ],
     },
   ];
@@ -416,6 +428,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "hub-dashboard": <LayoutDashboard className={iconClass} />,
       "club-onboarding": <Building2 className={iconClass} />,
       "event-approvals": <CalendarDays className={iconClass} />,
+      "vendor-management": <ShoppingBag className={iconClass} />,
       "president-management": <UserRound className={iconClass} />,
       "logistics-hub": <Boxes className={iconClass} />,
       "asset-management": <Package className={iconClass} />,

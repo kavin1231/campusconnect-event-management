@@ -52,6 +52,34 @@ router.post(
   PresidentController.createPresident,
 );
 
+router.get(
+  "/vendors",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.listVendors,
+);
+
+router.post(
+  "/vendors",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.createVendor,
+);
+
+router.patch(
+  "/vendors/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.updateVendor,
+);
+
+router.delete(
+  "/vendors/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.deleteVendor,
+);
+
 
 
 // admin approve/reject

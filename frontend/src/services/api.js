@@ -315,6 +315,43 @@ export const governanceAPI = {
     );
     return response.json();
   },
+
+  listVendors: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.search) query.set("search", params.search);
+    if (params.status && params.status !== "ALL") query.set("status", params.status);
+    if (params.serviceCategory && params.serviceCategory !== "ALL") {
+      query.set("serviceCategory", params.serviceCategory);
+    }
+
+    const response = await fetchWithAuth(
+      `/president/vendors${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  createVendor: async (vendorData) => {
+    const response = await fetchWithAuth("/president/vendors", {
+      method: "POST",
+      body: JSON.stringify(vendorData),
+    });
+    return response.json();
+  },
+
+  updateVendor: async (vendorId, vendorData) => {
+    const response = await fetchWithAuth(`/president/vendors/${vendorId}`, {
+      method: "PATCH",
+      body: JSON.stringify(vendorData),
+    });
+    return response.json();
+  },
+
+  deleteVendor: async (vendorId) => {
+    const response = await fetchWithAuth(`/president/vendors/${vendorId}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
 };
 
 // ============================================

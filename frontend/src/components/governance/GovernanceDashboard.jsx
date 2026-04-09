@@ -226,7 +226,7 @@ const OverviewTab = () => {
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <ActionButton
             icon="🏢"
             title="Club Onboarding"
@@ -244,6 +244,12 @@ const OverviewTab = () => {
             title="Role Management"
             desc="Configure permissions"
             href="/governance/roles"
+          />
+          <ActionButton
+            icon="🏪"
+            title="Vendor Management"
+            desc="Manage vendor partners"
+            href="/governance/vendors"
           />
         </div>
       </div>

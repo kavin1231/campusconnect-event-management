@@ -4,21 +4,54 @@ class StudentModel {
   // Find student by email
   static async findByEmail(email) {
     return await prisma.student.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        studentId: true,
+        department: true,
+        year: true,
+        profileImage: true,
+        createdAt: true
+      }
     });
   }
 
   // Find student by studentId
   static async findByStudentId(studentId) {
     return await prisma.student.findUnique({
-      where: { studentId }
+      where: { studentId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        studentId: true,
+        department: true,
+        year: true,
+        profileImage: true,
+        createdAt: true
+      }
     });
   }
 
   // Find student by id
   static async findById(id) {
     return await prisma.student.findUnique({
-      where: { id }
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        studentId: true,
+        department: true,
+        year: true,
+        profileImage: true,
+        createdAt: true
+      }
     });
   }
 
@@ -64,7 +97,10 @@ class StudentModel {
   // Check if email exists
   static async emailExists(email) {
     const student = await prisma.student.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true
+      }
     });
     return !!student;
   }
@@ -72,7 +108,10 @@ class StudentModel {
   // Check if studentId exists
   static async studentIdExists(studentId) {
     const student = await prisma.student.findUnique({
-      where: { studentId }
+      where: { studentId },
+      select: {
+        id: true
+      }
     });
     return !!student;
   }

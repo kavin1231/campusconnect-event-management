@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { C, FONT } from "../../constants/colors";
 import { Icon } from "../common/Icon";
 import { Navbar, NotificationPanel } from "../common/Navbar";
@@ -226,10 +227,15 @@ function DashboardPage({ onNavigate }) {
 }
 
 export default function OrganizerDashboard() {
+  const routeNav = useNavigate();
   const [page, setPage] = useState("dashboard");
   const [notifOpen, setNotifOpen] = useState(false);
 
   const navigate = (key) => {
+    if (key === "events") {
+      routeNav("/my-events");
+      return;
+    }
     setNotifOpen(false);
     setPage(key);
   };

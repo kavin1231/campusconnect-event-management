@@ -6,7 +6,17 @@ import EventDetail from "./components/events/EventDetail";
 import StudentProfile from "./components/profile/StudentProfile";
 import StudentDashboard from "./components/dashboard/StudentDashboard";
 import AdminDashboard from "./components/dashboard/AdminDashboard";
-import OrganizerDashboard from "./components/dashboard/OrganizerDashboard"; // Original OrganizerDashboard
+import OrganizerDashboardOld from "./components/dashboard/OrganizerDashboard"; 
+import OrganizerDashboard from "./components/dashboard/OrganizerDashboard_v2";
+import MyEventsPage from "./components/dashboard/MyEventsPage";
+import PendingEventPage from "./components/dashboard/PendingEventPage";
+import EventSetupPage from "./components/dashboard/EventSetupPage";
+import PublishedEventPage from "./components/dashboard/PublishedEventPage";
+import MerchandiseOrdersPage from "./components/dashboard/MerchandiseOrdersPage";
+import CreateEventsApp from "./components/CreateEvents";
+import EventRequestFormPage from "./pages/EventRequestFormPage";
+import { CalendarPage } from "./pages/CalendarPage";
+import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
 import RoleManagement from "./components/admin/RoleManagement";
 import UserManagement from "./components/admin/UserManagement";
@@ -14,36 +24,8 @@ import StudentManagement from "./components/admin/StudentManagement";
 import GroupLinksManagement from "./components/admin/GroupLinksManagement";
 import SportsManagement from "./components/admin/SportsManagement";
 import SportsList from "./components/sports/SportsList";
-import Sidebar from "./components/common/Sidebar";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Unauthorized from "./components/common/Unauthorized";
-
-// Oshhim Branch Additions
-import OrganizerDashboardV2 from "./components/dashboard/OrganizerDashboard_v2"; // New OrganizerDashboard
-import MyEventsPage from "./components/dashboard/MyEventsPage";
-import PendingEventPage from "./components/dashboard/PendingEventPage";
-import EventSetupPage from "./components/dashboard/EventSetupPage";
-import PublishedEventPage from "./components/dashboard/PublishedEventPage";
-import EventRequestFormPage from "./pages/EventRequestFormPage";
-import { CalendarPage } from "./pages/CalendarPage";
-
-// Placeholder for Analytics
-const AnalyticsPlaceholder = ({ title }) => (
-  <div className="sd-layout">
-    <Sidebar activePage="analytics" isAdmin={true} />
-    <div className="sd-content-wrapper">
-      <div style={{ padding: "30px", color: "#fff" }}>
-        <h1>­ƒôê {title}</h1>
-        <p>
-          This module is currently under development. Stay tuned for advanced
-          insights!
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
-// Governance Components
 import {
   GovernanceDashboard,
   ClubOnboarding,
@@ -52,8 +34,6 @@ import {
   PresidentRegistrationForm,
   StudentNotifications,
 } from "./components/governance";
-
-// Logistics Components
 import {
   LogisticsDashboard,
   AssetManagement,
@@ -62,8 +42,6 @@ import {
   ResourceAvailabilityEngine,
   CheckoutReturnTracking,
 } from "./components/logistics";
-
-// Operations Components
 import {
   OperationsDashboard,
   OrganizationProfile,
@@ -73,27 +51,23 @@ import {
   StallManagement,
   IntelligenceDashboard,
 } from "./components/operations";
-
-// Analytics Components
 import {
   AnalyticsOverview,
   AnalyticsReports,
   AnalyticsActivity,
 } from "./components/analytics";
-
 import "./App.css";
 
 function App() {
   return (
     <div className="app-container">
       <Routes>
-        {/* Auth & Landing */}
         <Route path="/" element={<Landing />} />
         <Route path="/event/:eventId" element={<EventDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* Profile & Dashboards */}
         <Route
           path="/profile"
           element={
@@ -126,7 +100,6 @@ function App() {
             />
           }
         />
-
         <Route
           path="/organizer-dashboard"
           element={
@@ -137,7 +110,6 @@ function App() {
           }
         />
 
-        {/* My Events & Event Management (Oshhim Branch) */}
         <Route
           path="/my-events"
           element={
@@ -175,6 +147,15 @@ function App() {
           }
         />
         <Route
+          path="/my-events/:id/merchandise"
+          element={
+            <ProtectedRoute
+              element={MerchandiseOrdersPage}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
           path="/create-event"
           element={
             <ProtectedRoute
@@ -186,12 +167,10 @@ function App() {
           }
         />
         <Route
-          path="/calendar"
+          path="/create-events"
           element={
             <ProtectedRoute
-              element={() => (
-                <CalendarPage onBack={() => window.history.back()} />
-              )}
+              element={CreateEventsApp}
               allowedRoles={[
                 "STUDENT",
                 "EVENT_ORGANIZER",
@@ -201,6 +180,22 @@ function App() {
             />
           }
         />
+        <Route path="/create-events-preview" element={<CreateEventsApp />} />
+        <Route
+          path="/calendar"
+          element={
+            <ProtectedRoute
+              element={() => <CalendarPage onBack={() => window.history.back()} />}
+              allowedRoles={[
+                "STUDENT",
+                "EVENT_ORGANIZER",
+                "CLUB_PRESIDENT",
+                "SYSTEM_ADMIN",
+              ]}
+            />
+          }
+        />
+
         <Route
           path="/explore-sports"
           element={
@@ -211,30 +206,31 @@ function App() {
           }
         />
         <Route
-          path="/admin/sports"
+          path="/study/materials"
           element={
             <ProtectedRoute
-              element={SportsManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
+              element={StudyMaterials}
+              allowedRoles={["STUDENT", "SYSTEM_ADMIN"]}
             />
+          }
+        />
+
+        <Route
+          path="/admin/sports"
+          element={
+            <ProtectedRoute element={SportsManagement} allowedRoles={["SYSTEM_ADMIN"]} />
           }
         />
         <Route
           path="/admin/students"
           element={
-            <ProtectedRoute
-              element={StudentManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
+            <ProtectedRoute element={StudentManagement} allowedRoles={["SYSTEM_ADMIN"]} />
           }
         />
         <Route
           path="/admin/users"
           element={
-            <ProtectedRoute
-              element={UserManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
+            <ProtectedRoute element={UserManagement} allowedRoles={["SYSTEM_ADMIN"]} />
           }
         />
         <Route
@@ -249,10 +245,7 @@ function App() {
         <Route
           path="/admin/roles"
           element={
-            <ProtectedRoute
-              element={RoleManagement}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
+            <ProtectedRoute element={RoleManagement} allowedRoles={["SYSTEM_ADMIN"]} />
           }
         />
         <Route
@@ -274,7 +267,6 @@ function App() {
           }
         />
 
-        {/* Governance Routes */}
         <Route
           path="/governance"
           element={
@@ -287,19 +279,13 @@ function App() {
         <Route
           path="/governance/club-onboarding"
           element={
-            <ProtectedRoute
-              element={ClubOnboarding}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
+            <ProtectedRoute element={ClubOnboarding} allowedRoles={["SYSTEM_ADMIN"]} />
           }
         />
         <Route
           path="/governance/event-approval"
           element={
-            <ProtectedRoute
-              element={EventApproval}
-              allowedRoles={["SYSTEM_ADMIN"]}
-            />
+            <ProtectedRoute element={EventApproval} allowedRoles={["SYSTEM_ADMIN"]} />
           }
         />
         <Route
@@ -330,7 +316,6 @@ function App() {
           }
         />
 
-        {/* Operations Routes */}
         <Route
           path="/operations"
           element={
@@ -395,7 +380,6 @@ function App() {
           }
         />
 
-        {/* Logistics Routes */}
         <Route
           path="/logistics/admin"
           element={
@@ -442,14 +426,6 @@ function App() {
           }
         />
         <Route
-          element={
-            <ProtectedRoute
-              element={StallManagement}
-              allowedRoles={["SYSTEM_ADMIN", "EVENT_ORGANIZER"]}
-            />
-          }
-        />
-        <Route
           path="/logistics/checkout-return"
           element={
             <ProtectedRoute
@@ -472,7 +448,6 @@ function App() {
           }
         />
 
-        {/* Analytics Routes */}
         <Route
           path="/analytics/overview"
           element={

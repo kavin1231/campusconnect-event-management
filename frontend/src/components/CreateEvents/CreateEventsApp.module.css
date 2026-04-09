@@ -1,0 +1,251 @@
+/* Root container */
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Montserrat', system-ui, sans-serif;
+}
+
+/* Global animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Navbar */
+.navbar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 24px;
+  flex-shrink: 0;
+  z-index: 200;
+  position: relative;
+}
+
+.navbarBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 8px;
+}
+
+.navbarLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.navbarText {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+.navLink {
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.2s;
+  padding: 0 0 1px;
+  display: flex;
+  align-items: center;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 7px 14px;
+  width: 180px;
+}
+
+.navButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.userAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.userName {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  line-height: 1.2;
+}
+
+.userRole {
+  margin: 0;
+  font-size: 10px;
+  font-family: 'Montserrat', system-ui, sans-serif;
+}
+
+/* Main container */
+.mainContainer {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Placeholder content */
+.placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderContent {
+  text-align: center;
+}
+
+.placeholderIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  flex-shrink: 0;
+}
+
+.placeholderTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  text-transform: capitalize;
+}
+
+.placeholderDesc {
+  font-size: 13px;
+  margin: 0 0 20px;
+  font-family: 'Montserrat', system-ui, sans-serif;
+}
+
+.placeholderButton {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Montserrat', system-ui, sans-serif;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.placeholderButton:hover {
+  transform: translateY(-2px);
+}
+
+.flex1 {
+  flex: 1;
+}

@@ -36,7 +36,9 @@ import ThemeToggle from "./ThemeToggle";
 const Sidebar = ({ activePage, isAdmin = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUserState] = useState(() => JSON.parse(localStorage.getItem("user") || "{}"));
+  const [user, setUserState] = useState(() =>
+    JSON.parse(localStorage.getItem("user") || "{}"),
+  );
   const role = user?.role;
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,9 +86,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   }, [location.pathname, location.search]);
 
   const showStaffMenu =
-    isAdmin ||
-    role === "SYSTEM_ADMIN" ||
-    role === "EVENT_ORGANIZER";
+    isAdmin || role === "SYSTEM_ADMIN" || role === "EVENT_ORGANIZER";
 
   const adminMenuItems = [
     {
@@ -114,24 +114,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           path: "/governance/event-approval",
           icon: "📅",
           badge: "12",
-        },
-        {
-          id: "vendor-management",
-          label: "Vendor Management",
-          path: "/governance/vendors",
-          icon: "🏪",
-        },
-        {
-          id: "sponsorship-management",
-          label: "Sponsorship Management",
-          path: "/governance/sponsorships",
-          icon: "🤝",
-        },
-        {
-          id: "stall-allocation",
-          label: "Stall Allocation",
-          path: "/governance/stalls",
-          icon: "📍",
         },
       ],
     },
@@ -359,7 +341,13 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const studentMenuItems = [
     { id: "home", label: "Home", path: "/", icon: "🏠" },
     { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
-    { id: "explore-sports", label: "Extracurricular activities", path: "/dashboard", icon: "🏆", query: "?filter=extracurricular" },
+    {
+      id: "explore-sports",
+      label: "Extracurricular activities",
+      path: "/dashboard",
+      icon: "🏆",
+      query: "?filter=extracurricular",
+    },
     { id: "calendar", label: "Calendar", path: "/calendar", icon: "📅" },
     // Students should not see Logistics in the sidebar
     {
@@ -381,12 +369,22 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     if (isAdmin) {
       menuItems = [
         ...presidentMenuItems,
-        { id: "switch-to-student", label: "Student View", path: "/dashboard", icon: "🏠" }
+        {
+          id: "switch-to-student",
+          label: "Student View",
+          path: "/dashboard",
+          icon: "🏠",
+        },
       ];
     } else {
       menuItems = [
         ...studentMenuItems,
-        { id: "president-workspace", label: "President Workspace", path: "/admin-dashboard", icon: "🛡️" }
+        {
+          id: "president-workspace",
+          label: "President Workspace",
+          path: "/admin-dashboard",
+          icon: "🛡️",
+        },
       ];
     }
   } else if (isAdmin || role === "SYSTEM_ADMIN") {
@@ -397,7 +395,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   useEffect(() => {
     if (!showStaffMenu) return;
-    
+
     // Auto-expand operations for organizer if nothing is expanded
     if (role === "EVENT_ORGANIZER" && !expandedMenu) {
       setExpandedMenu("organizer-operations");
@@ -463,7 +461,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "checkout-tracking": <Wrench className={iconClass} />,
       "availability-engine": <Settings className={iconClass} />,
       "ops-intel": <Brain className={iconClass} />,
-      "president-workspace": <ShieldAlert className={`${iconClass} text-emerald-400`} />,
+      "president-workspace": (
+        <ShieldAlert className={`${iconClass} text-emerald-400`} />
+      ),
       "switch-to-student": <Home className={`${iconClass} text-primary`} />,
     };
     if (iconMap[id]) return iconMap[id];
@@ -484,7 +484,8 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   }, [role, isAdmin, user?.entityName]);
 
   const dashboardPath = useMemo(() => {
-    if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT") return "/admin-dashboard";
+    if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT")
+      return "/admin-dashboard";
     if (role === "EVENT_ORGANIZER") return "/organizer-dashboard";
     return "/dashboard";
   }, [role]);
@@ -492,9 +493,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   return (
     <>
       {isAdmin && (
-        <header
-          className="sd-topbar"
-        >
+        <header className="sd-topbar">
           <div className="sd-topbar-left">
             <button
               onClick={() => setMobileOpen((prev) => !prev)}
@@ -625,7 +624,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                         </button>
                         <div className="sd-menu-item-right">
                           {section.badge && (
-                            <span className="sd-menu-badge">{section.badge}</span>
+                            <span className="sd-menu-badge">
+                              {section.badge}
+                            </span>
                           )}
                           <button
                             onClick={() => toggleMenu(section.id)}
@@ -652,7 +653,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                             </span>
                             <span>{item.label}</span>
                             {item.badge && (
-                              <span className="sd-submenu-badge">{item.badge}</span>
+                              <span className="sd-submenu-badge">
+                                {item.badge}
+                              </span>
                             )}
                           </Link>
                         ))}

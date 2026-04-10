@@ -66,9 +66,6 @@ export default function Header() {
               Create Events
             </Link>
           )}
-          <a href="/#clubs" className="nav-link">
-            Clubs
-          </a>
         </div>
       </div>
 

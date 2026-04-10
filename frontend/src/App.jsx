@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Landing from "./components/home/Landing";
@@ -58,7 +59,38 @@ import {
   AnalyticsReports,
   AnalyticsActivity,
 } from "./components/analytics";
+import { ClubsModule } from "./pages/ClubsModule";
 import "./App.css";
+
+function LogisticsEntry() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userDataStr = localStorage.getItem("user");
+
+    if (!token || !userDataStr) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userDataStr);
+      const role = user?.role?.toUpperCase();
+
+      if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT") {
+        navigate("/logistics/admin", { replace: true });
+        return;
+      }
+
+      navigate("/logistics/browse", { replace: true });
+    } catch {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  return null;
+}
 
 function App() {
   return (
@@ -317,13 +349,19 @@ function App() {
         <Route
           path="/governance/club-onboarding"
           element={
-            <ProtectedRoute element={ClubOnboarding} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={ClubOnboarding}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
           }
         />
         <Route
           path="/governance/event-approval"
           element={
-            <ProtectedRoute element={EventApproval} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={EventApproval}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
           }
         />
         <Route
@@ -419,6 +457,10 @@ function App() {
         />
 
         <Route
+          path="/logistics"
+          element={<LogisticsEntry />}
+        />
+        <Route
           path="/logistics/admin"
           element={
             <ProtectedRoute
@@ -512,6 +554,10 @@ function App() {
               allowedRoles={["SYSTEM_ADMIN"]}
             />
           }
+        />
+        <Route
+          path="/clubs"
+          element={<ClubsModule />}
         />
       </Routes>
     </div>

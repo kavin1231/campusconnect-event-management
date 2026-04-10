@@ -329,12 +329,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       icon: "⚖️",
       subItems: [
         {
-          id: "hub-dashboard",
-          label: "Hub Dashboard",
-          path: "/governance",
-          icon: "📊",
-        },
-        {
           id: "vendor-management",
           label: "Vendor Management",
           path: "/governance/vendors",

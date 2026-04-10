@@ -32,6 +32,9 @@ import {
   PresidentApplicationManagement,
   PresidentRegistrationForm,
   StudentNotifications,
+  VendorManagement as GovernanceVendorManagement,
+  StallAllocation,
+  SponsorshipManagement,
 } from "./components/governance";
 import {
   LogisticsDashboard,
@@ -280,7 +283,34 @@ function App() {
           element={
             <ProtectedRoute
               element={GovernanceDashboard}
-              allowedRoles={["SYSTEM_ADMIN"]}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/vendors"
+          element={
+            <ProtectedRoute
+              element={GovernanceVendorManagement}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/sponsorships"
+          element={
+            <ProtectedRoute
+              element={SponsorshipManagement}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/stalls"
+          element={
+            <ProtectedRoute
+              element={StallAllocation}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
             />
           }
         />

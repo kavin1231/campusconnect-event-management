@@ -315,6 +315,140 @@ export const governanceAPI = {
     );
     return response.json();
   },
+
+  listEvents: async () => {
+    const response = await fetchWithAuth("/events");
+    return response.json();
+  },
+
+  listVendors: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.search) query.set("search", params.search);
+    if (params.status && params.status !== "ALL") query.set("status", params.status);
+    if (params.serviceCategory && params.serviceCategory !== "ALL") {
+      query.set("serviceCategory", params.serviceCategory);
+    }
+
+    const response = await fetchWithAuth(
+      `/president/vendors${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  createVendor: async (vendorData) => {
+    const response = await fetchWithAuth("/president/vendors", {
+      method: "POST",
+      body: JSON.stringify(vendorData),
+    });
+    return response.json();
+  },
+
+  updateVendor: async (vendorId, vendorData) => {
+    const response = await fetchWithAuth(`/president/vendors/${vendorId}`, {
+      method: "PATCH",
+      body: JSON.stringify(vendorData),
+    });
+    return response.json();
+  },
+
+  deleteVendor: async (vendorId) => {
+    const response = await fetchWithAuth(`/president/vendors/${vendorId}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
+
+  getStallsByEvent: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.eventId) query.set("eventId", params.eventId);
+    if (params.search) query.set("search", params.search);
+    if (params.status && params.status !== "ALL") query.set("status", params.status);
+    if (params.serviceCategory && params.serviceCategory !== "ALL") {
+      query.set("serviceCategory", params.serviceCategory);
+    }
+
+    const response = await fetchWithAuth(
+      `/president/stalls${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  getAvailableStallsByEvent: async (eventId, vendorId) => {
+    const query = new URLSearchParams();
+    if (eventId) query.set("eventId", eventId);
+    if (vendorId) query.set("vendorId", vendorId);
+
+    const response = await fetchWithAuth(`/president/stalls/available?${query.toString()}`);
+    return response.json();
+  },
+
+  assignStallToVendor: async (payload) => {
+    const response = await fetchWithAuth("/president/stalls/assign", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  updateStallAllocation: async (stallId, payload) => {
+    const response = await fetchWithAuth(`/president/stalls/${stallId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  releaseStall: async (stallId) => {
+    const response = await fetchWithAuth(`/president/stalls/${stallId}/release`, {
+      method: "PATCH",
+    });
+    return response.json();
+  },
+
+  getStallMapData: async (eventId) => {
+    const query = new URLSearchParams();
+    if (eventId) query.set("eventId", eventId);
+
+    const response = await fetchWithAuth(`/president/stalls/map?${query.toString()}`);
+    return response.json();
+  },
+
+  listSponsorships: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.search) query.set("search", params.search);
+    if (params.eventId && params.eventId !== "ALL") query.set("eventId", params.eventId);
+    if (params.sponsorTier && params.sponsorTier !== "ALL") query.set("sponsorTier", params.sponsorTier);
+    if (params.paymentStatus && params.paymentStatus !== "ALL") query.set("paymentStatus", params.paymentStatus);
+    if (params.status && params.status !== "ALL") query.set("status", params.status);
+
+    const response = await fetchWithAuth(
+      `/president/sponsorships${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  createSponsorship: async (payload) => {
+    const response = await fetchWithAuth("/president/sponsorships", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  updateSponsorship: async (id, payload) => {
+    const response = await fetchWithAuth(`/president/sponsorships/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  deleteSponsorship: async (id) => {
+    const response = await fetchWithAuth(`/president/sponsorships/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
 };
 
 // ============================================

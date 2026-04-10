@@ -121,6 +121,8 @@ model Event {
   registrations   StudentEventRegistration[]
   reviews         EventReview[]
   budgetEntries   OrganizationBudget[]
+  stallAllocations EventStall[]
+  sponsorships    SponsorshipLead[]
 
   @@map("Event")
 }
@@ -274,10 +276,18 @@ model Organization {
 
 model SponsorshipLead {
   id                Int      @id @default(autoincrement())
-  organizationId    Int
+  organizationId    Int?
+  eventId           Int?
   sponsorName       String
+  companyName       String   @default("")
   sponsorEmail      String?
   contactPerson     String?
+  contactPhone      String?
+  sponsorshipType   String?
+  paymentStatus     String   @default("PENDING")
+  sponsorshipAmount Float    @default(0)
+  sponsorTier       String   @default("BRONZE")
+  status            String   @default("ACTIVE")
   packageTier       String?  
   expectedValue     Float?
   confirmedValue    Float?
@@ -290,7 +300,8 @@ model SponsorshipLead {
   
   managedById       Int
   manager           User     @relation(fields: [managedById], references: [id])
-  organization      Organization @relation(fields: [organizationId], references: [id])
+  organization      Organization? @relation(fields: [organizationId], references: [id])
+  event             Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
   contributions     SponsorContribution[]
 }
 
@@ -324,21 +335,45 @@ model OrganizationBudget {
 }
 
 model VendorPartner {
-  id            Int      @id @default(autoincrement())
-  organizationId Int
-  name          String
-  contactName   String
-  contactPhone  String
-  contactEmail  String?
-  requirements  String?
-  status        String   @default("PENDING") 
-  agreementStatus String @default("NOT_STARTED") 
-  approvedById  Int?
-  approvedBy    User?    @relation(fields: [approvedById], references: [id])
-  createdAt     DateTime @default(now())
-  
-  organization Organization @relation(fields: [organizationId], references: [id])
+  id              Int      @id @default(autoincrement())
+  organizationId  Int?
+  name            String
+  companyName     String   @default("")
+  serviceCategory String   @default("")
+  contactName     String
+  contactPhone    String
+  contactEmail    String?
+  address         String   @default("")
+  requirements    String?
+  status          String   @default("ACTIVE")
+  agreementStatus String   @default("NOT_STARTED")
+  approvedById    Int?
+  approvedBy      User?    @relation(fields: [approvedById], references: [id])
+  createdAt       DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
   stalls       StallSlot[]
+  eventStallAllocations EventStall[]
+}
+
+model EventStall {
+  id              Int           @id @default(autoincrement())
+  eventId         Int
+  stallNumber     Int
+  status          String        @default("AVAILABLE")
+  vendorId        Int?
+  serviceCategory String?
+  mapX            Float
+  mapY            Float
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  event           Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vendor          VendorPartner? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, stallNumber])
+  @@unique([eventId, vendorId])
+  @@index([eventId, status])
 }
 
 model StallSlot {

@@ -1,5 +1,6 @@
 import prisma from "./client.js";
 import bcrypt from "bcryptjs";
+import { getStallCoordinate } from "../utils/stallCoordinates.js";
 
 async function main() {
   console.log("Start seeding...");
@@ -329,6 +330,32 @@ async function main() {
       });
     }
     console.log("Finished seeding 20 logistics assets.");
+
+    console.log("Seeding event stalls (20 per event)...");
+    const events = await prisma.event.findMany({
+      select: { id: true },
+      orderBy: { id: "asc" },
+    });
+
+    for (const event of events) {
+      const stallRows = [];
+      for (let stallNumber = 1; stallNumber <= 20; stallNumber += 1) {
+        const { mapX, mapY } = getStallCoordinate(stallNumber);
+        stallRows.push({
+          eventId: event.id,
+          stallNumber,
+          status: "AVAILABLE",
+          mapX,
+          mapY,
+        });
+      }
+
+      await prisma.eventStall.createMany({
+        data: stallRows,
+        skipDuplicates: true,
+      });
+    }
+    console.log("Finished seeding event stalls.");
 
     console.log("✅ Database seeding completed successfully!");
   } catch (error) {

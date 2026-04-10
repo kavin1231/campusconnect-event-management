@@ -80,6 +80,48 @@ router.delete(
   PresidentController.deleteVendor,
 );
 
+router.get(
+  "/stalls",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.getStallsByEvent,
+);
+
+router.get(
+  "/stalls/available",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.getAvailableStallsByEvent,
+);
+
+router.get(
+  "/stalls/map",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.getStallMapData,
+);
+
+router.post(
+  "/stalls/assign",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.assignStallToVendor,
+);
+
+router.patch(
+  "/stalls/:stallId",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.updateStallAllocation,
+);
+
+router.patch(
+  "/stalls/:stallId/release",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.releaseStall,
+);
+
 
 
 // admin approve/reject

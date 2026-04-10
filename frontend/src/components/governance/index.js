@@ -6,3 +6,4 @@ export { default as PresidentApplicationManagement } from "./PresidentApplicatio
 export { default as PresidentRegistrationForm } from "./PresidentRegistrationForm";
 export { default as StudentNotifications } from "./StudentNotifications";
 export { default as VendorManagement } from "./VendorManagement";
+export { default as StallAllocation } from "./StallAllocation";

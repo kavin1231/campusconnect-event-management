@@ -1,8 +1,131 @@
 import prisma from "../prisma/client.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { getStallCoordinate } from "../utils/stallCoordinates.js";
 
 class PresidentController {
+  static buildDefaultCoordinate(stallNumber) {
+    return getStallCoordinate(stallNumber);
+  }
+
+  static async ensureEventStalls(eventId, db = prisma) {
+    const normalizedEventId = Number(eventId);
+    if (!normalizedEventId || Number.isNaN(normalizedEventId)) {
+      return;
+    }
+
+    for (let stallNumber = 1; stallNumber <= 20; stallNumber += 1) {
+      const { mapX, mapY } = PresidentController.buildDefaultCoordinate(stallNumber);
+      await db.eventStall.upsert({
+        where: {
+          eventId_stallNumber: {
+            eventId: normalizedEventId,
+            stallNumber,
+          },
+        },
+        create: {
+          eventId: normalizedEventId,
+          stallNumber,
+          status: "AVAILABLE",
+          mapX,
+          mapY,
+        },
+        update: {
+          mapX,
+          mapY,
+        },
+      });
+    }
+  }
+
+  static buildHttpError(message, statusCode = 400) {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    return error;
+  }
+
+  static async assignVendorToStallTx(
+    db,
+    { eventId, vendorId, stallId, stallNumber },
+  ) {
+    const normalizedEventId = Number(eventId);
+    const normalizedVendorId = Number(vendorId);
+    const normalizedStallId = stallId ? Number(stallId) : null;
+    const normalizedStallNumber = stallNumber ? Number(stallNumber) : null;
+
+    if (!normalizedEventId || !normalizedVendorId) {
+      throw PresidentController.buildHttpError("eventId and vendorId are required", 400);
+    }
+
+    if (!normalizedStallId && !normalizedStallNumber) {
+      throw PresidentController.buildHttpError("stallId or stallNumber is required", 400);
+    }
+
+    const [event, vendor] = await Promise.all([
+      db.event.findUnique({ where: { id: normalizedEventId }, select: { id: true } }),
+      db.vendorPartner.findUnique({
+        where: { id: normalizedVendorId },
+        select: { id: true, serviceCategory: true },
+      }),
+    ]);
+
+    if (!event) {
+      throw PresidentController.buildHttpError("Event not found", 404);
+    }
+
+    if (!vendor) {
+      throw PresidentController.buildHttpError("Vendor not found", 404);
+    }
+
+    await PresidentController.ensureEventStalls(normalizedEventId, db);
+
+    const targetStall = await db.eventStall.findFirst({
+      where: {
+        eventId: normalizedEventId,
+        ...(normalizedStallId
+          ? { id: normalizedStallId }
+          : { stallNumber: normalizedStallNumber }),
+      },
+    });
+
+    if (!targetStall) {
+      throw PresidentController.buildHttpError("Stall not found for selected event", 404);
+    }
+
+    if (targetStall.vendorId && targetStall.vendorId !== normalizedVendorId) {
+      throw PresidentController.buildHttpError(
+        `Stall ${targetStall.stallNumber} is already allocated for this event`,
+        409,
+      );
+    }
+
+    await db.eventStall.updateMany({
+      where: {
+        eventId: normalizedEventId,
+        vendorId: normalizedVendorId,
+        id: { not: targetStall.id },
+      },
+      data: {
+        vendorId: null,
+        status: "AVAILABLE",
+        serviceCategory: null,
+      },
+    });
+
+    return db.eventStall.update({
+      where: { id: targetStall.id },
+      data: {
+        vendorId: normalizedVendorId,
+        status: "RESERVED",
+        serviceCategory: vendor.serviceCategory || null,
+      },
+      include: {
+        event: { select: { id: true, title: true } },
+        vendor: { select: { id: true, name: true, serviceCategory: true } },
+      },
+    });
+  }
+
   // student applies for club/faculty president
   static async apply(req, res) {
     try {
@@ -421,6 +544,11 @@ class PresidentController {
         where,
         include: {
           organization: { select: { id: true, name: true } },
+          eventStallAllocations: {
+            where: { status: "RESERVED" },
+            include: { event: { select: { id: true, title: true } } },
+            orderBy: { updatedAt: "desc" },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -445,6 +573,9 @@ class PresidentController {
         address,
         status = "ACTIVE",
         requirements,
+        eventId,
+        stallId,
+        stallNumber,
       } = req.body;
 
       if (!name || !companyName || !serviceCategory || !contactName || !contactPhone || !address) {
@@ -454,30 +585,52 @@ class PresidentController {
         });
       }
 
-      const vendor = await prisma.vendorPartner.create({
-        data: {
-          name,
-          companyName,
-          serviceCategory,
-          contactName,
-          contactPhone,
-          contactEmail: contactEmail || null,
-          address,
-          status,
-          requirements: requirements || null,
-          ...(organizationId
-            ? { organization: { connect: { id: Number(organizationId) } } }
-            : {}),
-        },
-        include: {
-          organization: { select: { id: true, name: true } },
-        },
+      const vendor = await prisma.$transaction(async (tx) => {
+        const created = await tx.vendorPartner.create({
+          data: {
+            name,
+            companyName,
+            serviceCategory,
+            contactName,
+            contactPhone,
+            contactEmail: contactEmail || null,
+            address,
+            status,
+            requirements: requirements || null,
+            ...(organizationId
+              ? { organization: { connect: { id: Number(organizationId) } } }
+              : {}),
+          },
+        });
+
+        if (eventId && (stallId || stallNumber)) {
+          await PresidentController.assignVendorToStallTx(tx, {
+            eventId,
+            vendorId: created.id,
+            stallId,
+            stallNumber,
+          });
+        }
+
+        return tx.vendorPartner.findUnique({
+          where: { id: created.id },
+          include: {
+            organization: { select: { id: true, name: true } },
+            eventStallAllocations: {
+              where: { status: "RESERVED" },
+              include: { event: { select: { id: true, title: true } } },
+              orderBy: { updatedAt: "desc" },
+            },
+          },
+        });
       });
 
       res.status(201).json({ success: true, vendor });
     } catch (err) {
       console.error("Create vendor error:", err);
-      res.status(500).json({ success: false, message: "Server error", error: err.message });
+      res
+        .status(err.statusCode || 500)
+        .json({ success: false, message: err.message || "Server error", error: err.message });
     }
   }
 
@@ -499,35 +652,67 @@ class PresidentController {
         address,
         status,
         requirements,
+        eventId,
+        stallId,
+        stallNumber,
       } = req.body;
 
-      const vendor = await prisma.vendorPartner.update({
-        where: { id },
-        data: {
-          ...(organizationId !== undefined
-            ? organizationId
-              ? { organization: { connect: { id: Number(organizationId) } } }
-              : { organization: { disconnect: true } }
-            : {}),
-          ...(name !== undefined ? { name } : {}),
-          ...(companyName !== undefined ? { companyName } : {}),
-          ...(serviceCategory !== undefined ? { serviceCategory } : {}),
-          ...(contactName !== undefined ? { contactName } : {}),
-          ...(contactPhone !== undefined ? { contactPhone } : {}),
-          ...(contactEmail !== undefined ? { contactEmail } : {}),
-          ...(address !== undefined ? { address } : {}),
-          ...(status !== undefined ? { status } : {}),
-          ...(requirements !== undefined ? { requirements } : {}),
-        },
-        include: {
-          organization: { select: { id: true, name: true } },
-        },
+      const vendor = await prisma.$transaction(async (tx) => {
+        const updated = await tx.vendorPartner.update({
+          where: { id },
+          data: {
+            ...(organizationId !== undefined
+              ? organizationId
+                ? { organization: { connect: { id: Number(organizationId) } } }
+                : { organization: { disconnect: true } }
+              : {}),
+            ...(name !== undefined ? { name } : {}),
+            ...(companyName !== undefined ? { companyName } : {}),
+            ...(serviceCategory !== undefined ? { serviceCategory } : {}),
+            ...(contactName !== undefined ? { contactName } : {}),
+            ...(contactPhone !== undefined ? { contactPhone } : {}),
+            ...(contactEmail !== undefined ? { contactEmail } : {}),
+            ...(address !== undefined ? { address } : {}),
+            ...(status !== undefined ? { status } : {}),
+            ...(requirements !== undefined ? { requirements } : {}),
+          },
+        });
+
+        if (serviceCategory !== undefined) {
+          await tx.eventStall.updateMany({
+            where: { vendorId: id, status: "RESERVED" },
+            data: { serviceCategory },
+          });
+        }
+
+        if (eventId && (stallId || stallNumber)) {
+          await PresidentController.assignVendorToStallTx(tx, {
+            eventId,
+            vendorId: id,
+            stallId,
+            stallNumber,
+          });
+        }
+
+        return tx.vendorPartner.findUnique({
+          where: { id: updated.id },
+          include: {
+            organization: { select: { id: true, name: true } },
+            eventStallAllocations: {
+              where: { status: "RESERVED" },
+              include: { event: { select: { id: true, title: true } } },
+              orderBy: { updatedAt: "desc" },
+            },
+          },
+        });
       });
 
       res.json({ success: true, vendor });
     } catch (err) {
       console.error("Update vendor error:", err);
-      res.status(500).json({ success: false, message: "Server error", error: err.message });
+      res
+        .status(err.statusCode || 500)
+        .json({ success: false, message: err.message || "Server error", error: err.message });
     }
   }
 
@@ -540,12 +725,223 @@ class PresidentController {
 
       await prisma.$transaction([
         prisma.stallSlot.updateMany({ where: { vendorId: id }, data: { vendorId: null } }),
+        prisma.eventStall.updateMany({
+          where: { vendorId: id },
+          data: { vendorId: null, status: "AVAILABLE", serviceCategory: null },
+        }),
         prisma.vendorPartner.delete({ where: { id } }),
       ]);
 
       res.json({ success: true, message: "Vendor deleted successfully" });
     } catch (err) {
       console.error("Delete vendor error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async getStallsByEvent(req, res) {
+    try {
+      const eventId = Number(req.query.eventId);
+      const { status = "ALL", serviceCategory = "ALL", search = "" } = req.query;
+
+      if (!eventId || Number.isNaN(eventId)) {
+        return res.status(400).json({ success: false, message: "Valid eventId is required" });
+      }
+
+      await PresidentController.ensureEventStalls(eventId);
+
+      const where = { eventId };
+
+      if (status && status !== "ALL") {
+        where.status = status.toUpperCase();
+      }
+
+      if (serviceCategory && serviceCategory !== "ALL") {
+        where.serviceCategory = serviceCategory;
+      }
+
+      if (search) {
+        const searchText = String(search).trim();
+        const parsedNumber = Number(searchText);
+        where.OR = [
+          { vendor: { name: { contains: searchText, mode: "insensitive" } } },
+          ...(Number.isNaN(parsedNumber) ? [] : [{ stallNumber: parsedNumber }]),
+        ];
+      }
+
+      const stalls = await prisma.eventStall.findMany({
+        where,
+        include: {
+          vendor: { select: { id: true, name: true, serviceCategory: true } },
+          event: { select: { id: true, title: true } },
+        },
+        orderBy: { stallNumber: "asc" },
+      });
+
+      res.json({ success: true, stalls });
+    } catch (err) {
+      console.error("Get stalls by event error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async getAvailableStallsByEvent(req, res) {
+    try {
+      const eventId = Number(req.query.eventId);
+      const vendorId = req.query.vendorId ? Number(req.query.vendorId) : null;
+
+      if (!eventId || Number.isNaN(eventId)) {
+        return res.status(400).json({ success: false, message: "Valid eventId is required" });
+      }
+
+      await PresidentController.ensureEventStalls(eventId);
+
+      const currentVendorStall = vendorId
+        ? await prisma.eventStall.findFirst({
+            where: { eventId, vendorId },
+            select: { id: true },
+          })
+        : null;
+
+      const stalls = await prisma.eventStall.findMany({
+        where: {
+          eventId,
+          OR: [
+            { status: "AVAILABLE" },
+            ...(currentVendorStall ? [{ id: currentVendorStall.id }] : []),
+          ],
+        },
+        select: {
+          id: true,
+          stallNumber: true,
+          status: true,
+          vendorId: true,
+          serviceCategory: true,
+        },
+        orderBy: { stallNumber: "asc" },
+      });
+
+      res.json({ success: true, stalls });
+    } catch (err) {
+      console.error("Get available stalls error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async assignStallToVendor(req, res) {
+    try {
+      const { eventId, vendorId, stallId, stallNumber } = req.body;
+
+      const allocation = await prisma.$transaction(async (tx) => {
+        return PresidentController.assignVendorToStallTx(tx, {
+          eventId,
+          vendorId,
+          stallId,
+          stallNumber,
+        });
+      });
+
+      res.status(201).json({ success: true, allocation });
+    } catch (err) {
+      console.error("Assign stall error:", err);
+      res
+        .status(err.statusCode || 500)
+        .json({ success: false, message: err.message || "Server error", error: err.message });
+    }
+  }
+
+  static async updateStallAllocation(req, res) {
+    try {
+      const stallId = Number(req.params.stallId);
+      const { vendorId } = req.body;
+
+      if (!stallId || Number.isNaN(stallId)) {
+        return res.status(400).json({ success: false, message: "Invalid stall id" });
+      }
+
+      const currentStall = await prisma.eventStall.findUnique({
+        where: { id: stallId },
+        select: { id: true, eventId: true },
+      });
+
+      if (!currentStall) {
+        return res.status(404).json({ success: false, message: "Stall not found" });
+      }
+
+      if (!vendorId) {
+        const released = await prisma.eventStall.update({
+          where: { id: stallId },
+          data: { vendorId: null, status: "AVAILABLE", serviceCategory: null },
+          include: {
+            event: { select: { id: true, title: true } },
+            vendor: { select: { id: true, name: true, serviceCategory: true } },
+          },
+        });
+
+        return res.json({ success: true, allocation: released });
+      }
+
+      const allocation = await prisma.$transaction(async (tx) => {
+        return PresidentController.assignVendorToStallTx(tx, {
+          eventId: currentStall.eventId,
+          vendorId,
+          stallId,
+        });
+      });
+
+      res.json({ success: true, allocation });
+    } catch (err) {
+      console.error("Update stall allocation error:", err);
+      res
+        .status(err.statusCode || 500)
+        .json({ success: false, message: err.message || "Server error", error: err.message });
+    }
+  }
+
+  static async releaseStall(req, res) {
+    try {
+      const stallId = Number(req.params.stallId);
+      if (!stallId || Number.isNaN(stallId)) {
+        return res.status(400).json({ success: false, message: "Invalid stall id" });
+      }
+
+      const released = await prisma.eventStall.update({
+        where: { id: stallId },
+        data: { vendorId: null, status: "AVAILABLE", serviceCategory: null },
+        include: {
+          event: { select: { id: true, title: true } },
+          vendor: { select: { id: true, name: true, serviceCategory: true } },
+        },
+      });
+
+      res.json({ success: true, allocation: released });
+    } catch (err) {
+      console.error("Release stall error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async getStallMapData(req, res) {
+    try {
+      const eventId = Number(req.query.eventId);
+      if (!eventId || Number.isNaN(eventId)) {
+        return res.status(400).json({ success: false, message: "Valid eventId is required" });
+      }
+
+      await PresidentController.ensureEventStalls(eventId);
+
+      const stalls = await prisma.eventStall.findMany({
+        where: { eventId },
+        include: {
+          event: { select: { id: true, title: true } },
+          vendor: { select: { id: true, name: true, serviceCategory: true } },
+        },
+        orderBy: { stallNumber: "asc" },
+      });
+
+      res.json({ success: true, stalls });
+    } catch (err) {
+      console.error("Get stall map data error:", err);
       res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
   }

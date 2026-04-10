@@ -10,6 +10,10 @@ const VendorForm = ({
   values,
   errors,
   loading,
+  events = [],
+  stalls = [],
+  stallLoading = false,
+  serviceCategoryOptions = [],
   onChange,
   onSubmit,
   onClose,
@@ -92,14 +96,17 @@ const VendorForm = ({
                   error={errors.companyName}
                   placeholder="SLIIT Catering Pvt Ltd"
                 />
-                <Field
+                <SelectField
                   label="Service Category"
                   required
                   name="serviceCategory"
                   value={values.serviceCategory}
                   onChange={onChange}
                   error={errors.serviceCategory}
-                  placeholder="Food & Beverage"
+                  options={[
+                    { value: "", label: "Select category" },
+                    ...serviceCategoryOptions.map((item) => ({ value: item, label: item })),
+                  ]}
                 />
                 <Field
                   label="Contact Person"
@@ -128,6 +135,39 @@ const VendorForm = ({
                   onChange={onChange}
                   error={errors.contactEmail}
                   placeholder="vendor@company.com"
+                />
+                <SelectField
+                  label="Event"
+                  name="eventId"
+                  value={values.eventId || ""}
+                  onChange={onChange}
+                  error={errors.eventId}
+                  options={[
+                    { value: "", label: "Select event" },
+                    ...events.map((event) => ({ value: String(event.id), label: event.title })),
+                  ]}
+                />
+                <SelectField
+                  label="Stall"
+                  name="stallId"
+                  value={values.stallId || ""}
+                  onChange={onChange}
+                  error={errors.stallId}
+                  disabled={!values.eventId || stallLoading}
+                  options={[
+                    {
+                      value: "",
+                      label: stallLoading
+                        ? "Loading available stalls..."
+                        : values.eventId
+                          ? "No stall (unassigned)"
+                          : "Select event first",
+                    },
+                    ...stalls.map((stall) => ({
+                      value: String(stall.id),
+                      label: `Stall ${stall.stallNumber} (${stall.status})`,
+                    })),
+                  ]}
                 />
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-sm font-semibold" style={{ color: "var(--text-main)" }}>
@@ -217,7 +257,7 @@ const Field = ({ label, required, error, ...props }) => {
   );
 };
 
-const SelectField = ({ label, required, error, options, ...props }) => {
+const SelectField = ({ label, required, error, options, disabled, ...props }) => {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold" style={{ color: "var(--text-main)" }}>
@@ -225,6 +265,7 @@ const SelectField = ({ label, required, error, options, ...props }) => {
       </label>
       <select
         {...props}
+        disabled={disabled}
         className={`${fieldBase}`}
         style={{
           borderColor: error ? "rgba(239, 68, 68, 0.45)" : "var(--border-color)",

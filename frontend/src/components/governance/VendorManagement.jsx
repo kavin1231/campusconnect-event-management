@@ -8,6 +8,17 @@ import { governanceAPI } from "../../services/api";
 import VendorForm from "./VendorForm";
 import VendorTable from "./VendorTable";
 
+const SERVICE_CATEGORY_OPTIONS = [
+  "Food & Beverage",
+  "Clothing",
+  "Accessories",
+  "Technology",
+  "Education",
+  "Health & Beauty",
+  "Art & Crafts",
+  "Other",
+];
+
 const emptyForm = {
   name: "",
   companyName: "",
@@ -17,6 +28,8 @@ const emptyForm = {
   contactEmail: "",
   address: "",
   status: "ACTIVE",
+  eventId: "",
+  stallId: "",
 };
 
 const VendorManagement = () => {
@@ -33,6 +46,9 @@ const VendorManagement = () => {
   const [toast, setToast] = useState(null);
   const [formValues, setFormValues] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
+  const [events, setEvents] = useState([]);
+  const [availableStalls, setAvailableStalls] = useState([]);
+  const [stallLoading, setStallLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -53,7 +69,17 @@ const VendorManagement = () => {
   useEffect(() => {
     if (!user) return;
     loadVendors();
+    loadEvents();
   }, [user, searchTerm, statusFilter, serviceFilter]);
+
+  useEffect(() => {
+    if (!formValues.eventId) {
+      setAvailableStalls([]);
+      return;
+    }
+
+    loadAvailableStalls(formValues.eventId, editingVendor?.id);
+  }, [formValues.eventId, editingVendor?.id]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -87,6 +113,34 @@ const VendorManagement = () => {
     }
   };
 
+  const loadEvents = async () => {
+    try {
+      const data = await governanceAPI.listEvents();
+      if (data.success) {
+        setEvents(data.events || []);
+      }
+    } catch (error) {
+      console.error("Failed to load events:", error);
+    }
+  };
+
+  const loadAvailableStalls = async (eventId, vendorId) => {
+    try {
+      setStallLoading(true);
+      const data = await governanceAPI.getAvailableStallsByEvent(eventId, vendorId);
+      if (data.success) {
+        setAvailableStalls(data.stalls || []);
+      } else {
+        setAvailableStalls([]);
+      }
+    } catch (error) {
+      console.error("Failed to load available stalls:", error);
+      setAvailableStalls([]);
+    } finally {
+      setStallLoading(false);
+    }
+  };
+
   const serviceCategories = useMemo(() => {
     return Array.from(new Set(vendors.map((vendor) => vendor.serviceCategory).filter(Boolean))).sort();
   }, [vendors]);
@@ -106,6 +160,7 @@ const VendorManagement = () => {
     setFormValues(emptyForm);
     setFormErrors({});
     setEditingVendor(null);
+    setAvailableStalls([]);
   };
 
   const openCreateForm = () => {
@@ -124,6 +179,12 @@ const VendorManagement = () => {
       contactEmail: vendor.contactEmail || "",
       address: vendor.address || "",
       status: (vendor.status || "ACTIVE").toUpperCase(),
+      eventId: vendor.eventStallAllocations?.[0]?.event?.id
+        ? String(vendor.eventStallAllocations[0].event.id)
+        : "",
+      stallId: vendor.eventStallAllocations?.[0]?.id
+        ? String(vendor.eventStallAllocations[0].id)
+        : "",
     });
     setFormErrors({});
     setShowForm(true);
@@ -156,6 +217,15 @@ const VendorManagement = () => {
       nextErrors.contactPhone = "Enter a valid phone number";
     }
 
+    if (formValues.eventId && formValues.stallId) {
+      const selected = availableStalls.find(
+        (stall) => String(stall.id) === String(formValues.stallId),
+      );
+      if (!selected) {
+        nextErrors.stallId = "Selected stall is no longer available for this event";
+      }
+    }
+
     setFormErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -178,6 +248,8 @@ const VendorManagement = () => {
       const payload = {
         ...formValues,
         status: formValues.status.toUpperCase(),
+        eventId: formValues.eventId ? Number(formValues.eventId) : undefined,
+        stallId: formValues.stallId ? Number(formValues.stallId) : undefined,
       };
 
       const response = editingVendor
@@ -377,6 +449,10 @@ const VendorManagement = () => {
           values={formValues}
           errors={formErrors}
           loading={formLoading}
+          events={events}
+          stalls={availableStalls}
+          stallLoading={stallLoading}
+          serviceCategoryOptions={SERVICE_CATEGORY_OPTIONS}
           onChange={handleFieldChange}
           onSubmit={handleSubmit}
           onClose={() => {

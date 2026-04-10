@@ -412,6 +412,43 @@ export const governanceAPI = {
     const response = await fetchWithAuth(`/president/stalls/map?${query.toString()}`);
     return response.json();
   },
+
+  listSponsorships: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.search) query.set("search", params.search);
+    if (params.eventId && params.eventId !== "ALL") query.set("eventId", params.eventId);
+    if (params.sponsorTier && params.sponsorTier !== "ALL") query.set("sponsorTier", params.sponsorTier);
+    if (params.paymentStatus && params.paymentStatus !== "ALL") query.set("paymentStatus", params.paymentStatus);
+    if (params.status && params.status !== "ALL") query.set("status", params.status);
+
+    const response = await fetchWithAuth(
+      `/president/sponsorships${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  createSponsorship: async (payload) => {
+    const response = await fetchWithAuth("/president/sponsorships", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  updateSponsorship: async (id, payload) => {
+    const response = await fetchWithAuth(`/president/sponsorships/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  deleteSponsorship: async (id) => {
+    const response = await fetchWithAuth(`/president/sponsorships/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
 };
 
 // ============================================

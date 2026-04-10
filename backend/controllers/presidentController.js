@@ -4,6 +4,14 @@ import crypto from "crypto";
 import { getStallCoordinate } from "../utils/stallCoordinates.js";
 
 class PresidentController {
+  static getTierByAmount(amount) {
+    const numericAmount = Number(amount || 0);
+    if (numericAmount >= 300000) return "PLATINUM";
+    if (numericAmount >= 150000) return "GOLD";
+    if (numericAmount >= 50000) return "SILVER";
+    return "BRONZE";
+  }
+
   static buildDefaultCoordinate(stallNumber) {
     return getStallCoordinate(stallNumber);
   }
@@ -942,6 +950,224 @@ class PresidentController {
       res.json({ success: true, stalls });
     } catch (err) {
       console.error("Get stall map data error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async listSponsorships(req, res) {
+    try {
+      const {
+        search = "",
+        eventId,
+        sponsorTier = "ALL",
+        paymentStatus = "ALL",
+        status = "ALL",
+      } = req.query;
+
+      const where = {};
+
+      if (eventId) {
+        where.eventId = Number(eventId);
+      }
+
+      if (sponsorTier && sponsorTier !== "ALL") {
+        where.sponsorTier = sponsorTier.toUpperCase();
+      }
+
+      if (paymentStatus && paymentStatus !== "ALL") {
+        where.paymentStatus = paymentStatus.toUpperCase();
+      }
+
+      if (status && status !== "ALL") {
+        where.status = status.toUpperCase();
+      }
+
+      if (search) {
+        where.OR = [
+          { sponsorName: { contains: search, mode: "insensitive" } },
+          { companyName: { contains: search, mode: "insensitive" } },
+          { contactPerson: { contains: search, mode: "insensitive" } },
+          { sponsorEmail: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      const sponsorships = await prisma.sponsorshipLead.findMany({
+        where,
+        include: {
+          event: { select: { id: true, title: true } },
+          organization: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const summary = sponsorships.reduce(
+        (acc, sponsorship) => {
+          const amount = Number(sponsorship.sponsorshipAmount || 0);
+          acc.totalSponsors += 1;
+          acc.totalAmount += amount;
+          if ((sponsorship.paymentStatus || "").toUpperCase() === "PAID") {
+            acc.paidSponsors += 1;
+          }
+          if ((sponsorship.status || "").toUpperCase() === "ACTIVE") {
+            acc.activeSponsors += 1;
+          }
+          return acc;
+        },
+        { totalSponsors: 0, totalAmount: 0, paidSponsors: 0, activeSponsors: 0 },
+      );
+
+      res.json({ success: true, sponsorships, summary });
+    } catch (err) {
+      console.error("List sponsorships error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async createSponsorship(req, res) {
+    try {
+      const {
+        sponsorName,
+        companyName,
+        contactPerson,
+        contactPhone,
+        sponsorEmail,
+        eventId,
+        sponsorshipAmount,
+        sponsorshipType,
+        paymentStatus = "PENDING",
+        notes,
+        status = "ACTIVE",
+        organizationId,
+      } = req.body;
+
+      if (
+        !sponsorName ||
+        !companyName ||
+        !contactPerson ||
+        !contactPhone ||
+        !sponsorEmail ||
+        !eventId
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "sponsorName, companyName, contactPerson, contactPhone, sponsorEmail and eventId are required",
+        });
+      }
+
+      const amount = Number(sponsorshipAmount || 0);
+      if (Number.isNaN(amount) || amount < 0) {
+        return res.status(400).json({ success: false, message: "Invalid sponsorship amount" });
+      }
+
+      const tier = PresidentController.getTierByAmount(amount);
+
+      const sponsorship = await prisma.sponsorshipLead.create({
+        data: {
+          sponsorName,
+          companyName,
+          contactPerson,
+          contactPhone,
+          sponsorEmail,
+          eventId: Number(eventId),
+          sponsorshipAmount: amount,
+          sponsorshipType: sponsorshipType || null,
+          paymentStatus: paymentStatus.toUpperCase(),
+          sponsorTier: tier,
+          status: status.toUpperCase(),
+          notes: notes || null,
+          packageTier: tier,
+          confirmedValue: amount,
+          managedById: req.user.id,
+          organizationId: organizationId ? Number(organizationId) : null,
+        },
+        include: {
+          event: { select: { id: true, title: true } },
+          organization: { select: { id: true, name: true } },
+        },
+      });
+
+      res.status(201).json({ success: true, sponsorship });
+    } catch (err) {
+      console.error("Create sponsorship error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async updateSponsorship(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (!id || Number.isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Invalid sponsorship id" });
+      }
+
+      const existing = await prisma.sponsorshipLead.findUnique({ where: { id } });
+      if (!existing) {
+        return res.status(404).json({ success: false, message: "Sponsorship not found" });
+      }
+
+      const amount =
+        req.body.sponsorshipAmount !== undefined
+          ? Number(req.body.sponsorshipAmount)
+          : Number(existing.sponsorshipAmount || 0);
+
+      if (Number.isNaN(amount) || amount < 0) {
+        return res.status(400).json({ success: false, message: "Invalid sponsorship amount" });
+      }
+
+      const tier = PresidentController.getTierByAmount(amount);
+
+      const sponsorship = await prisma.sponsorshipLead.update({
+        where: { id },
+        data: {
+          ...(req.body.sponsorName !== undefined ? { sponsorName: req.body.sponsorName } : {}),
+          ...(req.body.companyName !== undefined ? { companyName: req.body.companyName } : {}),
+          ...(req.body.contactPerson !== undefined ? { contactPerson: req.body.contactPerson } : {}),
+          ...(req.body.contactPhone !== undefined ? { contactPhone: req.body.contactPhone } : {}),
+          ...(req.body.sponsorEmail !== undefined ? { sponsorEmail: req.body.sponsorEmail } : {}),
+          ...(req.body.eventId !== undefined ? { eventId: Number(req.body.eventId) } : {}),
+          sponsorshipAmount: amount,
+          ...(req.body.sponsorshipType !== undefined ? { sponsorshipType: req.body.sponsorshipType } : {}),
+          ...(req.body.paymentStatus !== undefined
+            ? { paymentStatus: String(req.body.paymentStatus).toUpperCase() }
+            : {}),
+          ...(req.body.notes !== undefined ? { notes: req.body.notes } : {}),
+          ...(req.body.status !== undefined ? { status: String(req.body.status).toUpperCase() } : {}),
+          sponsorTier: tier,
+          packageTier: tier,
+          confirmedValue: amount,
+          ...(req.body.organizationId !== undefined
+            ? {
+                organizationId: req.body.organizationId
+                  ? Number(req.body.organizationId)
+                  : null,
+              }
+            : {}),
+          managedById: req.user.id,
+        },
+        include: {
+          event: { select: { id: true, title: true } },
+          organization: { select: { id: true, name: true } },
+        },
+      });
+
+      res.json({ success: true, sponsorship });
+    } catch (err) {
+      console.error("Update sponsorship error:", err);
+      res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+  }
+
+  static async deleteSponsorship(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (!id || Number.isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Invalid sponsorship id" });
+      }
+
+      await prisma.sponsorshipLead.delete({ where: { id } });
+      res.json({ success: true, message: "Sponsorship deleted successfully" });
+    } catch (err) {
+      console.error("Delete sponsorship error:", err);
       res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
   }

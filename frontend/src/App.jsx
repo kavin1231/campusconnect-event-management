@@ -34,6 +34,7 @@ import {
   StudentNotifications,
   VendorManagement as GovernanceVendorManagement,
   StallAllocation,
+  SponsorshipManagement,
 } from "./components/governance";
 import {
   LogisticsDashboard,
@@ -291,6 +292,15 @@ function App() {
           element={
             <ProtectedRoute
               element={GovernanceVendorManagement}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/sponsorships"
+          element={
+            <ProtectedRoute
+              element={SponsorshipManagement}
               allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
             />
           }

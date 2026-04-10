@@ -122,6 +122,34 @@ router.patch(
   PresidentController.releaseStall,
 );
 
+router.get(
+  "/sponsorships",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.listSponsorships,
+);
+
+router.post(
+  "/sponsorships",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.createSponsorship,
+);
+
+router.patch(
+  "/sponsorships/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.updateSponsorship,
+);
+
+router.delete(
+  "/sponsorships/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.deleteSponsorship,
+);
+
 
 
 // admin approve/reject

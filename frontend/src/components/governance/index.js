@@ -7,3 +7,4 @@ export { default as PresidentRegistrationForm } from "./PresidentRegistrationFor
 export { default as StudentNotifications } from "./StudentNotifications";
 export { default as VendorManagement } from "./VendorManagement";
 export { default as StallAllocation } from "./StallAllocation";
+export { default as SponsorshipManagement } from "./SponsorshipManagement";

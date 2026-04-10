@@ -122,6 +122,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           icon: "🏪",
         },
         {
+          id: "sponsorship-management",
+          label: "Sponsorship Management",
+          path: "/governance/sponsorships",
+          icon: "🤝",
+        },
+        {
           id: "stall-allocation",
           label: "Stall Allocation",
           path: "/governance/stalls",
@@ -335,6 +341,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           icon: "🏪",
         },
         {
+          id: "sponsorship-management",
+          label: "Sponsorship Management",
+          path: "/governance/sponsorships",
+          icon: "🤝",
+        },
+        {
           id: "stall-allocation",
           label: "Stall Allocation",
           path: "/governance/stalls",
@@ -441,6 +453,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "club-onboarding": <Building2 className={iconClass} />,
       "event-approvals": <CalendarDays className={iconClass} />,
       "vendor-management": <ShoppingBag className={iconClass} />,
+      "sponsorship-management": <Award className={iconClass} />,
       "stall-allocation": <MapPin className={iconClass} />,
       "president-management": <UserRound className={iconClass} />,
       "logistics-hub": <Boxes className={iconClass} />,

@@ -122,6 +122,7 @@ model Event {
   reviews         EventReview[]
   budgetEntries   OrganizationBudget[]
   stallAllocations EventStall[]
+  sponsorships    SponsorshipLead[]
 
   @@map("Event")
 }
@@ -275,10 +276,18 @@ model Organization {
 
 model SponsorshipLead {
   id                Int      @id @default(autoincrement())
-  organizationId    Int
+  organizationId    Int?
+  eventId           Int?
   sponsorName       String
+  companyName       String   @default("")
   sponsorEmail      String?
   contactPerson     String?
+  contactPhone      String?
+  sponsorshipType   String?
+  paymentStatus     String   @default("PENDING")
+  sponsorshipAmount Float    @default(0)
+  sponsorTier       String   @default("BRONZE")
+  status            String   @default("ACTIVE")
   packageTier       String?  
   expectedValue     Float?
   confirmedValue    Float?
@@ -291,7 +300,8 @@ model SponsorshipLead {
   
   managedById       Int
   manager           User     @relation(fields: [managedById], references: [id])
-  organization      Organization @relation(fields: [organizationId], references: [id])
+  organization      Organization? @relation(fields: [organizationId], references: [id])
+  event             Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
   contributions     SponsorContribution[]
 }
 

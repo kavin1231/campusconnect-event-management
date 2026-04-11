@@ -9,7 +9,7 @@ class AnalyticsController {
       // Fetch asset bookings for activity metrics
       const bookings = await prisma.assetBooking.findMany({
         include: {
-          requestedBy: true,
+          requester: true,
           asset: true,
         },
         orderBy: {
@@ -29,8 +29,8 @@ class AnalyticsController {
       // Recent activities (transform to activity format)
       const recentActivities = bookings.slice(0, 12).map((booking, idx) => ({
         id: booking.id,
-        user: booking.requestedBy?.name || "Unknown User",
-        club: booking.requestedBy?.club || "Unknown Club",
+        user: booking.requester?.name || "Unknown User",
+        club: booking.requestingClub?.name || "Unknown Club",
         action:
           {
             pending: "Requested",
@@ -59,7 +59,7 @@ class AnalyticsController {
       // Top active users (based on booking count)
       const userActivityCounts = {};
       bookings.forEach((booking) => {
-        const userId = booking.requestedBy?.id;
+        const userId = booking.requester?.id;
         if (userId) {
           userActivityCounts[userId] = (userActivityCounts[userId] || 0) + 1;
         }
@@ -70,11 +70,11 @@ class AnalyticsController {
         .slice(0, 5)
         .map(([userId, count]) => {
           const user = bookings.find(
-            (b) => b.requestedBy?.id === userId,
-          )?.requestedBy;
+            (b) => b.requester?.id === userId,
+          )?.requester;
           return {
             name: user?.name || "Unknown",
-            club: user?.club || "Unknown Club",
+            club: user?.role || "Unknown Club",
             actions: count,
             badge: count > 10 ? "🌟" : count > 7 ? "⭐" : "📊",
           };
@@ -86,7 +86,7 @@ class AnalyticsController {
       // Club activity
       const clubActivityData = {};
       bookings.forEach((booking) => {
-        const club = booking.requestedBy?.club || "Other";
+        const club = booking.requestingClub?.name || "Other";
         clubActivityData[club] = (clubActivityData[club] || 0) + 1;
       });
 
@@ -111,7 +111,7 @@ class AnalyticsController {
         ...new Set(
           bookings
             .filter((b) => new Date(b.createdAt) >= todayStart)
-            .map((b) => b.requestedBy?.id),
+            .map((b) => b.requester?.id)
         ),
       ].length;
 

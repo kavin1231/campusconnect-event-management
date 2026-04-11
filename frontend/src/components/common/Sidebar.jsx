@@ -30,6 +30,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import LogoutConfirmationModal from "./LogoutConfirmationModal";
 import { authAPI } from "../../services/api";
 import ThemeToggle from "./ThemeToggle";
 
@@ -41,6 +42,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -58,7 +60,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     refreshProfile();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    setProfileOpen(false);
+  };
+
+  const handleLogoutConfirm = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/");
@@ -559,7 +566,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                   </Link>
                   <button
                     className="sd-user-dropdown-link sd-user-logout"
-                    onClick={handleLogout}
+                    onClick={handleLogoutClick}
                     type="button"
                   >
                     <LogOut size={15} />
@@ -711,7 +718,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
             </div>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
             className="sd-side-logout-btn"
             title="Sign Out"
             type="button"
@@ -720,6 +727,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           </button>
         </div>
       </aside>
+
+      <LogoutConfirmationModal 
+        isOpen={showLogoutModal} 
+        onClose={() => setShowLogoutModal(false)} 
+        onConfirm={handleLogoutConfirm} 
+      />
     </>
   );
 };

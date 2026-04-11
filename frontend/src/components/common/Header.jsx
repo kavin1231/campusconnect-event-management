@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Header.css";
 import ThemeToggle from "./ThemeToggle";
+import LogoutConfirmationModal from "./LogoutConfirmationModal";
 
 export default function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [user, setUser] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
   const profileRef = useRef(null);
 
@@ -32,7 +34,12 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    setShowProfileMenu(false);
+  };
+
+  const handleLogoutConfirm = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
@@ -222,7 +229,7 @@ export default function Header() {
                 </div>
                 <div className="profile-menu-divider"></div>
                 <button
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   className="profile-menu-item logout"
                 >
                   <svg
@@ -251,6 +258,11 @@ export default function Header() {
           </Link>
         )}
       </div>
+      <LogoutConfirmationModal 
+        isOpen={showLogoutModal} 
+        onClose={() => setShowLogoutModal(false)} 
+        onConfirm={handleLogoutConfirm} 
+      />
     </nav>
   );
 }

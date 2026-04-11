@@ -123,14 +123,16 @@ export const getEventRequests = async (req, res) => {
 
     let where = {};
 
-    if (!isAdmin && userId) {
-      where.submittedBy = parseInt(userId);
-    } else if (!isAdmin) {
+    if (isAdmin) {
+      if (userId) {
+        where.submittedBy = parseInt(userId);
+      }
+      if (status) {
+        where.status = status;
+      }
+    } else {
       where.submittedBy = req.user?.id;
-    }
-
-    if (status) {
-      where.status = status;
+      where.status = "PENDING";
     }
 
     const requests = await prisma.eventRequest.findMany({

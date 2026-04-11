@@ -773,6 +773,16 @@ export const studySupportAPI = {
   },
 };
 
+// ============================================
+// ANALYTICS ENDPOINTS
+// ============================================
+export const analyticsAPI = {
+  getUserActivity: async () => {
+    const response = await fetchWithAuth("/analytics/user-activity");
+    return response.json();
+  },
+};
+
 export default {
   authAPI,
   dashboardAPI,
@@ -785,4 +795,5 @@ export default {
   groupLinksAPI,
   merchandiseAPI,
   studySupportAPI,
+  analyticsAPI,
 };

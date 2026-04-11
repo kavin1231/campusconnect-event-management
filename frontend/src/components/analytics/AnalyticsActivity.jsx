@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Sidebar from "../common/Sidebar";
-import { logisticsAPI } from "../../services/api";
+import { analyticsAPI } from "../../services/api";
 
 // Hardcoded comprehensive activity data
 const hardcodedActivityData = {
@@ -184,34 +184,55 @@ const ActivityCard = ({ title, value, subtitle, tone, trend, icon }) => {
 
 const AnalyticsActivity = () => {
   const [activity, setActivity] = useState(hardcodedActivityData.statusMetrics);
-  const [recentActivities] = useState(hardcodedActivityData.recentActivities);
-  const [clubActivity] = useState(hardcodedActivityData.clubActivity);
-  const [topUsers] = useState(hardcodedActivityData.topUsers);
-  const [activityTrend] = useState(hardcodedActivityData.activityTrend);
-  const [engagement] = useState(hardcodedActivityData.engagementMetrics);
+  const [recentActivities, setRecentActivities] = useState(
+    hardcodedActivityData.recentActivities,
+  );
+  const [clubActivity, setClubActivity] = useState(
+    hardcodedActivityData.clubActivity,
+  );
+  const [topUsers, setTopUsers] = useState(hardcodedActivityData.topUsers);
+  const [activityTrend, setActivityTrend] = useState(
+    hardcodedActivityData.activityTrend,
+  );
+  const [engagement, setEngagement] = useState(
+    hardcodedActivityData.engagementMetrics,
+  );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
+    const loadAnalytics = async () => {
       try {
-        const response = await logisticsAPI.listRequests();
-        const requests = response?.requests || [];
+        setLoading(true);
+        const response = await analyticsAPI.getUserActivity();
 
-        // Use API data if available, but fallback to hardcoded
-        if (requests && requests.length > 0) {
-          setActivity({
-            pending: requests.filter((r) => r.status === "pending").length,
-            checkedOut: requests.filter((r) => r.status === "checked_out")
-              .length,
-            overdue: requests.filter((r) => r.status === "overdue").length,
-            returned: requests.filter((r) => r.status === "returned").length,
-          });
+        if (response.success && response.data) {
+          const {
+            statusMetrics,
+            recentActivities: activities,
+            topUsers: users,
+            activityTrend: trend,
+            clubActivity: clubs,
+            engagement: eng,
+          } = response.data;
+
+          setActivity(statusMetrics || hardcodedActivityData.statusMetrics);
+          setRecentActivities(
+            activities || hardcodedActivityData.recentActivities,
+          );
+          setTopUsers(users || hardcodedActivityData.topUsers);
+          setActivityTrend(trend || hardcodedActivityData.activityTrend);
+          setClubActivity(clubs || hardcodedActivityData.clubActivity);
+          setEngagement(eng || hardcodedActivityData.engagementMetrics);
         }
       } catch (error) {
         console.error("Failed to load analytics activity:", error);
+        // Keep hardcoded data as fallback
+      } finally {
+        setLoading(false);
       }
     };
 
-    load();
+    loadAnalytics();
   }, []);
 
   return (

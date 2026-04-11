@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import ChatBot from "../common/ChatBot";
 import { dashboardAPI } from "../../services/api";
 import "./Landing.css";
+import LogoutConfirmationModal from "../common/LogoutConfirmationModal";
+import ThemeToggle from "../common/ThemeToggle";
 
 // Footer Component
 const Footer = ({ user }) => (
@@ -114,6 +116,7 @@ const Landing = () => {
   const [featuredEvent, setFeaturedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [registrationLoading, setRegistrationLoading] = useState({});
   const profileRef = useRef(null);
 
@@ -206,12 +209,17 @@ const Landing = () => {
     };
   }, [showProfileMenu]);
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    setShowProfileMenu(false);
+  };
+
+  const handleLogoutConfirm = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setIsLoggedIn(false);
     setUser(null);
-    setShowProfileMenu(false);
+    setShowLogoutModal(false);
   };
 
   // Helper to format date from DB
@@ -242,16 +250,7 @@ const Landing = () => {
             <Link to="/dashboard" className="nav-link">
               Dashboard
             </Link>
-            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
-              <Link to="/logistics" className="nav-link">
-                Logistics
-              </Link>
-            )}
-            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
-              <Link to="/create-events" className="nav-link">
-                Create Events
-              </Link>
-            )}
+
             <a href="#clubs" className="nav-link">
               Clubs
             </a>
@@ -310,6 +309,8 @@ const Landing = () => {
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
           </button>
+          
+          <ThemeToggle />
 
           {isLoggedIn ? (
             <div className="profile-container" ref={profileRef}>
@@ -403,7 +404,7 @@ const Landing = () => {
                   </div>
                   <div className="profile-menu-divider"></div>
                   <button
-                    onClick={handleLogout}
+                  onClick={handleLogoutClick}
                     className="profile-menu-item logout"
                   >
                     <svg
@@ -700,21 +701,6 @@ const Landing = () => {
                             <span>{event.registeredCount} Joined</span>
                           </div>
                         </div>
-                        {event.averageRating !== undefined && (
-                          <div className="card-rating">
-                            <span className="rating-stars">
-                              ★{" "}
-                              <span className="rating-value">
-                                {event.averageRating > 0
-                                  ? event.averageRating
-                                  : "N/A"}
-                              </span>
-                            </span>
-                            <span className="rating-count">
-                              ({event.totalReviews || 0} reviews)
-                            </span>
-                          </div>
-                        )}
                         <div className="card-footer">
                           <button
                             onClick={(e) => handleRegisterEvent(e, event.id)}
@@ -776,6 +762,11 @@ const Landing = () => {
       {isLoggedIn && <ChatBot />}
 
       <Footer user={user} />
+      <LogoutConfirmationModal 
+        isOpen={showLogoutModal} 
+        onClose={() => setShowLogoutModal(false)} 
+        onConfirm={handleLogoutConfirm} 
+      />
     </div>
   );
 };

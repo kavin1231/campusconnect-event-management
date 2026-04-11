@@ -23,6 +23,7 @@ const emptyForm = {
   name: "",
   companyName: "",
   serviceCategory: "",
+  vendorFee: "",
   contactName: "",
   contactPhone: "",
   contactEmail: "",
@@ -38,6 +39,7 @@ const MOCK_VENDORS = [
     name: "Ceylon Bites",
     companyName: "Ceylon Foods Pvt Ltd",
     serviceCategory: "Food & Beverage",
+    vendorFee: 120000,
     contactName: "Nimal Perera",
     contactPhone: "+94 77 123 4567",
     contactEmail: "nimal@ceylonbites.lk",
@@ -50,6 +52,7 @@ const MOCK_VENDORS = [
     name: "Pixel Print",
     companyName: "Pixel Print Studio",
     serviceCategory: "Art & Crafts",
+    vendorFee: 85000,
     contactName: "Suresh Silva",
     contactPhone: "+94 70 222 7788",
     contactEmail: "hello@pixelprint.lk",
@@ -62,6 +65,7 @@ const MOCK_VENDORS = [
     name: "Byte Mart",
     companyName: "Byte Mart Solutions",
     serviceCategory: "Technology",
+    vendorFee: 70000,
     contactName: "Ayesha Khan",
     contactPhone: "+94 71 889 3322",
     contactEmail: "sales@bytemart.lk",
@@ -170,7 +174,14 @@ const VendorManagement = () => {
     try {
       const data = await governanceAPI.listEvents();
       if (data.success) {
-        setEvents(data.events?.length ? data.events : MOCK_EVENTS);
+        const normalizedEvents = (data.events || [])
+          .map((event) => ({
+            id: event.id ?? event.eventId,
+            title: event.title || event.eventName,
+          }))
+          .filter((event) => event.id && event.title);
+
+        setEvents(normalizedEvents.length ? normalizedEvents : MOCK_EVENTS);
       } else {
         setEvents(MOCK_EVENTS);
       }
@@ -233,6 +244,10 @@ const VendorManagement = () => {
       contactName: vendor.contactName || "",
       contactPhone: vendor.contactPhone || "",
       contactEmail: vendor.contactEmail || "",
+      vendorFee:
+        vendor.vendorFee !== undefined && vendor.vendorFee !== null
+          ? String(vendor.vendorFee)
+          : "",
       address: vendor.address || "",
       status: (vendor.status || "ACTIVE").toUpperCase(),
       eventId: vendor.eventStallAllocations?.[0]?.event?.id
@@ -273,6 +288,11 @@ const VendorManagement = () => {
       nextErrors.contactPhone = "Enter a valid phone number";
     }
 
+    const fee = Number(formValues.vendorFee);
+    if (Number.isNaN(fee) || fee < 0) {
+      nextErrors.vendorFee = "Vendor fee must be a non-negative number";
+    }
+
     if (formValues.eventId && formValues.stallId) {
       const selected = availableStalls.find(
         (stall) => String(stall.id) === String(formValues.stallId),
@@ -288,7 +308,18 @@ const VendorManagement = () => {
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target;
-    setFormValues((current) => ({ ...current, [name]: value }));
+    setFormValues((current) => {
+      if (name === "eventId") {
+        return {
+          ...current,
+          eventId: value,
+          // Prevent stale selection from previous event and force fresh stall choices.
+          stallId: "",
+        };
+      }
+
+      return { ...current, [name]: value };
+    });
     setFormErrors((current) => ({ ...current, [name]: undefined }));
   };
 
@@ -304,6 +335,7 @@ const VendorManagement = () => {
       const payload = {
         ...formValues,
         status: formValues.status.toUpperCase(),
+        vendorFee: Number(formValues.vendorFee || 0),
         eventId: formValues.eventId ? Number(formValues.eventId) : undefined,
         stallId: formValues.stallId ? Number(formValues.stallId) : undefined,
       };

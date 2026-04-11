@@ -32,6 +32,8 @@ import {
   EventApproval,
   PresidentApplicationManagement,
   PresidentRegistrationForm,
+  PresidentFinanceDashboard,
+  FinanceEntryManagement,
   StudentNotifications,
   VendorManagement as GovernanceVendorManagement,
   StallAllocation,
@@ -342,6 +344,24 @@ function App() {
           element={
             <ProtectedRoute
               element={StallAllocation}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/finance"
+          element={
+            <ProtectedRoute
+              element={PresidentFinanceDashboard}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/finance/entries"
+          element={
+            <ProtectedRoute
+              element={FinanceEntryManagement}
               allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
             />
           }

@@ -449,6 +449,52 @@ export const governanceAPI = {
     });
     return response.json();
   },
+
+  getFinanceDashboard: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.eventId && params.eventId !== "ALL") {
+      query.set("eventId", params.eventId);
+    }
+
+    const response = await fetchWithAuth(
+      `/president/finance/dashboard${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  listFinanceRecords: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.type && params.type !== "ALL") query.set("type", params.type);
+    if (params.search) query.set("search", params.search);
+
+    const response = await fetchWithAuth(
+      `/president/finance/records${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  createFinanceRecord: async (payload) => {
+    const response = await fetchWithAuth("/president/finance/records", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  updateFinanceRecord: async (id, payload) => {
+    const response = await fetchWithAuth(`/president/finance/records/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  deleteFinanceRecord: async (id) => {
+    const response = await fetchWithAuth(`/president/finance/records/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
 };
 
 // ============================================

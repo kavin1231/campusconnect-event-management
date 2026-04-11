@@ -50,6 +50,7 @@ const VendorTable = ({ vendors, loading, onEdit, onDelete }) => {
                 <th className="px-6 py-4 font-semibold">Vendor</th>
                 <th className="px-6 py-4 font-semibold">Company</th>
                 <th className="px-6 py-4 font-semibold">Service</th>
+                <th className="px-6 py-4 font-semibold">Vendor Fee</th>
                 <th className="px-6 py-4 font-semibold">Contact</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
@@ -73,6 +74,7 @@ const VendorTable = ({ vendors, loading, onEdit, onDelete }) => {
                   </td>
                   <td className="px-6 py-4">{vendor.companyName}</td>
                   <td className="px-6 py-4">{vendor.serviceCategory}</td>
+                  <td className="px-6 py-4">LKR {Number(vendor.vendorFee || 0).toLocaleString()}</td>
                   <td className="px-6 py-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -143,6 +145,7 @@ const VendorTable = ({ vendors, loading, onEdit, onDelete }) => {
 
             <div className="mt-4 space-y-3 text-sm" style={{ color: "var(--text-main)" }}>
               <Line icon={<Building2 size={14} />} label="Service" value={vendor.serviceCategory} />
+              <Line icon={<Building2 size={14} />} label="Vendor Fee" value={`LKR ${Number(vendor.vendorFee || 0).toLocaleString()}`} />
               <Line icon={<Phone size={14} />} label="Contact" value={vendor.contactName} />
               <Line icon={<Mail size={14} />} label="Email" value={vendor.contactEmail || "-"} />
               <Line icon={<MapPin size={14} />} label="Address" value={vendor.address} />

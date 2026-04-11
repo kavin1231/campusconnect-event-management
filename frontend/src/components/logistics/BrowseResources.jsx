@@ -897,120 +897,124 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => {
   };
 
   return (
-    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.2 }}
-  >
     <motion.div
-      className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-8"
-      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 14, scale: 0.98 }}
-      transition={{ duration: 0.24, ease: "easeOut" }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
     >
-      <h2 className="text-2xl font-bold text-white mb-2">Request Resource</h2>
-      <p className="text-gray-400 mb-6">
-        {asset.name} from{" "}
-        {asset.owner?.name || asset.owningClub?.name || asset.club || "Unknown"}
-      </p>
+      <motion.div
+        className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-8"
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 14, scale: 0.98 }}
+        transition={{ duration: 0.24, ease: "easeOut" }}
+      >
+        <h2 className="text-2xl font-bold text-white mb-2">Request Resource</h2>
+        <p className="text-gray-400 mb-6">
+          {asset.name} from{" "}
+          {asset.owner?.name ||
+            asset.owningClub?.name ||
+            asset.club ||
+            "Unknown"}
+        </p>
 
-      {validationError && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-          <p className="text-red-300 text-sm">⚠️ {validationError}</p>
+        {validationError && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+            <p className="text-red-300 text-sm">⚠️ {validationError}</p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">
+              Quantity *
+            </label>
+            <input
+              type="number"
+              min="1"
+              max={asset.availableQty || asset.available || 1}
+              value={form.quantity}
+              onChange={(e) =>
+                setForm({ ...form, quantity: parseInt(e.target.value) || 1 })
+              }
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-emerald-500 outline-none transition"
+            />
+            <p className="text-gray-400 text-xs mt-1">
+              Max available: {asset.availableQty || asset.available || 0}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">
+              Needed Date *
+            </label>
+            <input
+              type="date"
+              value={form.neededDate}
+              onChange={(e) => setForm({ ...form, neededDate: e.target.value })}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-emerald-500 outline-none transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">
+              Return Date *
+            </label>
+            <input
+              type="date"
+              value={form.returnDate}
+              onChange={(e) => setForm({ ...form, returnDate: e.target.value })}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-emerald-500 outline-none transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">
+              Purpose
+            </label>
+            <textarea
+              placeholder="Describe how you'll use this resource..."
+              value={form.purpose}
+              onChange={(e) => setForm({ ...form, purpose: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-emerald-500 outline-none transition resize-none"
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">
+              Contact Info *
+            </label>
+            <input
+              type="text"
+              placeholder="Your phone or email"
+              value={form.contact}
+              onChange={(e) => setForm({ ...form, contact: e.target.value })}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-emerald-500 outline-none transition"
+            />
+          </div>
         </div>
-      )}
 
-      <div className="space-y-4">
-        <div>
-          <label className="block text-gray-300 font-medium mb-2">
-            Quantity *
-          </label>
-          <input
-            type="number"
-            min="1"
-            max={asset.availableQty || asset.available || 1}
-            value={form.quantity}
-            onChange={(e) =>
-              setForm({ ...form, quantity: parseInt(e.target.value) || 1 })
-            }
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-emerald-500 outline-none transition"
-          />
-          <p className="text-gray-400 text-xs mt-1">
-            Max available: {asset.availableQty || asset.available || 0}
-          </p>
+        <div className="flex gap-3 mt-8">
+          <motion.button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
+            whileTap={{ scale: 0.98 }}
+          >
+            Cancel
+          </motion.button>
+          <motion.button
+            onClick={handleSubmit}
+            className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition"
+            whileTap={{ scale: 0.98 }}
+          >
+            Submit Request
+          </motion.button>
         </div>
-
-        <div>
-          <label className="block text-gray-300 font-medium mb-2">
-            Needed Date *
-          </label>
-          <input
-            type="date"
-            value={form.neededDate}
-            onChange={(e) => setForm({ ...form, neededDate: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-emerald-500 outline-none transition"
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 font-medium mb-2">
-            Return Date *
-          </label>
-          <input
-            type="date"
-            value={form.returnDate}
-            onChange={(e) => setForm({ ...form, returnDate: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-emerald-500 outline-none transition"
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 font-medium mb-2">
-            Purpose
-          </label>
-          <textarea
-            placeholder="Describe how you'll use this resource..."
-            value={form.purpose}
-            onChange={(e) => setForm({ ...form, purpose: e.target.value })}
-            rows={3}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-emerald-500 outline-none transition resize-none"
-          ></textarea>
-        </div>
-
-        <div>
-          <label className="block text-gray-300 font-medium mb-2">
-            Contact Info *
-          </label>
-          <input
-            type="text"
-            placeholder="Your phone or email"
-            value={form.contact}
-            onChange={(e) => setForm({ ...form, contact: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-emerald-500 outline-none transition"
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-3 mt-8">
-        <motion.button
-          onClick={onClose}
-          className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
-          whileTap={{ scale: 0.98 }}
-        >
-          Cancel
-        </motion.button>
-        <motion.button
-          onClick={handleSubmit}
-          className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition"
-          whileTap={{ scale: 0.98 }}
-        >
-          Submit Request
-        </motion.button>
-      </div>
+      </motion.div>
     </motion.div>
-  </motion.div>
   );
 };
 

@@ -6,8 +6,8 @@ class AnalyticsController {
    */
   static async getUserActivity(req, res) {
     try {
-      // Fetch logistics requests for activity metrics
-      const requests = await prisma.logistics_Requests.findMany({
+      // Fetch asset bookings for activity metrics
+      const bookings = await prisma.assetBooking.findMany({
         include: {
           requestedBy: true,
           asset: true,
@@ -20,35 +20,35 @@ class AnalyticsController {
 
       // Status metrics
       const statusMetrics = {
-        pending: requests.filter((r) => r.status === "pending").length,
-        checkedOut: requests.filter((r) => r.status === "checked_out").length,
-        overdue: requests.filter((r) => r.status === "overdue").length,
-        returned: requests.filter((r) => r.status === "returned").length,
+        pending: bookings.filter((b) => b.status === "pending").length,
+        checkedOut: bookings.filter((b) => b.status === "checked_out").length,
+        overdue: bookings.filter((b) => b.status === "overdue").length,
+        returned: bookings.filter((b) => b.status === "returned").length,
       };
 
       // Recent activities (transform to activity format)
-      const recentActivities = requests.slice(0, 12).map((req, idx) => ({
-        id: req.id,
-        user: req.requestedBy?.name || "Unknown User",
-        club: req.requestedBy?.club || "Unknown Club",
+      const recentActivities = bookings.slice(0, 12).map((booking, idx) => ({
+        id: booking.id,
+        user: booking.requestedBy?.name || "Unknown User",
+        club: booking.requestedBy?.club || "Unknown Club",
         action:
           {
             pending: "Requested",
             checked_out: "Checked Out",
             returned: "Returned",
             overdue: "Overdue",
-          }[req.status] || "Updated",
-        asset: req.asset?.name || "Unknown Asset",
-        time: time_ago(new Date(req.createdAt)),
-        timestamp: getTimestampMinutesAgo(new Date(req.createdAt)),
+          }[booking.status] || "Updated",
+        asset: booking.asset?.name || "Unknown Asset",
+        time: time_ago(new Date(booking.createdAt)),
+        timestamp: getTimestampMinutesAgo(new Date(booking.createdAt)),
         icon:
           {
             pending: "📝",
             checked_out: "🔄",
             returned: "✓",
             overdue: "⚠️",
-          }[req.status] || "📋",
-        status: req.status,
+          }[booking.status] || "📋",
+        status: booking.status,
       }));
 
       // Fetch all users for engagement metrics
@@ -56,10 +56,10 @@ class AnalyticsController {
         select: { id: true, name: true, role: true, createdAt: true },
       });
 
-      // Top active users (based on request count)
+      // Top active users (based on booking count)
       const userActivityCounts = {};
-      requests.forEach((req) => {
-        const userId = req.requestedBy?.id;
+      bookings.forEach((booking) => {
+        const userId = booking.requestedBy?.id;
         if (userId) {
           userActivityCounts[userId] = (userActivityCounts[userId] || 0) + 1;
         }
@@ -69,8 +69,8 @@ class AnalyticsController {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .map(([userId, count]) => {
-          const user = requests.find(
-            (r) => r.requestedBy?.id === userId,
+          const user = bookings.find(
+            (b) => b.requestedBy?.id === userId,
           )?.requestedBy;
           return {
             name: user?.name || "Unknown",
@@ -81,12 +81,12 @@ class AnalyticsController {
         });
 
       // Activity trend (hourly - last 7 hours)
-      const activityTrend = generateActivityTrend(requests);
+      const activityTrend = generateActivityTrend(bookings);
 
       // Club activity
       const clubActivityData = {};
-      requests.forEach((req) => {
-        const club = req.requestedBy?.club || "Other";
+      bookings.forEach((booking) => {
+        const club = booking.requestedBy?.club || "Other";
         clubActivityData[club] = (clubActivityData[club] || 0) + 1;
       });
 
@@ -103,29 +103,29 @@ class AnalyticsController {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const requestsToday = requests.filter(
-        (r) => new Date(r.createdAt) >= todayStart,
+      const bookingsToday = bookings.filter(
+        (b) => new Date(b.createdAt) >= todayStart,
       ).length;
 
       const activeToday = [
         ...new Set(
-          requests
-            .filter((r) => new Date(r.createdAt) >= todayStart)
-            .map((r) => r.requestedBy?.id),
+          bookings
+            .filter((b) => new Date(b.createdAt) >= todayStart)
+            .map((b) => b.requestedBy?.id),
         ),
       ].length;
 
       const engagement = {
         totalUsers: users.length,
         activeToday,
-        requestsToday,
+        requestsToday: bookingsToday,
         averageRequestsPerUser:
-          users.length > 0 ? (requests.length / users.length).toFixed(1) : 0,
+          users.length > 0 ? (bookings.length / users.length).toFixed(1) : 0,
         averageReturnRate:
-          requests.length > 0
+          bookings.length > 0
             ? (
-                (requests.filter((r) => r.status === "returned").length /
-                  requests.length) *
+                (bookings.filter((b) => b.status === "returned").length /
+                  bookings.length) *
                 100
               ).toFixed(1)
             : 0,
@@ -175,7 +175,7 @@ function getTimestampMinutesAgo(date) {
 /**
  * Helper: Generate activity trend data
  */
-function generateActivityTrend(requests) {
+function generateActivityTrend(bookings) {
   const hours = [];
   for (let i = 6; i >= 0; i--) {
     const hour = new Date();
@@ -185,8 +185,8 @@ function generateActivityTrend(requests) {
     const nextHour = new Date(hour);
     nextHour.setHours(nextHour.getHours() + 1);
 
-    const hourRequests = requests.filter(
-      (r) => new Date(r.createdAt) >= hour && new Date(r.createdAt) < nextHour,
+    const hourBookings = bookings.filter(
+      (b) => new Date(b.createdAt) >= hour && new Date(b.createdAt) < nextHour,
     );
 
     hours.push({
@@ -194,10 +194,10 @@ function generateActivityTrend(requests) {
         hour: "numeric",
         hour12: true,
       }),
-      pending: hourRequests.filter((r) => r.status === "pending").length,
-      checkedOut: hourRequests.filter((r) => r.status === "checked_out").length,
-      overdue: hourRequests.filter((r) => r.status === "overdue").length,
-      returned: hourRequests.filter((r) => r.status === "returned").length,
+      pending: hourBookings.filter((b) => b.status === "pending").length,
+      checkedOut: hourBookings.filter((b) => b.status === "checked_out").length,
+      overdue: hourBookings.filter((b) => b.status === "overdue").length,
+      returned: hourBookings.filter((b) => b.status === "returned").length,
     });
   }
 
@@ -220,7 +220,7 @@ function getClubIcon(clubName) {
   };
 
   for (const [key, icon] of Object.entries(icons)) {
-    if (clubName.toLowerCase().includes(key)) return icon;
+    if (clubName?.toLowerCase().includes(key)) return icon;
   }
 
   return "📊";

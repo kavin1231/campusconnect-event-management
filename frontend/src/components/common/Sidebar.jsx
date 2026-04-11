@@ -731,10 +731,10 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         </div>
       </aside>
 
-      <LogoutConfirmationModal 
-        isOpen={showLogoutModal} 
-        onClose={() => setShowLogoutModal(false)} 
-        onConfirm={handleLogoutConfirm} 
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogoutConfirm}
       />
     </>
   );

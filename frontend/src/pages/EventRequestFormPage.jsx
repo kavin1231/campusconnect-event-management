@@ -1,9 +1,11 @@
 import { useState } from "react";
+import Sidebar from "../components/common/Sidebar";
 import { C, FONT } from "../constants/colors";
 import { Icon } from "../components/common/Icon";
 import { Lbl, Inp, Txta, Sel, Pills, SecHead, InfoBox, InnerCard, Toggle, Btn, Grid2 } from "../components/common/Primitives";
 import { EVENT_TYPES, PURPOSES, AUDIENCES, VENUES_LIST, FUND_SOURCES, FORM_STEPS, VENUE_DATA, EVENTS_BY_DAY, FACULTIES, ORGANIZING_BODIES } from "../constants/staticData";
 import { checkVenueConflict, getVenueStatus } from "../utils/helpers";
+import { eventRequestAPI } from "../services/api";
 
 function Step1({ d, set }) {
   const wc = d.purpose_desc ? d.purpose_desc.trim().split(/\s+/).filter(Boolean).length : 0;
@@ -250,15 +252,91 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
   const [s5, setS5] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [anim, setAnim] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const TOTAL = 6;
 
   const goTo = n => { setAnim(true); setTimeout(() => { setStep(n); setAnim(false); }, 180); };
+
+  const handleSubmit = async () => {
+    if (!s5.declaration) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Prepare data payload matching backend schema
+      const payload = {
+        // Step 1: Basic Event Information
+        title: s1.title,
+        eventType: s1.event_type,
+        eventTypeOther: s1.event_type_other || null,
+        purposeTag: s1.purpose_tag,
+        purposeDescription: s1.purpose_desc,
+        eventDate: s1.date,
+        startTime: s1.start_time,
+        endTime: s1.end_time,
+        setupTime: s1.setup_time,
+        teardownTime: s1.teardown_time,
+        audience: s1.audience,
+        
+        // Step 2: Organizer Details
+        organizingBody: s2.org_name,
+        contactName: s2.contact_name,
+        contactId: s2.contact_id,
+        contactPhone: s2.contact_phone,
+        contactEmail: s2.contact_email,
+        supervisorName: s2.supervisor_name,
+        supervisorDepartment: s2.supervisor_dept,
+        supervisorPhone: s2.supervisor_phone,
+        
+        // Step 3: Venue & Logistics
+        venue: s3.venue,
+        expectedAttendance: parseInt(s3.attendance) || 0,
+        seatingArrangement: s3.seating || "General Seating",
+        parkingRequired: s3.parking || false,
+        
+        // Step 4: Financials
+        estimatedBudget: parseInt(s4.budget) || 0,
+        budgetBreakdown: s4.budget_breakdown || "",
+        sponsorshipDetails: s4.sponsor_details || "",
+        fundSource: Array.isArray(s4.fund_source) ? s4.fund_source : [s4.fund_source].filter(Boolean),
+        
+        // Step 5: Risk Management & Safety
+        riskAssessment: s5.security_plan || "",
+        safetyMeasures: s5.security || "",
+        emergencyPlan: s5.food_vendors || "",
+        contingency: s5.has_food ? "Food vendor permits required" : "",
+      };
+      
+      const response = await eventRequestAPI.submitEventRequest(payload);
+      
+      if (response.success) {
+        setSubmitted(true);
+      } else {
+        setError(response.message || "Failed to submit request. Please try again.");
+      }
+    } catch (err) {
+      setError(err.message || "An error occurred while submitting your request.");
+      console.error("Submission error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const titles = ["Basic Event Information","Organizer Details","Venue & Logistics","Financials & Sponsorship","Risk Management & Safety","Review & Submit"];
   const badges = ["BASIC EVENT INFO","ORGANIZER DETAILS","VENUE & LOGISTICS","FINANCIALS","RISK & SAFETY","FINAL REVIEW"];
   const pct = Math.round(((step - 1) / TOTAL) * 100);
 
-  if (submitted) return (
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      window.history.back();
+    }
+  };
+
+  const pageContent = submitted ? (
     <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", padding:"40px 24px" }}>
       <div style={{ textAlign:"center", maxWidth:"460px" }}>
         <div style={{ width:"80px", height:"80px", borderRadius:"50%", background:C.primaryLight, border:`2px solid ${C.primary}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", color:C.primary }}><Icon.Check /></div>
@@ -267,41 +345,54 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
         <div style={{ background:C.tertiary, border:`1px solid ${C.terDark}`, borderRadius:"10px", padding:"14px 18px", fontSize:"13px", color:"#7A6200", marginBottom:"28px", textAlign:"left", lineHeight:1.6, fontFamily:FONT }}><strong>3–5 working days.</strong> Check your university email for updates.</div>
         <div style={{ display:"flex", gap:"12px", justifyContent:"center" }}>
           <Btn onClick={() => { setSubmitted(false); setStep(1); setS1({}); setS2({}); setS3({}); setS4({}); setS5({}); }}>+ Submit Another</Btn>
-          <Btn variant="outline" onClick={onBack}>← Dashboard</Btn>
+          <Btn variant="outline" onClick={handleBack}>← Dashboard</Btn>
         </div>
       </div>
     </div>
-  );
-
-  return (
+  ) : (
     <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
-      {/* Hero */}
-      <div style={{ background:`linear-gradient(135deg, ${C.primary} 0%, #0a4f96 100%)`, padding:"28px 40px", flexShrink:0, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:"-40px", right:"-40px", width:"200px", height:"200px", borderRadius:"50%", background:"rgba(255,255,255,.04)" }} />
-        <div style={{ display:"flex", alignItems:"center", gap:"6px", marginBottom:"10px" }}>
-          {["Dashboard","Events","Request Permission"].map((b, i) => (
-            <span key={b} style={{ fontSize:"12px", fontFamily:FONT, color:i===2?C.secondary:"rgba(255,255,255,.45)", fontWeight:i===2?"600":"400" }}>
-              {i>0 && <span style={{ marginRight:"6px", color:"rgba(255,255,255,.3)" }}>›</span>}{b}
-            </span>
-          ))}
-        </div>
-        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", flexWrap:"wrap", gap:"16px" }}>
-          <div>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:"8px", background:"rgba(255,113,0,.18)", border:"1px solid rgba(255,113,0,.35)", borderRadius:"100px", padding:"4px 14px", marginBottom:"10px" }}>
-              <span style={{ width:"6px", height:"6px", borderRadius:"50%", background:C.secondary, display:"block" }} />
-              <span style={{ fontSize:"10px", fontWeight:"700", color:C.secondary, fontFamily:FONT, letterSpacing:"0.1em", textTransform:"uppercase" }}>{badges[step-1]}</span>
+      <div style={{ width:"100%", maxWidth:"1320px", margin:"0 auto", padding:"0 40px" }}>
+        {/* Organizer Dashboard Header */}
+        <div
+          className="rounded-3xl border p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
+          style={{
+            borderColor: "var(--border-color)",
+            background: "linear-gradient(to right, rgba(255, 107, 53, 0.05), var(--bg-nav))",
+          }}
+        >
+          <div className="flex justify-between items-start gap-4">
+            <div>
+              <p
+                className="text-xs tracking-[0.18em] uppercase mb-2"
+                style={{ color: "var(--primary-accent)", opacity: 0.8 }}
+              >
+                Organizer Workspace
+              </p>
+              <h1
+                className="text-3xl md:text-4xl font-black mb-2"
+                style={{ color: "var(--text-main)" }}
+              >
+                Event Permission Request
+              </h1>
+              <p
+                className="max-w-2xl"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Submit and track event permission requests. Follow the steps below to get approval for your event.
+              </p>
             </div>
-            <h1 style={{ fontSize:"26px", fontWeight:"800", color:C.white, margin:"0 0 6px", lineHeight:1.2, fontFamily:FONT, letterSpacing:"-0.02em" }}>{titles[step-1]}</h1>
-          </div>
-          <div style={{ background:"rgba(255,255,255,.08)", border:"1px solid rgba(255,255,255,.12)", borderRadius:"14px", padding:"16px 22px", textAlign:"center", minWidth:"120px" }}>
-            <div style={{ fontSize:"30px", fontWeight:"800", color:C.white, fontFamily:FONT, lineHeight:1 }}>{pct}%</div>
-            <div style={{ fontSize:"10px", color:"rgba(255,255,255,.5)", fontFamily:FONT, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:"4px" }}>Complete</div>
           </div>
         </div>
       </div>
 
-      <div style={{ flex:1, overflowY:"auto", padding:"28px 40px" }}>
+      <div style={{ flex:1, overflowY:"auto", padding:"24px 40px 28px" }}>
         <div style={{ maxWidth:"760px", margin:"0 auto" }}>
+          {error && (
+            <div style={{ background:C.secLight, border:`1.5px solid rgba(255,113,0,.4)`, borderRadius:"10px", padding:"14px 16px", marginBottom:"20px", display:"flex", alignItems:"center", gap:"12px" }}>
+              <span style={{ color:C.secondary, display:"flex", fontSize:"20px" }}>⚠</span>
+              <span style={{ fontSize:"13px", color:"#7A3300", fontFamily:FONT }}>{error}</span>
+            </div>
+          )}
           <div style={{ background:C.white, borderRadius:"16px", padding:"36px", border:`1px solid ${C.border}`, boxShadow:"0 4px 24px rgba(5,54,104,.07)", opacity:anim?0:1, transform:anim?"translateY(8px)":"translateY(0)", transition:"opacity .18s, transform .18s" }}>
             {step===1 && <Step1 d={s1} set={setS1} />}
             {step===2 && <Step2 d={s2} set={setS2} />}
@@ -322,7 +413,23 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
         </div>
         {step<5  && <Btn onClick={() => goTo(step+1)}>Next →</Btn>}
         {step===5 && <Btn onClick={() => goTo(6)}>Review Request →</Btn>}
-        {step===6 && <Btn variant={s5.declaration?"secondary":"disabled"} disabled={!s5.declaration} onClick={() => s5.declaration && setSubmitted(true)}><span style={{display:"flex",alignItems:"center",gap:"7px"}}><Icon.Review /> Submit Request</span></Btn>}
+        {step===6 && <Btn variant={s5.declaration?"secondary":"disabled"} disabled={!s5.declaration || isLoading} onClick={handleSubmit}><span style={{display:"flex",alignItems:"center",gap:"7px"}}><Icon.Review /> {isLoading ? "Submitting..." : "Submit Request"}</span></Btn>}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", height: "100vh", width: "100%", backgroundColor: C.bg }}>
+      <Sidebar activePage="create-events" isAdmin={true} />
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {pageContent}
       </div>
     </div>
   );

@@ -324,7 +324,8 @@ export const governanceAPI = {
   listVendors: async (params = {}) => {
     const query = new URLSearchParams();
     if (params.search) query.set("search", params.search);
-    if (params.status && params.status !== "ALL") query.set("status", params.status);
+    if (params.status && params.status !== "ALL")
+      query.set("status", params.status);
     if (params.serviceCategory && params.serviceCategory !== "ALL") {
       query.set("serviceCategory", params.serviceCategory);
     }
@@ -362,7 +363,8 @@ export const governanceAPI = {
     const query = new URLSearchParams();
     if (params.eventId) query.set("eventId", params.eventId);
     if (params.search) query.set("search", params.search);
-    if (params.status && params.status !== "ALL") query.set("status", params.status);
+    if (params.status && params.status !== "ALL")
+      query.set("status", params.status);
     if (params.serviceCategory && params.serviceCategory !== "ALL") {
       query.set("serviceCategory", params.serviceCategory);
     }
@@ -378,7 +380,9 @@ export const governanceAPI = {
     if (eventId) query.set("eventId", eventId);
     if (vendorId) query.set("vendorId", vendorId);
 
-    const response = await fetchWithAuth(`/president/stalls/available?${query.toString()}`);
+    const response = await fetchWithAuth(
+      `/president/stalls/available?${query.toString()}`,
+    );
     return response.json();
   },
 
@@ -399,9 +403,12 @@ export const governanceAPI = {
   },
 
   releaseStall: async (stallId) => {
-    const response = await fetchWithAuth(`/president/stalls/${stallId}/release`, {
-      method: "PATCH",
-    });
+    const response = await fetchWithAuth(
+      `/president/stalls/${stallId}/release`,
+      {
+        method: "PATCH",
+      },
+    );
     return response.json();
   },
 
@@ -409,17 +416,23 @@ export const governanceAPI = {
     const query = new URLSearchParams();
     if (eventId) query.set("eventId", eventId);
 
-    const response = await fetchWithAuth(`/president/stalls/map?${query.toString()}`);
+    const response = await fetchWithAuth(
+      `/president/stalls/map?${query.toString()}`,
+    );
     return response.json();
   },
 
   listSponsorships: async (params = {}) => {
     const query = new URLSearchParams();
     if (params.search) query.set("search", params.search);
-    if (params.eventId && params.eventId !== "ALL") query.set("eventId", params.eventId);
-    if (params.sponsorTier && params.sponsorTier !== "ALL") query.set("sponsorTier", params.sponsorTier);
-    if (params.paymentStatus && params.paymentStatus !== "ALL") query.set("paymentStatus", params.paymentStatus);
-    if (params.status && params.status !== "ALL") query.set("status", params.status);
+    if (params.eventId && params.eventId !== "ALL")
+      query.set("eventId", params.eventId);
+    if (params.sponsorTier && params.sponsorTier !== "ALL")
+      query.set("sponsorTier", params.sponsorTier);
+    if (params.paymentStatus && params.paymentStatus !== "ALL")
+      query.set("paymentStatus", params.paymentStatus);
+    if (params.status && params.status !== "ALL")
+      query.set("status", params.status);
 
     const response = await fetchWithAuth(
       `/president/sponsorships${query.toString() ? `?${query.toString()}` : ""}`,
@@ -598,18 +611,107 @@ export const groupLinksAPI = {
   },
 };
 
+// ============================================
+// EVENT REQUEST ENDPOINTS
+// ============================================
+export const eventRequestAPI = {
+  submitEventRequest: async (requestData) => {
+    const response = await fetchWithAuth("/event-requests", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+    });
+    return response.json();
+  },
+
+  getMyEventRequests: async () => {
+    const response = await fetchWithAuth("/event-requests");
+    return response.json();
+  },
+
+  getEventRequestById: async (id) => {
+    const response = await fetchWithAuth(`/event-requests/${id}`);
+    return response.json();
+  },
+
+  getAllEventRequests: async (filters = {}) => {
+    const params = new URLSearchParams(filters);
+    const response = await fetchWithAuth(`/event-requests?${params}`);
+    return response.json();
+  },
+
+  updateEventRequestStatus: async (id, statusData) => {
+    const response = await fetchWithAuth(`/event-requests/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify(statusData),
+    });
+    return response.json();
+  },
+
+  deleteEventRequest: async (id) => {
+    const response = await fetchWithAuth(`/event-requests/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
+
+  getEventRequestStats: async () => {
+    const response = await fetchWithAuth("/event-requests/stats");
+    return response.json();
+  },
+};
+
+// ============================================
+// MERCHANDISE ENDPOINTS
+// ============================================
+export const merchandiseAPI = {
+  getProducts: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(
+      `/merchandise/products${query ? `?${query}` : ""}`,
+    );
+    return response.json();
+  },
+
+  createProduct: async (productData) => {
+    const response = await fetchWithAuth("/merchandise/products", {
+      method: "POST",
+      body: JSON.stringify(productData),
+    });
+    return response.json();
+  },
+
+  updateProduct: async (id, productData) => {
+    const response = await fetchWithAuth(`/merchandise/products/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(productData),
+    });
+    return response.json();
+  },
+
+  deleteProduct: async (id) => {
+    const response = await fetchWithAuth(`/merchandise/products/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
+};
+
 // STUDY SUPPORT ENDPOINTS
 // ============================================
 export const studySupportAPI = {
   getMaterials: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const response = await fetchWithAuth(`/study-support/materials${query ? `?${query}` : ''}`);
+    const response = await fetchWithAuth(
+      `/study-support/materials${query ? `?${query}` : ""}`,
+    );
     return response.json();
   },
 
   getSessions: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const response = await fetchWithAuth(`/study-support/sessions${query ? `?${query}` : ''}`);
+    const response = await fetchWithAuth(
+      `/study-support/sessions${query ? `?${query}` : ""}`,
+    );
     return response.json();
   },
 };
@@ -624,5 +726,6 @@ export default {
   operationsAPI,
   sportsAPI,
   groupLinksAPI,
+  merchandiseAPI,
   studySupportAPI,
 };

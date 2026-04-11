@@ -246,26 +246,26 @@ const ResourceRequest = () => {
         contact: requestForm.contact,
       });
 
-        if (response.success) {
-          setShowRequestModal(false);
-          setRequestForm({
-            quantity: 1,
-            neededDate: "",
-            returnDate: "",
-            purpose: "",
-            contact: "",
-          });
-          setSelectedAsset(null);
-          setErrorMsg("");
-          showToast("Request submitted successfully.", "success");
-          fetchAvailableAssets();
-        } else {
-          showToast(response.message || "Failed to submit request.", "error");
-        }
-      } catch (error) {
-        console.error("Failed to submit request:", error);
-        showToast("Failed to submit request.", "error");
+      if (response.success) {
+        setShowRequestModal(false);
+        setRequestForm({
+          quantity: 1,
+          neededDate: "",
+          returnDate: "",
+          purpose: "",
+          contact: "",
+        });
+        setSelectedAsset(null);
+        setErrorMsg("");
+        showToast("Request submitted successfully.", "success");
+        fetchAvailableAssets();
+      } else {
+        showToast(response.message || "Failed to submit request.", "error");
       }
+    } catch (error) {
+      console.error("Failed to submit request:", error);
+      showToast("Failed to submit request.", "error");
+    }
   };
 
   return (
@@ -778,8 +778,37 @@ const RequestDetail = ({ label, value }) => (
   </div>
 );
 
-const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
-  <motion.div
+const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => {
+  const [validationError, setValidationError] = useState("");
+
+  const validateForm = () => {
+    if (!form.quantity || form.quantity <= 0) {
+      setValidationError("Quantity must be at least 1");
+      return false;
+    }
+    if (!form.neededDate) {
+      setValidationError("Needed date is required");
+      return false;
+    }
+    if (!form.returnDate) {
+      setValidationError("Return date is required");
+      return false;
+    }
+    if (!form.purpose || form.purpose.length < 10) {
+      setValidationError("Purpose must be at least 10 characters");
+      return false;
+    }
+    setValidationError("");
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (validateForm()) {
+      onSubmit();
+    }
+  };
+
+  return (
     className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -798,6 +827,12 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
         {asset.name} from{" "}
         {asset.owner?.name || asset.owningClub?.name || asset.club || "Unknown"}
       </p>
+
+      {validationError && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <p className="text-red-300 text-sm">⚠️ {validationError}</p>
+        </div>
+      )}
 
       <div className="space-y-4">
         <div>
@@ -879,7 +914,7 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
           Cancel
         </motion.button>
         <motion.button
-          onClick={onSubmit}
+          onClick={handleSubmit}
           className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition"
           whileTap={{ scale: 0.98 }}
         >
@@ -888,7 +923,8 @@ const RequestModal = ({ asset, form, setForm, onSubmit, onClose }) => (
       </div>
     </motion.div>
   </motion.div>
-);
+  );
+};
 
 const ImageGalleryModal = ({ asset, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

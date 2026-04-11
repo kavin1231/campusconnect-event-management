@@ -111,7 +111,7 @@ class AnalyticsController {
         ...new Set(
           bookings
             .filter((b) => new Date(b.createdAt) >= todayStart)
-            .map((b) => b.requester?.id)
+            .map((b) => b.requester?.id),
         ),
       ].length;
 

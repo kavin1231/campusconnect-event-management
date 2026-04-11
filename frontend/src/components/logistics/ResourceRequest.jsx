@@ -215,20 +215,36 @@ const ResourceRequest = () => {
   };
 
   const handleSubmitRequest = async () => {
-    if (
-      requestForm.quantity > 0 &&
-      requestForm.neededDate &&
-      requestForm.returnDate &&
-      selectedAsset
-    ) {
-      try {
-        const response = await logisticsAPI.requestAsset(selectedAsset.id, {
-          quantity: parseInt(requestForm.quantity),
-          neededDate: requestForm.neededDate,
-          returnDate: requestForm.returnDate,
-          purpose: requestForm.purpose,
-          contact: requestForm.contact,
-        });
+    // Validate all required fields
+    if (!requestForm.quantity || requestForm.quantity <= 0) {
+      setErrorMsg("Quantity must be at least 1");
+      return;
+    }
+    if (!requestForm.neededDate) {
+      setErrorMsg("Needed date is required");
+      return;
+    }
+    if (!requestForm.returnDate) {
+      setErrorMsg("Return date is required");
+      return;
+    }
+    if (!requestForm.purpose || requestForm.purpose.length < 10) {
+      setErrorMsg("Purpose must be at least 10 characters");
+      return;
+    }
+    if (!selectedAsset) {
+      setErrorMsg("Please select an asset");
+      return;
+    }
+
+    try {
+      const response = await logisticsAPI.requestAsset(selectedAsset.id, {
+        quantity: parseInt(requestForm.quantity),
+        neededDate: requestForm.neededDate,
+        returnDate: requestForm.returnDate,
+        purpose: requestForm.purpose,
+        contact: requestForm.contact,
+      });
 
         if (response.success) {
           setShowRequestModal(false);
@@ -250,9 +266,6 @@ const ResourceRequest = () => {
         console.error("Failed to submit request:", error);
         showToast("Failed to submit request.", "error");
       }
-    } else {
-      showToast("Please fill in all required fields.", "warning");
-    }
   };
 
   return (

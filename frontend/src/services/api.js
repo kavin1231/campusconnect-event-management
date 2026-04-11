@@ -93,6 +93,14 @@ export const authAPI = {
     });
     return response.json();
   },
+
+  createUser: async (userData) => {
+    const response = await fetchWithAuth("/auth/create-user", {
+      method: "POST",
+      body: JSON.stringify(userData),
+    });
+    return response.json();
+  },
 };
 
 // ============================================

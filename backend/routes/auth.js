@@ -32,6 +32,9 @@ router.post('/assign-role', verifyToken, requireRole('SYSTEM_ADMIN'), AuthContro
 // POST /api/auth/revoke-role - Revoke role from user (Admin only)
 router.post('/revoke-role', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.revokeRole);
 
+// POST /api/auth/create-user - Create new staff user (Admin only)
+router.post('/create-user', verifyToken, requireRole('SYSTEM_ADMIN'), AuthController.createUser);
+
 export default router;
 
 

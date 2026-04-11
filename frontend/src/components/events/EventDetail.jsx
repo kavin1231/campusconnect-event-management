@@ -206,21 +206,6 @@ const EventDetail = () => {
                             <label>Status</label>
                             <p className="status-active">🟢 Upcoming</p>
                         </div>
-                        {event.averageRating !== undefined && (
-                            <div className="info-group">
-                                <label>Rating</label>
-                                <div className="rating-display">
-                                    <span className="stars">
-                                        {'★'.repeat(Math.round(event.averageRating))}
-                                        {'☆'.repeat(5 - Math.round(event.averageRating))}
-                                    </span>
-                                    <span className="rating-number">
-                                        {event.averageRating > 0 ? event.averageRating : 'N/A'} / 5
-                                    </span>
-                                </div>
-                                <p className="review-count">({event.totalReviews || 0} reviews)</p>
-                            </div>
-                        )}
                         <button className="btn-register-sidebar">
                             {isLoggedIn ? '📝 Register Now' : '🔐 Login to Register'}
                         </button>

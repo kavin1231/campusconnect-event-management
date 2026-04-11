@@ -5,49 +5,78 @@ import { governanceAPI } from "../../services/api";
 const EventApproval = () => {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [filterStatus, setFilterStatus] = useState("pending");
+  const [filterStatus, setFilterStatus] = useState("PENDING");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchEventApprovals();
-  }, []);
+  }, [filterStatus]);
 
   const fetchEventApprovals = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await governanceAPI.getEventApprovals();
+      const data = await governanceAPI.getEventApprovals(filterStatus);
       if (data.success) {
         setEvents(data.events || []);
+      } else {
+        setError(data.message || "Failed to fetch events");
       }
     } catch (error) {
       console.error("Failed to fetch event approvals:", error);
+      setError("Error fetching events");
     }
     setLoading(false);
   };
 
-  const handleApprove = (id) => {
-    setEvents(
-      events.map((event) =>
-        event.id === id ? { ...event, status: "approved" } : event,
-      ),
-    );
-    setSelectedEvent(null);
+  const handleApprove = async (id) => {
+    try {
+      const response = await governanceAPI.approveEvent(id);
+      if (response.success) {
+        // Update local state
+        setEvents(
+          events.map((event) =>
+            event.id === id ? { ...event, status: "APPROVED" } : event,
+          ),
+        );
+        setSelectedEvent(null);
+        // Refresh the list
+        await fetchEventApprovals();
+      } else {
+        alert("Error approving event: " + response.message);
+      }
+    } catch (error) {
+      console.error("Error approving event:", error);
+      alert("Error approving event");
+    }
   };
 
-  const handleReject = (id, reason) => {
-    setEvents(
-      events.map((event) =>
-        event.id === id
-          ? { ...event, status: "rejected", rejectionReason: reason }
-          : event,
-      ),
-    );
-    setSelectedEvent(null);
+  const handleReject = async (id, reason) => {
+    try {
+      const response = await governanceAPI.rejectEvent(id, reason);
+      if (response.success) {
+        // Update local state
+        setEvents(
+          events.map((event) =>
+            event.id === id
+              ? { ...event, status: "REJECTED", rejectionReason: reason }
+              : event,
+          ),
+        );
+        setSelectedEvent(null);
+        // Refresh the list
+        await fetchEventApprovals();
+      } else {
+        alert("Error rejecting event: " + response.message);
+      }
+    } catch (error) {
+      console.error("Error rejecting event:", error);
+      alert("Error rejecting event");
+    }
   };
 
-  const filteredEvents = events.filter(
-    (event) => event.status === filterStatus,
-  );
+  const filteredEvents = events;
 
   return (
     <div className="flex min-h-screen">
@@ -73,7 +102,7 @@ const EventApproval = () => {
 
               {/* FILTER TABS */}
               <div className="flex gap-2 mt-4">
-                {["pending", "approved", "rejected"].map((status) => (
+                {["PENDING", "APPROVED", "REJECTED"].map((status) => (
                   <button
                     key={status}
                     onClick={() => setFilterStatus(status)}
@@ -83,8 +112,9 @@ const EventApproval = () => {
                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                     }`}
                   >
-                    {status.charAt(0).toUpperCase() + status.slice(1)} (
-                    {filteredEvents.length})
+                    {status.charAt(0).toUpperCase() +
+                      status.slice(1).toLowerCase()}{" "}
+                    ({filteredEvents.filter((e) => e.status === status).length})
                   </button>
                 ))}
               </div>
@@ -97,10 +127,19 @@ const EventApproval = () => {
               {/* EVENTS LIST */}
               <div className="lg:col-span-2">
                 <div className="space-y-4">
-                  {filteredEvents.length === 0 ? (
+                  {error && (
+                    <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-red-300">
+                      {error}
+                    </div>
+                  )}
+                  {loading ? (
+                    <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
+                      <p className="text-gray-400 text-lg">Loading events...</p>
+                    </div>
+                  ) : filteredEvents.length === 0 ? (
                     <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
                       <p className="text-gray-400 text-lg">
-                        No {filterStatus} events
+                        No {filterStatus.toLowerCase()} events
                       </p>
                     </div>
                   ) : (
@@ -132,28 +171,38 @@ const EventApproval = () => {
                         <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                           <div>
                             <p className="text-gray-500">📍 Venue</p>
-                            <p className="text-gray-300">{event.venue}</p>
+                            <p className="text-gray-300">
+                              {event.venue || "N/A"}
+                            </p>
                           </div>
                           <div>
                             <p className="text-gray-500">📅 Date</p>
-                            <p className="text-gray-300">{event.date}</p>
+                            <p className="text-gray-300">
+                              {new Date(event.date).toLocaleDateString()}
+                            </p>
                           </div>
                           <div>
                             <p className="text-gray-500">👥 Expected</p>
                             <p className="text-gray-300">
-                              {event.expectedAttendees} people
+                              {event.expectedAttendees || "N/A"}{" "}
+                              {event.expectedAttendees ? "people" : ""}
                             </p>
                           </div>
                           <div>
                             <p className="text-gray-500">💰 Budget</p>
                             <p className="text-gray-300">
-                              ₹{event.budget.toLocaleString()}
+                              {event.budget
+                                ? `₹${event.budget.toLocaleString()}`
+                                : "N/A"}
                             </p>
                           </div>
                         </div>
 
                         <p className="text-gray-400 text-xs">
-                          Submitted: {event.submittedDate}
+                          Submitted:{" "}
+                          {event.submittedDate
+                            ? new Date(event.submittedDate).toLocaleDateString()
+                            : "N/A"}
                         </p>
                       </div>
                     ))
@@ -193,13 +242,17 @@ const EventApproval = () => {
                           <p className="text-gray-400 text-sm font-medium mb-1">
                             Date
                           </p>
-                          <p className="text-white">{selectedEvent.date}</p>
+                          <p className="text-white">
+                            {new Date(selectedEvent.date).toLocaleDateString()}
+                          </p>
                         </div>
                         <div>
                           <p className="text-gray-400 text-sm font-medium mb-1">
                             Venue
                           </p>
-                          <p className="text-white">{selectedEvent.venue}</p>
+                          <p className="text-white">
+                            {selectedEvent.venue || "N/A"}
+                          </p>
                         </div>
                       </div>
 
@@ -209,7 +262,7 @@ const EventApproval = () => {
                             Expected Attendees
                           </p>
                           <p className="text-white">
-                            {selectedEvent.expectedAttendees}
+                            {selectedEvent.expectedAttendees || "N/A"}
                           </p>
                         </div>
                         <div>
@@ -217,7 +270,9 @@ const EventApproval = () => {
                             Budget
                           </p>
                           <p className="text-white">
-                            ₹{selectedEvent.budget.toLocaleString()}
+                            {selectedEvent.budget
+                              ? `₹${selectedEvent.budget.toLocaleString()}`
+                              : "N/A"}
                           </p>
                         </div>
                       </div>
@@ -239,13 +294,15 @@ const EventApproval = () => {
                         <ul className="text-blue-200 text-sm space-y-1">
                           <li>
                             • Budget:{" "}
-                            {selectedEvent.budget > 40000
+                            {selectedEvent.budget &&
+                            selectedEvent.budget > 40000
                               ? "🟡 High"
                               : "🟢 Moderate"}
                           </li>
                           <li>
                             • Attendance:{" "}
-                            {selectedEvent.expectedAttendees > 300
+                            {selectedEvent.expectedAttendees &&
+                            selectedEvent.expectedAttendees > 300
                               ? "🟡 High"
                               : "🟢 Moderate"}
                           </li>
@@ -257,7 +314,7 @@ const EventApproval = () => {
                     </div>
 
                     {/* ACTION BUTTONS */}
-                    {selectedEvent.status === "pending" && (
+                    {selectedEvent.status === "PENDING" && (
                       <div className="grid grid-cols-2 gap-3">
                         <button
                           onClick={() => handleApprove(selectedEvent.id)}
@@ -277,7 +334,7 @@ const EventApproval = () => {
                       </div>
                     )}
 
-                    {selectedEvent.status === "rejected" && (
+                    {selectedEvent.status === "REJECTED" && (
                       <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
                         <p className="text-red-400 text-sm font-medium mb-2">
                           Rejection Reason:

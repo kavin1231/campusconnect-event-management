@@ -254,8 +254,24 @@ export const logisticsAPI = {
 // ============================================
 export const governanceAPI = {
   // Event approvals
-  getEventApprovals: async () => {
-    const response = await fetchWithAuth("/events");
+  getEventApprovals: async (status = null) => {
+    const query = status ? `?status=${status}` : "";
+    const response = await fetchWithAuth(`/events${query}`);
+    return response.json();
+  },
+
+  approveEvent: async (eventId) => {
+    const response = await fetchWithAuth(`/events/${eventId}/approve`, {
+      method: "PATCH",
+    });
+    return response.json();
+  },
+
+  rejectEvent: async (eventId, reason) => {
+    const response = await fetchWithAuth(`/events/${eventId}/reject`, {
+      method: "PATCH",
+      body: JSON.stringify({ reason }),
+    });
     return response.json();
   },
 

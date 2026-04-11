@@ -133,6 +133,15 @@ model Event {
   location        String
   image           String
   registeredCount Int                        @default(0)
+  status          String                     @default("PENDING")
+  budget          Int?
+  expectedAttendees Int?
+  venue           String?
+  submittedBy     Int?
+  submittedDate   DateTime?                  @default(now())
+  approvedBy      Int?
+  approvedAt      DateTime?
+  rejectionReason String?
   createdAt       DateTime                   @default(now())
   registrations   StudentEventRegistration[]
   reviews         EventReview[]

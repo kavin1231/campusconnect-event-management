@@ -210,9 +210,15 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         {
           id: "create-events",
           label: "Request Permission",
-          path: "/create-events",
+          path: "/create-event",
           icon: "➕",
           badge: "NEW",
+        },
+        {
+          id: "my-event-requests",
+          label: "My Event Requests",
+          path: "/my-event-requests",
+          icon: "📋",
         },
         {
           id: "calendar-conflict",

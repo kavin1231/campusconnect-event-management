@@ -68,6 +68,20 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum MerchandiseProductStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+  ARCHIVED
+}
+
+enum MerchandiseOrderStatus {
+  PENDING
+  PAID
+  COLLECTED
+  CANCELLED
+}
+
 model User {
   id               Int      @id @default(autoincrement())
   name             String
@@ -104,6 +118,8 @@ model User {
 
   presidedClubs Club[] @relation("ClubPresident")
   clubMemberships ClubMember[]
+  submittedEventRequests EventRequest[]
+  reviewedEventRequests EventRequest[] @relation("EventRequestReviewer")
 
   @@map("User")
 }
@@ -251,6 +267,53 @@ model MaintenanceRecord {
   createdAt     DateTime  @default(now())
   
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model MerchandiseProduct {
+  id          Int                       @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  status      MerchandiseProductStatus @default(IN_STOCK)
+  inventory   Int                       @default(0)
+  isActive    Boolean                   @default(true)
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+
+  orderItems  MerchandiseOrderItem[]
+
+  @@map("MerchandiseProduct")
+}
+
+model MerchandiseOrder {
+  id          Int                      @id @default(autoincrement())
+  buyerName   String
+  buyerEmail  String?
+  buyerPhone  String?
+  status      MerchandiseOrderStatus  @default(PENDING)
+  totalAmount Float                   @default(0)
+  notes       String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  items       MerchandiseOrderItem[]
+
+  @@map("MerchandiseOrder")
+}
+
+model MerchandiseOrderItem {
+  id        Int                @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int                @default(1)
+  unitPrice Float
+  size      String?
+
+  order     MerchandiseOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   MerchandiseProduct @relation(fields: [productId], references: [id])
+
+  @@map("MerchandiseOrderItem")
 }
 
 model Organization {
@@ -511,4 +574,72 @@ model EventReview {
   @@unique([studentId, eventId])
   @@index([eventId])
   @@map("EventReview")
+}
+
+enum EventRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+}
+
+model EventRequest {
+  id                    Int                   @id @default(autoincrement())
+  
+  // Step 1: Basic Event Information
+  title                 String
+  eventType             String
+  eventTypeOther        String?
+  purposeTag            String
+  purposeDescription    String
+  eventDate             DateTime
+  startTime             String
+  endTime               String
+  setupTime             String
+  teardownTime          String
+  audience              String
+  
+  // Step 2: Organizer Details
+  organizingBody        String
+  contactName           String
+  contactId             String
+  contactPhone          String
+  contactEmail          String?
+  supervisorName        String
+  supervisorDepartment  String
+  supervisorPhone       String?
+  
+  // Step 3: Venue & Logistics
+  venue                 String
+  expectedAttendance    Int?
+  seatingArrangement    String?
+  parkingRequired       Boolean @default(false)
+  
+  // Step 4: Financials & Sponsorship
+  estimatedBudget       Float?
+  budgetBreakdown       String?
+  sponsorshipDetails    String?
+  fundSource            String?
+  
+  // Step 5: Risk Management & Safety
+  riskAssessment        String?
+  safetyMeasures        String?
+  emergencyPlan         String?
+  contingency           String?
+  
+  // Metadata
+  status                EventRequestStatus    @default(PENDING)
+  submittedBy           Int
+  submittedAt           DateTime              @default(now())
+  reviewedBy            Int?
+  reviewedAt            DateTime?
+  reviewNotes           String?
+  updatedAt             DateTime              @updatedAt
+  
+  submitter             User                  @relation(fields: [submittedBy], references: [id])
+  reviewer              User?                 @relation("EventRequestReviewer", fields: [reviewedBy], references: [id])
+  
+  @@index([status])
+  @@index([submittedAt])
+  @@map("EventRequest")
 }

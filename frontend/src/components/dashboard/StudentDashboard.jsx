@@ -13,7 +13,7 @@ const FILTERS = [
   { key: "past", label: "Past Events" },
   { key: "explore", label: "Explore" },
   { key: "study", label: "Study Materials" },
-  { key: "extracurricular", label: "Extracurriculars" },
+  { key: "extracurricular", label: "Social" },
 ];
 
 const CATEGORIES = [

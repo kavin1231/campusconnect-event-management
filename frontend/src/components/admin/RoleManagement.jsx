@@ -4,6 +4,26 @@ import { authAPI } from "../../services/api";
 import { ShieldCheck, UserRound, Users, ShieldAlert, Key, Search, Plus, X, Building2, School } from "lucide-react";
 import { CLUBS, FACULTIES } from "../../constants/staticData";
 
+const Modal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-background-dark/80 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="bg-neutral-dark border border-neutral-border w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-300">
+        <div className="p-8 border-b border-neutral-border bg-background-dark/50 flex items-center justify-between">
+          <h3 className="text-xl font-black text-white">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition text-slate-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="p-8">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RoleManagement = () => {
   const [selectedRole, setSelectedRole] = useState(null);
   const [students, setStudents] = useState([]);
@@ -11,6 +31,7 @@ const RoleManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   
   // Assignment Form State
   const [assignment, setAssignment] = useState({
@@ -19,9 +40,15 @@ const RoleManagement = () => {
     clubOrFacultyType: "CLUB"
   });
 
+  const [staffData, setStaffData] = useState({
+    name: "",
+    email: "",
+    password: ""
+  });
+
   useEffect(() => {
     fetchUsers();
-    if (selectedRole === "club-president") {
+    if (selectedRole && selectedRole !== "system-admin") {
       fetchStudents();
     }
   }, [selectedRole]);
@@ -55,21 +82,34 @@ const RoleManagement = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await authAPI.assignRole({
-        ...assignment,
-        role: "CLUB_PRESIDENT"
-      });
+      const selectedRoleData = roles.find(r => r.id === selectedRole);
+      
+      let res;
+      if (selectedRole === 'club-president') {
+        res = await authAPI.assignRole({
+          ...assignment,
+          role: "CLUB_PRESIDENT"
+        });
+      } else {
+        res = await authAPI.createUser({
+          ...staffData,
+          role: selectedRoleData.roleKey
+        });
+      }
       
       if (res.success) {
         setMessage({ type: "success", text: res.message });
         setAssignment({ studentId: "", clubOrFacultyName: "", clubOrFacultyType: "CLUB" });
-        fetchUsers(); // Refresh the list immediately
+        setStaffData({ name: "", email: "", password: "" });
+        setShowForm(false); // Close form/modal on success
+        fetchUsers();
         setTimeout(() => setSelectedRole(null), 2000);
       } else {
-        setMessage({ type: "error", text: res.message });
+        setMessage({ type: "error", text: res.message || "Something went wrong" });
       }
     } catch (err) {
-      setMessage({ type: "error", text: "Failed to assign role" });
+      console.error(err);
+      setMessage({ type: "error", text: "Operation failed" });
     } finally {
       setLoading(false);
     }
@@ -220,149 +260,191 @@ const RoleManagement = () => {
                       <p className="text-slate-400 text-sm">View active members and assign new personnel to this role.</p>
                     </div>
                   </div>
+                  <button 
+                    onClick={() => setShowForm(true)}
+                    className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-2xl font-black transition flex items-center gap-2 shadow-lg shadow-primary/20"
+                  >
+                    <Plus size={20} />
+                    <span>Add {selectedRole === 'club-president' ? 'President' : 'Member'}</span>
+                  </button>
                 </div>
 
-                {selectedRole === 'club-president' ? (
-                  <form onSubmit={handleAssign} className="p-8 space-y-8">
-                  {message && (
-                    <div className={`p-4 rounded-xl text-sm font-bold flex items-center gap-3 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
-                      <span>{message.text}</span>
-                    </div>
-                  )}
+                <Modal 
+                  isOpen={showForm} 
+                  onClose={() => setShowForm(false)} 
+                  title={selectedRole === 'club-president' ? "Assign New Club President" : `Create New ${roles.find(r => r.id === selectedRole)?.roleKey.replace('_', ' ')} Account`}
+                >
+                  <form onSubmit={handleAssign} className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                      {selectedRole === 'club-president' ? (
+                        <>
+                          {/* Student Selection (Assignment) */}
+                          <div className="space-y-4">
+                            <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">1. Select Student</label>
+                            
+                            {!assignment.studentId ? (
+                              <>
+                              <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                <input 
+                                  type="text"
+                                  placeholder="Type student name or ID..."
+                                  className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition"
+                                  value={searchTerm}
+                                  onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                              </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    {/* Student Selection */}
-                    <div className="space-y-4">
-                      <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">1. Select Student</label>
-                      
-                      {!assignment.studentId ? (
-                        <div className="relative">
-                          <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                            <input 
-                              type="text"
-                              placeholder="Type student name or ID..."
-                              className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary transition"
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                          </div>
-
-                          {searchTerm.length > 0 && (
-                            <div className="absolute z-50 w-full mt-2 max-h-64 overflow-y-auto rounded-2xl border border-neutral-border bg-neutral-dark/95 backdrop-blur-xl shadow-2xl">
-                              {filteredStudents.length > 0 ? (
-                                filteredStudents.map(student => (
-                                  <button
-                                    key={student.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setAssignment({...assignment, studentId: student.id});
-                                      setSearchTerm("");
-                                    }}
-                                    className="w-full p-4 flex items-center gap-4 border-b border-neutral-border last:border-0 hover:bg-primary/10 transition text-left"
-                                  >
-                                    <div className="size-10 rounded-full bg-neutral-dark flex items-center justify-center text-slate-300 font-black text-sm border border-white/5">
-                                      {student.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-bold text-white">{student.name}</p>
-                                      <p className="text-xs text-slate-500">{student.studentId} • {student.department}</p>
-                                    </div>
-                                  </button>
-                                ))
-                              ) : (
-                                <div className="p-8 text-center text-slate-500 italic text-sm">No students found matching "{searchTerm}"</div>
+                              {searchTerm.length > 0 && (
+                                <div className="absolute z-50 w-full mt-2 max-h-64 overflow-y-auto rounded-2xl border border-neutral-border bg-neutral-dark/95 backdrop-blur-xl shadow-2xl">
+                                  {filteredStudents.length > 0 ? (
+                                    filteredStudents.map(student => (
+                                      <button
+                                        key={student.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setAssignment({...assignment, studentId: student.id});
+                                          setSearchTerm("");
+                                        }}
+                                        className="w-full p-4 flex items-center gap-4 border-b border-neutral-border last:border-0 hover:bg-primary/10 transition text-left"
+                                      >
+                                        <div className="size-10 rounded-full bg-neutral-dark flex items-center justify-center text-slate-300 font-black text-sm border border-white/5">
+                                          {student.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-white">{student.name}</p>
+                                          <p className="text-xs text-slate-500">{student.studentId} • {student.department}</p>
+                                        </div>
+                                      </button>
+                                    ))
+                                  ) : (
+                                    <div className="p-8 text-center text-slate-500 italic text-sm">No users found matching "{searchTerm}"</div>
+                                  )}
+                                </div>
                               )}
+                            </>
+                          ) : (
+                              <div className="p-6 rounded-2xl border-2 border-primary bg-primary/5 flex items-center justify-between group">
+                                <div className="flex items-center gap-4">
+                                  <div className="size-12 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-lg">
+                                    {students.find(s => s.id === assignment.studentId)?.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p className="text-white font-bold">{students.find(s => s.id === assignment.studentId)?.name}</p>
+                                    <p className="text-slate-400 text-xs">{students.find(s => s.id === assignment.studentId)?.studentId} • {students.find(s => s.id === assignment.studentId)?.department}</p>
+                                  </div>
+                                </div>
+                                <button 
+                                  type="button"
+                                  onClick={() => setAssignment({...assignment, studentId: ""})}
+                                  className="bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 p-2 rounded-xl transition"
+                                >
+                                  <X size={18} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-6">
+                            <div className="space-y-4">
+                              <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">2. Entity Type</label>
+                              <div className="grid grid-cols-2 gap-4">
+                                <button
+                                  type="button"
+                                  onClick={() => setAssignment({...assignment, clubOrFacultyType: "CLUB"})}
+                                  className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition ${assignment.clubOrFacultyType === "CLUB" ? 'bg-primary/10 border-primary text-primary' : 'bg-neutral-dark/30 border-neutral-border text-slate-400 hover:border-slate-600'}`}
+                                >
+                                  <Building2 size={24} />
+                                  <span className="text-xs font-black uppercase">Club</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setAssignment({...assignment, clubOrFacultyType: "FACULTY"})}
+                                  className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition ${assignment.clubOrFacultyType === "FACULTY" ? 'bg-primary/10 border-primary text-primary' : 'bg-neutral-dark/30 border-neutral-border text-slate-400 hover:border-slate-600'}`}
+                                >
+                                  <School size={24} />
+                                  <span className="text-xs font-black uppercase">Faculty</span>
+                                </button>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="p-6 rounded-2xl border-2 border-primary bg-primary/5 flex items-center justify-between group">
-                          <div className="flex items-center gap-4">
-                            <div className="size-12 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-lg">
-                              {students.find(s => s.id === assignment.studentId)?.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="text-white font-bold">{students.find(s => s.id === assignment.studentId)?.name}</p>
-                              <p className="text-slate-400 text-xs">{students.find(s => s.id === assignment.studentId)?.studentId} • {students.find(s => s.id === assignment.studentId)?.department}</p>
+
+                            <div className="space-y-4">
+                              <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">3. Entity Name</label>
+                              <select 
+                                required
+                                className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-primary transition"
+                                value={assignment.clubOrFacultyName}
+                                onChange={(e) => setAssignment({...assignment, clubOrFacultyName: e.target.value})}
+                              >
+                                <option value="" disabled style={{ background: '#0B0F19', color: 'white' }}>Select {assignment.clubOrFacultyType === "CLUB" ? "Club" : "Faculty"}...</option>
+                                {(assignment.clubOrFacultyType === "CLUB" ? CLUBS : FACULTIES).map(item => (
+                                  <option key={item} value={item} style={{ background: '#0B0F19', color: 'white' }}>{item}</option>
+                                ))}
+                              </select>
                             </div>
                           </div>
-                          <button 
-                            type="button"
-                            onClick={() => setAssignment({...assignment, studentId: ""})}
-                            className="bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 p-2 rounded-xl transition"
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* New Staff User Creation Form */}
+                          <div className="space-y-4">
+                            <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Account Info</label>
+                            <div className="space-y-4">
+                              <div>
+                                <input 
+                                  type="text"
+                                  placeholder="Full Name"
+                                  className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-primary transition"
+                                  value={staffData.name}
+                                  onChange={(e) => setStaffData({...staffData, name: e.target.value})}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <input 
+                                  type="email"
+                                  placeholder="Corporate Email (e.g. name@nexora.edu)"
+                                  className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-primary transition"
+                                  value={staffData.email}
+                                  onChange={(e) => setStaffData({...staffData, email: e.target.value})}
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Initial Credentials</label>
+                            <div>
+                              <input 
+                                type="password"
+                                placeholder="Setup Initial Password"
+                                className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-primary transition"
+                                value={staffData.password}
+                                onChange={(e) => setStaffData({...staffData, password: e.target.value})}
+                                required
+                              />
+                              <p className="text-[10px] text-slate-500 mt-2 italic px-2"> Users should be advised to change their password upon first login.</p>
+                            </div>
+                          </div>
+                        </>
                       )}
                     </div>
 
-                    {/* Entity Details */}
-                    <div className="space-y-6">
-                      <div className="space-y-4">
-                        <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">2. Entity Type</label>
-                        <div className="grid grid-cols-2 gap-4">
-                          <button
-                            type="button"
-                            onClick={() => setAssignment({...assignment, clubOrFacultyType: "CLUB"})}
-                            className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition ${assignment.clubOrFacultyType === "CLUB" ? 'bg-primary/10 border-primary text-primary' : 'bg-neutral-dark/30 border-neutral-border text-slate-400 hover:border-slate-600'}`}
-                          >
-                            <Building2 size={24} />
-                            <span className="text-xs font-black uppercase">Club</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setAssignment({...assignment, clubOrFacultyType: "FACULTY"})}
-                            className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition ${assignment.clubOrFacultyType === "FACULTY" ? 'bg-primary/10 border-primary text-primary' : 'bg-neutral-dark/30 border-neutral-border text-slate-400 hover:border-slate-600'}`}
-                          >
-                            <School size={24} />
-                            <span className="text-xs font-black uppercase">Faculty</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">3. Entity Name</label>
-                        <select 
-                          required
-                          className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-primary transition"
-                          value={assignment.clubOrFacultyName}
-                          onChange={(e) => setAssignment({...assignment, clubOrFacultyName: e.target.value})}
-                        >
-                          <option value="" disabled style={{ background: '#0B0F19', color: 'white' }}>Select {assignment.clubOrFacultyType === "CLUB" ? "Club" : "Faculty"}...</option>
-                          {(assignment.clubOrFacultyType === "CLUB" ? CLUBS : FACULTIES).map(item => (
-                            <option key={item} value={item} style={{ background: '#0B0F19', color: 'white' }}>{item}</option>
-                          ))}
-                        </select>
-                      </div>
+                    <div className="pt-6 border-t border-neutral-border flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={loading || (selectedRole === 'club-president' ? !assignment.studentId || !assignment.clubOrFacultyName : !staffData.name || !staffData.email || !staffData.password)}
+                        className="bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-10 py-4 rounded-3xl font-black transition shadow-lg shadow-primary/20 flex items-center gap-2"
+                      >
+                        {loading ? (
+                          <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : <Plus size={20} />}
+                        <span>{selectedRole === 'club-president' ? 'Assign President Role' : `Create Account`}</span>
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-neutral-border flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={loading || !assignment.studentId || !assignment.clubOrFacultyName}
-                      className="bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-10 py-4 rounded-2xl font-black transition shadow-lg shadow-primary/20 flex items-center gap-2"
-                    >
-                      {loading ? (
-                        <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : <Plus size={20} />}
-                      <span>Assign President Role</span>
-                    </button>
-                  </div>
-                </form>
-                ) : (
-                  <div className="p-12 text-center border-b border-neutral-border">
-                    <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4 border border-primary/20">
-                      <ShieldCheck size={32} />
-                    </div>
-                    <h4 className="text-white font-bold text-lg mb-2">Role Management Restricted</h4>
-                    <p className="text-slate-400 text-sm max-w-md mx-auto">
-                      Direct assignment for {roles.find(r => r.id === selectedRole)?.title} is handled via system configuration for security. You can view active members below.
-                    </p>
-                  </div>
-                )}
+                  </form>
+                </Modal>
               </div>
 
               {/* Active Members List */}

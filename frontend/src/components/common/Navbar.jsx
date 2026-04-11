@@ -40,7 +40,7 @@ export function Navbar({ page, onNavigate, notifOpen, setNotifOpen }) {
         </span>
       </div>
 
-      {[["dashboard", "Dashboard"], ["create", "Events"], ["venues", "Logistics"], ["requests", "Reports"]].map(([key, label]) => (
+      {[["dashboard", "Dashboard"], ["requests", "Reports"]].map(([key, label]) => (
         <a
           key={key}
           href="#"

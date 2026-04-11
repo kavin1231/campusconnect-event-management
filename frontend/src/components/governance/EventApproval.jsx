@@ -1,82 +1,66 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
-import { governanceAPI } from "../../services/api";
+import { governanceAPI, eventRequestAPI } from "../../services/api";
 
 const EventApproval = () => {
-  const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [eventRequests, setEventRequests] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [filterStatus, setFilterStatus] = useState("PENDING");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchEventApprovals();
+    fetchApprovals();
   }, [filterStatus]);
 
-  const fetchEventApprovals = async () => {
+  const fetchApprovals = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await governanceAPI.getEventApprovals(filterStatus);
+      const data = await eventRequestAPI.getAllEventRequests({
+        status: filterStatus,
+      });
       if (data.success) {
-        setEvents(data.events || []);
+        setEventRequests(data.data || []);
       } else {
-        setError(data.message || "Failed to fetch events");
+        setError(data.message || "Failed to fetch event requests");
       }
+      setSelectedItem(null);
     } catch (error) {
-      console.error("Failed to fetch event approvals:", error);
-      setError("Error fetching events");
+      console.error("Failed to fetch approvals:", error);
+      setError("Error fetching data");
     }
     setLoading(false);
   };
 
   const handleApprove = async (id) => {
     try {
-      const response = await governanceAPI.approveEvent(id);
+      const response = await eventRequestAPI.approveEventRequest(id);
       if (response.success) {
-        // Update local state
-        setEvents(
-          events.map((event) =>
-            event.id === id ? { ...event, status: "APPROVED" } : event,
-          ),
-        );
-        setSelectedEvent(null);
-        // Refresh the list
-        await fetchEventApprovals();
+        await fetchApprovals();
       } else {
-        alert("Error approving event: " + response.message);
+        alert("Error approving: " + response.message);
       }
     } catch (error) {
-      console.error("Error approving event:", error);
-      alert("Error approving event");
+      console.error("Error approving:", error);
+      alert("Error approving");
     }
   };
 
   const handleReject = async (id, reason) => {
     try {
-      const response = await governanceAPI.rejectEvent(id, reason);
+      const response = await eventRequestAPI.rejectEventRequest(id, reason);
       if (response.success) {
-        // Update local state
-        setEvents(
-          events.map((event) =>
-            event.id === id
-              ? { ...event, status: "REJECTED", rejectionReason: reason }
-              : event,
-          ),
-        );
-        setSelectedEvent(null);
-        // Refresh the list
-        await fetchEventApprovals();
+        await fetchApprovals();
+        setSelectedItem(null);
       } else {
-        alert("Error rejecting event: " + response.message);
+        alert("Error rejecting: " + response.message);
       }
     } catch (error) {
-      console.error("Error rejecting event:", error);
-      alert("Error rejecting event");
+      console.error("Error rejecting:", error);
+      alert("Error rejecting");
     }
   };
-
-  const filteredEvents = events;
 
   return (
     <div className="flex min-h-screen">
@@ -86,22 +70,20 @@ const EventApproval = () => {
           {/* HEADER */}
           <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
             <div className="px-8 py-6">
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-2xl">
                   📅
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">
-                    Event Approvals
-                  </h1>
+                  <h1 className="text-2xl font-bold text-white">Approvals</h1>
                   <p className="text-gray-400 text-sm">
-                    Review & approve event submissions
+                    Review & approve events and event requests
                   </p>
                 </div>
               </div>
 
               {/* FILTER TABS */}
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2">
                 {["PENDING", "APPROVED", "REJECTED"].map((status) => (
                   <button
                     key={status}
@@ -114,7 +96,12 @@ const EventApproval = () => {
                   >
                     {status.charAt(0).toUpperCase() +
                       status.slice(1).toLowerCase()}{" "}
-                    ({filteredEvents.filter((e) => e.status === status).length})
+                    (
+                    {
+                      eventRequests.filter((item) => item.status === status)
+                        .length
+                    }
+                    )
                   </button>
                 ))}
               </div>
@@ -123,239 +110,183 @@ const EventApproval = () => {
 
           {/* MAIN CONTENT */}
           <div className="px-8 py-8 max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* EVENTS LIST */}
-              <div className="lg:col-span-2">
-                <div className="space-y-4">
-                  {error && (
-                    <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-red-300">
-                      {error}
-                    </div>
-                  )}
-                  {loading ? (
-                    <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                      <p className="text-gray-400 text-lg">Loading events...</p>
-                    </div>
-                  ) : filteredEvents.length === 0 ? (
-                    <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                      <p className="text-gray-400 text-lg">
-                        No {filterStatus.toLowerCase()} events
-                      </p>
-                    </div>
-                  ) : (
-                    filteredEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        onClick={() => setSelectedEvent(event)}
-                        className={`p-6 bg-gray-800 border-2 rounded-xl cursor-pointer transition ${
-                          selectedEvent?.id === event.id
-                            ? "border-purple-500 bg-gray-750"
-                            : "border-gray-700 hover:border-gray-600"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-lg font-bold text-white">
-                              {event.title}
-                            </h3>
-                            <p className="text-gray-400 text-sm">
-                              Organized by{" "}
-                              <span className="text-white">{event.club}</span>
-                            </p>
-                          </div>
-                          <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full font-medium">
-                            {event.status.toUpperCase()}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                          <div>
-                            <p className="text-gray-500">📍 Venue</p>
-                            <p className="text-gray-300">
-                              {event.venue || "N/A"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">📅 Date</p>
-                            <p className="text-gray-300">
-                              {new Date(event.date).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">👥 Expected</p>
-                            <p className="text-gray-300">
-                              {event.expectedAttendees || "N/A"}{" "}
-                              {event.expectedAttendees ? "people" : ""}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">💰 Budget</p>
-                            <p className="text-gray-300">
-                              {event.budget
-                                ? `₹${event.budget.toLocaleString()}`
-                                : "N/A"}
-                            </p>
-                          </div>
-                        </div>
-
-                        <p className="text-gray-400 text-xs">
-                          Submitted:{" "}
-                          {event.submittedDate
-                            ? new Date(event.submittedDate).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                      </div>
-                    ))
-                  )}
+            <div className="space-y-4">
+              {error && (
+                <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-red-300">
+                  {error}
                 </div>
-              </div>
-
-              {/* DETAIL PANEL */}
-              <div className="lg:col-span-1">
-                {selectedEvent ? (
-                  <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 sticky top-24">
-                    <h2 className="text-xl font-bold text-white mb-6">
-                      Event Details
-                    </h2>
-
-                    <div className="space-y-4 mb-8">
-                      <div>
-                        <p className="text-gray-400 text-sm font-medium mb-1">
-                          Event Title
-                        </p>
-                        <p className="text-white font-medium">
-                          {selectedEvent.title}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-gray-400 text-sm font-medium mb-1">
-                          Organizing Club
-                        </p>
-                        <p className="text-white font-medium">
-                          {selectedEvent.club}
-                        </p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
+              )}
+              {loading ? (
+                <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
+                  <p className="text-gray-400 text-lg">
+                    Loading event requests...
+                  </p>
+                </div>
+              ) : eventRequests.length === 0 ? (
+                <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
+                  <p className="text-gray-400 text-lg">
+                    No {filterStatus.toLowerCase()} event requests
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {eventRequests.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedItem(item)}
+                      className="p-4 bg-gray-800 border-2 border-gray-700 rounded-xl cursor-pointer hover:border-purple-500 hover:bg-gray-750 transition"
+                    >
+                      <div className="flex items-start justify-between mb-3">
                         <div>
-                          <p className="text-gray-400 text-sm font-medium mb-1">
-                            Date
+                          <h3 className="text-lg font-bold text-white">
+                            {item.title}
+                          </h3>
+                          <p className="text-gray-400 text-sm">
+                            Submitted by{" "}
+                            <span className="text-white">
+                              {item.submitter?.name || "Unknown"}
+                            </span>
                           </p>
-                          <p className="text-white">
-                            {new Date(selectedEvent.date).toLocaleDateString()}
+                        </div>
+                        <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full font-medium">
+                          {item.status}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                        <div>
+                          <p className="text-gray-500">🎯 Purpose</p>
+                          <p className="text-gray-300">
+                            {item.purposeTag || "N/A"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-gray-400 text-sm font-medium mb-1">
-                            Venue
-                          </p>
-                          <p className="text-white">
-                            {selectedEvent.venue || "N/A"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-gray-400 text-sm font-medium mb-1">
-                            Expected Attendees
-                          </p>
-                          <p className="text-white">
-                            {selectedEvent.expectedAttendees || "N/A"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm font-medium mb-1">
-                            Budget
-                          </p>
-                          <p className="text-white">
-                            {selectedEvent.budget
-                              ? `₹${selectedEvent.budget.toLocaleString()}`
+                          <p className="text-gray-500">💰 Budget</p>
+                          <p className="text-gray-300">
+                            {item.estimatedBudget
+                              ? `₹${item.estimatedBudget.toLocaleString()}`
                               : "N/A"}
                           </p>
                         </div>
                       </div>
 
-                      <div>
-                        <p className="text-gray-400 text-sm font-medium mb-2">
-                          Description
-                        </p>
-                        <p className="text-gray-300 text-sm bg-gray-700 p-3 rounded">
-                          {selectedEvent.description}
-                        </p>
-                      </div>
-
-                      {/* RISK ASSESSMENT */}
-                      <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                        <p className="text-blue-400 font-semibold mb-2">
-                          📋 Risk Assessment
-                        </p>
-                        <ul className="text-blue-200 text-sm space-y-1">
-                          <li>
-                            • Budget:{" "}
-                            {selectedEvent.budget &&
-                            selectedEvent.budget > 40000
-                              ? "🟡 High"
-                              : "🟢 Moderate"}
-                          </li>
-                          <li>
-                            • Attendance:{" "}
-                            {selectedEvent.expectedAttendees &&
-                            selectedEvent.expectedAttendees > 300
-                              ? "🟡 High"
-                              : "🟢 Moderate"}
-                          </li>
-                          <li>
-                            • Duration: Plan & execute feasibility verified
-                          </li>
-                        </ul>
-                      </div>
+                      <p className="text-gray-400 text-xs">
+                        📅 {new Date(item.eventDate).toLocaleDateString()}
+                      </p>
                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
-                    {/* ACTION BUTTONS */}
-                    {selectedEvent.status === "PENDING" && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          onClick={() => handleApprove(selectedEvent.id)}
-                          className="w-full px-4 py-3 bg-emerald-600/95 hover:bg-emerald-600 text-white rounded-xl font-semibold transition shadow-lg shadow-emerald-900/30"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            const reason = prompt("Enter rejection reason:");
-                            if (reason) handleReject(selectedEvent.id, reason);
-                          }}
-                          className="w-full px-4 py-3 bg-red-600/95 hover:bg-red-600 text-white rounded-xl font-semibold transition shadow-lg shadow-red-900/25"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
+          {/* DETAIL MODAL */}
+          {selectedItem && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 max-w-2xl w-full max-h-96 overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-white">
+                    {selectedItem.title}
+                  </h2>
+                  <button
+                    onClick={() => setSelectedItem(null)}
+                    className="text-gray-400 hover:text-white text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
 
-                    {selectedEvent.status === "REJECTED" && (
-                      <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                        <p className="text-red-400 text-sm font-medium mb-2">
-                          Rejection Reason:
-                        </p>
-                        <p className="text-red-200 text-sm">
-                          {selectedEvent.rejectionReason ||
-                            "No reason provided"}
-                        </p>
-                      </div>
-                    )}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">
+                      Submitted By
+                    </p>
+                    <p className="text-white font-medium">
+                      {selectedItem.submitter?.name}
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                      {selectedItem.submitter?.email}
+                    </p>
                   </div>
-                ) : (
-                  <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 text-center">
-                    <p className="text-gray-400">
-                      Select an event to view details
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Event Type
+                      </p>
+                      <p className="text-white">{selectedItem.eventType}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Purpose
+                      </p>
+                      <p className="text-white">{selectedItem.purposeTag}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Event Date
+                      </p>
+                      <p className="text-white">
+                        {new Date(selectedItem.eventDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Budget
+                      </p>
+                      <p className="text-white">
+                        {selectedItem.estimatedBudget
+                          ? `₹${selectedItem.estimatedBudget.toLocaleString()}`
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ACTION BUTTONS IN MODAL */}
+                {selectedItem.status === "PENDING" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => handleApprove(selectedItem.id)}
+                      className="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition"
+                    >
+                      ✅ Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        const reason = prompt("Enter rejection reason:");
+                        if (reason) {
+                          handleReject(selectedItem.id, reason);
+                          setSelectedItem(null);
+                        }
+                      }}
+                      className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+                    >
+                      ❌ Reject
+                    </button>
+                  </div>
+                )}
+
+                {selectedItem.status === "APPROVED" && (
+                  <div className="p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-center">
+                    <p className="text-emerald-300 font-semibold">
+                      ✅ Already Approved
+                    </p>
+                  </div>
+                )}
+
+                {selectedItem.status === "REJECTED" && (
+                  <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-center">
+                    <p className="text-red-300 font-semibold">
+                      ❌ Already Rejected
                     </p>
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

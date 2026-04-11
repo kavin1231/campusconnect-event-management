@@ -609,17 +609,17 @@ model EventRequest {
   audience              String
   
   // Step 2: Organizer Details
-  organizingBody        String
-  contactName           String
-  contactId             String
-  contactPhone          String
+  organizingBody        String?
+  contactName           String?
+  contactId             String?
+  contactPhone          String?
   contactEmail          String?
-  supervisorName        String
-  supervisorDepartment  String
+  supervisorName        String?
+  supervisorDepartment  String?
   supervisorPhone       String?
   
   // Step 3: Venue & Logistics
-  venue                 String
+  venue                 String?
   expectedAttendance    Int?
   seatingArrangement    String?
   parkingRequired       Boolean @default(false)

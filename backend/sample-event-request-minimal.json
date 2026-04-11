@@ -1,0 +1,14 @@
+{
+  "title": "Campus Art Exhibition",
+  "eventType": "Exhibition",
+  "purposeTag": "Cultural",
+  "purposeDescription": "Showcase student artwork and photography",
+  "eventDate": "2026-04-28",
+  "startTime": "10:00",
+  "endTime": "16:00",
+  "setupTime": "09:30",
+  "teardownTime": "17:00",
+  "audience": "University-Wide (Staff + Students)",
+  "estimatedBudget": 50000,
+  "expectedAttendance": 150
+}

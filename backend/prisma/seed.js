@@ -88,6 +88,12 @@ async function main() {
         image:
           "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800",
         registeredCount: 124,
+        status: "APPROVED",
+        venue: "Engineering Block, Hall A",
+        budget: 15000,
+        expectedAttendees: 150,
+        submittedDate: new Date("2026-03-20T10:00:00Z"),
+        approvedAt: new Date("2026-03-21T14:30:00Z"),
       },
       {
         title: "Intra-University Sprint Meet",
@@ -99,6 +105,11 @@ async function main() {
         image:
           "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=800",
         registeredCount: 350,
+        status: "PENDING",
+        venue: "Main Sports Complex",
+        budget: 45000,
+        expectedAttendees: 400,
+        submittedDate: new Date("2026-03-25T10:00:00Z"),
       },
       {
         title: "Midnight Canvas: Live Painting",
@@ -110,6 +121,11 @@ async function main() {
         image:
           "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=800",
         registeredCount: 42,
+        status: "PENDING",
+        venue: "Central Plaza Garden",
+        budget: 8000,
+        expectedAttendees: 80,
+        submittedDate: new Date("2026-03-24T10:00:00Z"),
       },
       {
         title: "Battle of the Bands: Auditions",
@@ -121,6 +137,13 @@ async function main() {
         image:
           "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800",
         registeredCount: 15,
+        status: "REJECTED",
+        venue: "Auditorium 2",
+        budget: 12000,
+        expectedAttendees: 200,
+        submittedDate: new Date("2026-03-22T10:00:00Z"),
+        approvedAt: new Date("2026-03-23T09:15:00Z"),
+        rejectionReason: "Insufficient budget allocation for equipment rental",
       },
       {
         title: "International Relations Mock UN",
@@ -132,6 +155,12 @@ async function main() {
         image:
           "https://images.unsplash.com/photo-1431576901776-e539bd916ba2?auto=format&fit=crop&q=80&w=800",
         registeredCount: 88,
+        status: "APPROVED",
+        venue: "Humanities Seminar Room",
+        budget: 5000,
+        expectedAttendees: 100,
+        submittedDate: new Date("2026-03-19T10:00:00Z"),
+        approvedAt: new Date("2026-03-20T11:00:00Z"),
       },
       {
         title: "24h Hackathon: Build for Campus",
@@ -143,6 +172,11 @@ async function main() {
         image:
           "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800",
         registeredCount: 200,
+        status: "PENDING",
+        venue: "CS Innovation Lab",
+        budget: 50000,
+        expectedAttendees: 250,
+        submittedDate: new Date("2026-03-26T10:00:00Z"),
       },
     ];
 
@@ -356,6 +390,130 @@ async function main() {
       });
     }
     console.log("Finished seeding event stalls.");
+
+    // 5. Seed Sample Event Requests
+    const sampleEventRequests = [
+      {
+        title: "Tech Conference 2026",
+        eventType: "CONFERENCE",
+        purposeTag: "ACADEMIC",
+        purposeDescription:
+          "Annual tech conference bringing together industry leaders and students",
+        eventDate: new Date("2026-04-20T09:00:00Z"),
+        startTime: "09:00",
+        endTime: "18:00",
+        setupTime: "08:00",
+        teardownTime: "19:00",
+        audience: "CAMPUS_WIDE",
+        organizingBody: "Tech Innovation Club",
+        contactName: "Raj Kumar",
+        contactId: "ST001",
+        contactPhone: "9876543210",
+        contactEmail: "raj@college.edu",
+        supervisorName: "Dr. Sharma",
+        supervisorDepartment: "Computer Science",
+        supervisorPhone: "9123456780",
+        venue: "Main Auditorium",
+        expectedAttendance: 500,
+        seatingArrangement: "THEATER",
+        parkingRequired: true,
+        estimatedBudget: 75000,
+        budgetBreakdown: "Speakers: 30k, AV Setup: 25k, Catering: 20k",
+        sponsorshipDetails: "TechCorp as main sponsor",
+        fundSource: "CLUB_FUND,SPONSORSHIP",
+        riskAssessment:
+          "High attendance expected, need proper crowd management",
+        safetyMeasures: "Security personnel, medical staff on standby",
+        emergencyPlan: "Exit routes marked, emergency numbers displayed",
+        contingency: "Virtual backup setup available",
+        status: "PENDING",
+        submittedBy: organizer.id,
+        submittedAt: new Date("2026-03-25T10:00:00Z"),
+      },
+      {
+        title: "Annual Hackathon 2026",
+        eventType: "COMPETITION",
+        purposeTag: "TECHNICAL",
+        purposeDescription:
+          "24-hour coding competition to foster innovation and collaboration",
+        eventDate: new Date("2026-05-10T08:00:00Z"),
+        startTime: "08:00",
+        endTime: "08:00",
+        setupTime: "07:00",
+        teardownTime: "10:00",
+        audience: "SPECIFIC_GROUP",
+        organizingBody: "Developer Community",
+        contactName: "Priya Singh",
+        contactId: "ST002",
+        contactPhone: "9876543211",
+        contactEmail: "priya@college.edu",
+        supervisorName: "Prof. Iyer",
+        supervisorDepartment: "Information Technology",
+        supervisorPhone: "9123456781",
+        venue: "Computer Lab Block D",
+        expectedAttendance: 200,
+        seatingArrangement: "CLASSROOM",
+        parkingRequired: false,
+        estimatedBudget: 50000,
+        budgetBreakdown: "Prizes: 30k, Refreshments: 15k, Tech support: 5k",
+        sponsorshipDetails: "GitHub and AWS as sponsors",
+        fundSource: "SPONSORSHIP",
+        riskAssessment: "Multiple computers, potential network strain",
+        safetyMeasures: "IT support team present, backup internet connection",
+        emergencyPlan: "Alternative coding platforms ready",
+        contingency: "Hybrid mode with online participants",
+        status: "PENDING",
+        submittedBy: organizer.id,
+        submittedAt: new Date("2026-03-26T14:30:00Z"),
+      },
+      {
+        title: "Cultural Fest Opening Ceremony",
+        eventType: "CULTURAL",
+        purposeTag: "CULTURAL_ENTERTAINMENT",
+        purposeDescription:
+          "Opening ceremony celebrating diverse cultures on campus",
+        eventDate: new Date("2026-06-01T18:00:00Z"),
+        startTime: "18:00",
+        endTime: "21:00",
+        setupTime: "16:00",
+        teardownTime: "22:00",
+        audience: "CAMPUS_WIDE",
+        organizingBody: "Cultural Council",
+        contactName: "Amit Patel",
+        contactId: "ST003",
+        contactPhone: "9876543212",
+        contactEmail: "amit@college.edu",
+        supervisorName: "Dr. Nair",
+        supervisorDepartment: "Student Affairs",
+        supervisorPhone: "9123456782",
+        venue: "Open Air Theater",
+        expectedAttendance: 1000,
+        seatingArrangement: "GENERAL",
+        parkingRequired: true,
+        estimatedBudget: 100000,
+        budgetBreakdown:
+          "Stage setup: 40k, Artists: 35k, Sound/Light: 20k, Misc: 5k",
+        sponsorshipDetails: "Multiple corporate sponsors",
+        fundSource: "COLLEGE_FUND,SPONSORSHIP",
+        riskAssessment: "Large crowd expected, outdoor venue weather dependent",
+        safetyMeasures: "Police liaison, medical camp, fire extinguishers",
+        emergencyPlan: "Indoor backup venue available",
+        contingency: "Live stream option for limited capacity",
+        status: "PENDING",
+        submittedBy: organizer.id,
+        submittedAt: new Date("2026-03-27T11:00:00Z"),
+      },
+    ];
+
+    // Seed event requests
+    for (const requestData of sampleEventRequests) {
+      await prisma.eventRequest.create({
+        data: requestData,
+      });
+    }
+    console.log(
+      `✅ ${sampleEventRequests.length} sample event requests seeded!`,
+    );
 
     console.log("✅ Database seeding completed successfully!");
   } catch (error) {

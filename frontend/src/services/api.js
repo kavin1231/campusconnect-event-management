@@ -674,6 +674,39 @@ export const eventRequestAPI = {
     const response = await fetchWithAuth("/event-requests/stats");
     return response.json();
   },
+
+  approveEventRequest: async (id, reviewNotes = "") => {
+    const response = await fetchWithAuth(`/event-requests/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: "APPROVED",
+        reviewNotes,
+      }),
+    });
+    return response.json();
+  },
+
+  rejectEventRequest: async (id, reviewNotes = "") => {
+    const response = await fetchWithAuth(`/event-requests/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: "REJECTED",
+        reviewNotes,
+      }),
+    });
+    return response.json();
+  },
+
+  requestRevision: async (id, reviewNotes = "") => {
+    const response = await fetchWithAuth(`/event-requests/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: "REVISION_REQUESTED",
+        reviewNotes,
+      }),
+    });
+    return response.json();
+  },
 };
 
 // ============================================

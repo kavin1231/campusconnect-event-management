@@ -1,62 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { C, FONT } from '../../constants/colors';
 import { Icon } from '../common/Icon';
 import OrganizerShell from './OrganizerShell';
 import { useTheme } from '../../context/ThemeContext';
-
-const EVENTS = [
-  {
-    id: 1,
-    title: 'IEEE Annual Tech Symposium 2026',
-    date: 'Mar 28, 2026',
-    time: '9:00 AM - 5:00 PM',
-    venue: 'Main Auditorium',
-    type: 'Conference',
-    status: 'published',
-    registered: 287,
-  },
-  {
-    id: 2,
-    title: 'Photography Workshop: Light & Composition',
-    date: 'Apr 10, 2026',
-    time: '2:00 PM - 5:00 PM',
-    venue: 'Seminar Room A',
-    type: 'Workshop',
-    status: 'approved',
-    registered: 0,
-  },
-  {
-    id: 3,
-    title: 'Music Night - Spring Edition',
-    date: 'Apr 20, 2026',
-    time: '6:00 PM - 10:00 PM',
-    venue: 'Open Air Amphitheatre',
-    type: 'Concert',
-    status: 'pending',
-    registered: 0,
-  },
-  {
-    id: 4,
-    title: 'Hackathon: Build for Lanka 2026',
-    date: 'Apr 3, 2026',
-    time: '8:00 AM - Apr 4, 8:00 PM',
-    venue: 'IT Lab Block',
-    type: 'Hackathon',
-    status: 'pending',
-    registered: 0,
-  },
-  {
-    id: 5,
-    title: "Freshers' Orientation 2026",
-    date: 'Mar 22, 2026',
-    time: '9:00 AM - 1:00 PM',
-    venue: 'Main Auditorium',
-    type: 'Seminar',
-    status: 'published',
-    registered: 524,
-  },
-];
+import { eventRequestAPI } from '../../services/api';
 
 const getStatusMeta = (isDarkMode) =>
   isDarkMode
@@ -82,11 +30,27 @@ const getStatusMeta = (isDarkMode) =>
           border: 'rgba(74,222,128,.35)',
           dot: '#4ade80',
         },
+        rejected: {
+          label: 'Rejected',
+          color: '#f87171',
+          bg: 'rgba(248,113,113,.16)',
+          border: 'rgba(248,113,113,.35)',
+          dot: '#f87171',
+        },
+        revision_requested: {
+          label: 'Revision Requested',
+          color: '#f97316',
+          bg: 'rgba(249,115,22,.16)',
+          border: 'rgba(249,115,22,.35)',
+          dot: '#f97316',
+        },
       }
     : {
         pending: { label: 'Approval Pending', color: C.warning, bg: C.warningLight, border: 'rgba(196,127,0,.2)', dot: C.warning },
         approved: { label: 'Approved', color: C.primary, bg: C.approvedBg, border: 'rgba(5,54,104,.15)', dot: C.primary },
         published: { label: 'Published', color: C.success, bg: C.successLight, border: 'rgba(27,127,75,.15)', dot: C.success },
+        rejected: { label: 'Rejected', color: C.error, bg: '#FFEBEE', border: 'rgba(198,40,40,.2)', dot: C.error },
+        revision_requested: { label: 'Revision Requested', color: C.secondary, bg: '#FFF3E0', border: 'rgba(245,124,0,.2)', dot: C.secondary },
       };
 
 const getTypeColors = (isDarkMode) =>
@@ -106,14 +70,57 @@ const getTypeColors = (isDarkMode) =>
         Seminar: { bg: '#F0F9FF', text: '#0369A1' },
       };
 
-function routeForStatus(event) {
-  if (event.status === 'pending') return `/my-events/${event.id}/pending`;
-  if (event.status === 'approved') return `/my-events/${event.id}/setup`;
-  return `/my-events/${event.id}/published`;
+function normalizeStatus(status) {
+  if (!status) return 'pending';
+  const normalized = String(status).toLowerCase();
+  if (normalized === 'revision_requested') return 'revision_requested';
+  if (['pending', 'approved', 'published', 'rejected'].includes(normalized)) {
+    return normalized;
+  }
+  return 'pending';
+}
+
+function formatEventDate(dateString) {
+  if (!dateString) return 'TBD';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return 'TBD';
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  });
+}
+
+function splitDateParts(dateString) {
+  const parts = (dateString || '').split(' ');
+  return {
+    month: parts[0] || 'TBD',
+    day: (parts[1] || '').replace(',', '') || '--',
+    year: parts[2] || '',
+  };
+}
+
+function formatTime(value) {
+  if (!value) return '';
+  if (/am|pm/i.test(value)) return value;
+  const [hourPart, minutePart = '00'] = String(value).split(':');
+  const hourNum = Number(hourPart);
+  if (Number.isNaN(hourNum)) return value;
+  const period = hourNum >= 12 ? 'PM' : 'AM';
+  const hour12 = ((hourNum + 11) % 12) + 1;
+  const minutes = String(minutePart).padStart(2, '0');
+  return `${hour12}:${minutes} ${period}`;
+}
+
+function formatTimeRange(startTime, endTime) {
+  const start = formatTime(startTime);
+  const end = formatTime(endTime);
+  if (start && end) return `${start} - ${end}`;
+  return start || end || 'Time TBD';
 }
 
 function StatusBadge({ status, meta }) {
-  const m = meta[status];
+  const m = meta[status] || meta.pending;
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: '700', fontFamily: FONT, padding: '3px 10px', borderRadius: '100px', background: m.bg, color: m.color, border: `1px solid ${m.border}`, whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
       <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: m.dot, display: 'block', flexShrink: 0 }} />
@@ -132,6 +139,42 @@ export default function MyEventsPage() {
   const { isDarkMode } = useTheme();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await eventRequestAPI.getMyEventRequests();
+
+        if (response.success) {
+          const mapped = (response.data || []).map((req) => ({
+            id: req.id,
+            title: req.title || 'Untitled Event',
+            date: formatEventDate(req.eventDate),
+            time: formatTimeRange(req.startTime, req.endTime),
+            venue: req.venue || 'TBD',
+            type: req.eventType || 'Event',
+            status: normalizeStatus(req.status),
+            registered: 0,
+          }));
+          setEvents(mapped);
+        } else {
+          setError(response.message || 'Failed to load your event requests.');
+        }
+      } catch (err) {
+        console.error('Error fetching event requests:', err);
+        setError(err.message || 'Failed to load your event requests.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
 
   const palette = isDarkMode
     ? {
@@ -157,20 +200,20 @@ export default function MyEventsPage() {
   const typeColors = useMemo(() => getTypeColors(isDarkMode), [isDarkMode]);
 
   const counts = useMemo(() => ({
-    all: EVENTS.length,
-    pending: EVENTS.filter((e) => e.status === 'pending').length,
-    approved: EVENTS.filter((e) => e.status === 'approved').length,
-    published: EVENTS.filter((e) => e.status === 'published').length,
-  }), []);
+    all: events.length,
+    pending: events.filter((e) => e.status === 'pending').length,
+    approved: events.filter((e) => e.status === 'approved').length,
+    published: events.filter((e) => e.status === 'published').length,
+  }), [events]);
 
   const filtered = useMemo(() => {
-    return EVENTS.filter((e) => {
+    return events.filter((e) => {
       const matchStatus = filter === 'all' || e.status === filter;
       const q = search.toLowerCase();
       const matchSearch = e.title.toLowerCase().includes(q) || e.venue.toLowerCase().includes(q);
       return matchStatus && matchSearch;
     });
-  }, [filter, search]);
+  }, [events, filter, search]);
 
   return (
     <OrganizerShell page="events">
@@ -245,26 +288,36 @@ export default function MyEventsPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: '14px', padding: '60px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
+              <p style={{ fontSize: '14px', color: palette.textMuted, margin: 0 }}>Loading your event requests...</p>
+            </div>
+          ) : error ? (
+            <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: '14px', padding: '20px 24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', color: C.error, margin: 0 }}>{error}</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: '14px', padding: '60px 24px', textAlign: 'center' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: palette.surfaceAlt, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: palette.textDim }}><Icon.Events /></div>
-              <p style={{ fontSize: '15px', fontWeight: '700', color: palette.text, margin: '0 0 6px' }}>No events found</p>
-              <p style={{ fontSize: '13px', color: palette.textMuted, margin: 0 }}>Try adjusting your filter or search query.</p>
+              <p style={{ fontSize: '15px', fontWeight: '700', color: palette.text, margin: '0 0 6px' }}>No pending requests found</p>
+              <p style={{ fontSize: '13px', color: palette.textMuted, margin: 0 }}>Submit a new request to see it here.</p>
             </div>
           ) : (
             filtered.map((ev, i) => {
               const sm = statusMeta[ev.status];
               const isFirst = i === 0;
               const isLast = i === filtered.length - 1;
+              const dateParts = splitDateParts(ev.date);
               return (
-                <div key={ev.id} onClick={() => navigate(routeForStatus(ev))}
-                  style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: isFirst && isLast ? '12px' : isFirst ? '12px 12px 4px 4px' : isLast ? '4px 4px 12px 12px' : '4px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '18px', cursor: 'pointer', transition: 'all .18s', position: 'relative' }}>
+                <div key={ev.id}
+                  style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: isFirst && isLast ? '12px' : isFirst ? '12px 12px 4px 4px' : isLast ? '4px 4px 12px 12px' : '4px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '18px', transition: 'all .18s', position: 'relative' }}>
                   <div style={{ position: 'absolute', left: 0, top: '12px', bottom: '12px', width: '3px', borderRadius: '0 3px 3px 0', background: sm.dot }} />
 
                   <div style={{ width: '52px', height: '58px', borderRadius: '10px', background: palette.surfaceAlt, border: `1px solid ${palette.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: '9px', fontWeight: '700', color: palette.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{ev.date.split(' ')[0]}</span>
-                    <span style={{ fontSize: '22px', fontWeight: '800', color: C.primary, lineHeight: 1.1 }}>{ev.date.split(' ')[1]?.replace(',', '') || ''}</span>
-                    <span style={{ fontSize: '9px', fontWeight: '600', color: palette.textDim }}>{ev.date.split(' ')[2] || ''}</span>
+                    <span style={{ fontSize: '9px', fontWeight: '700', color: palette.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{dateParts.month}</span>
+                    <span style={{ fontSize: '22px', fontWeight: '800', color: C.primary, lineHeight: 1.1 }}>{dateParts.day}</span>
+                    <span style={{ fontSize: '9px', fontWeight: '600', color: palette.textDim }}>{dateParts.year}</span>
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -275,13 +328,11 @@ export default function MyEventsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: palette.textMuted }}><Icon.Clock size={12} />{ev.time}</span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: palette.textMuted }}><Icon.MapPin size={12} />{ev.venue}</span>
-                      {ev.status === 'published' && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: C.success, fontWeight: '600' }}><Icon.Users size={12} />{ev.registered} registered</span>}
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
                     <StatusBadge status={ev.status} meta={statusMeta} />
-                    <span style={{ display: 'flex', color: palette.textDim }}><Icon.ChevronRight size={16} /></span>
                   </div>
                 </div>
               );

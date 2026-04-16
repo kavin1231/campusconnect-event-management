@@ -124,6 +124,7 @@ export const createEventRequest = async (req, res) => {
       eventTypeOther,
       purposeTag,
       purposeDescription,
+      description,
       eventDate,
       startTime,
       endTime,
@@ -157,16 +158,31 @@ export const createEventRequest = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (
-      !title ||
-      !eventType ||
-      !purposeTag ||
-      !purposeDescription ||
-      !eventDate
-    ) {
+    if (!title || !eventType || !eventDate || !startTime || !endTime || !venue) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
+    }
+
+    const normalizedPurposeTag = purposeTag || "General";
+    const normalizedDescription = purposeDescription || description || "";
+    const normalizedSetupTime = setupTime || startTime || "00:00";
+    const normalizedTeardownTime = teardownTime || endTime || "00:00";
+    const normalizedAudience = audience || "All";
+    const normalizedContactId = contactId === null || contactId === undefined
+      ? null
+      : String(contactId);
+    const normalizedContactPhone = contactPhone === null || contactPhone === undefined
+      ? null
+      : String(contactPhone);
+    const normalizedSupervisorPhone = supervisorPhone === null || supervisorPhone === undefined
+      ? null
+      : String(supervisorPhone);
+    const parsedEventDate = new Date(eventDate);
+    if (Number.isNaN(parsedEventDate.getTime())) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid event date" });
     }
 
     const eventRequest = await prisma.eventRequest.create({
@@ -174,22 +190,22 @@ export const createEventRequest = async (req, res) => {
         title,
         eventType,
         eventTypeOther,
-        purposeTag,
-        purposeDescription,
-        eventDate: new Date(eventDate),
+        purposeTag: normalizedPurposeTag,
+        purposeDescription: normalizedDescription,
+        eventDate: parsedEventDate,
         startTime,
         endTime,
-        setupTime,
-        teardownTime,
-        audience,
+        setupTime: normalizedSetupTime,
+        teardownTime: normalizedTeardownTime,
+        audience: normalizedAudience,
         organizingBody,
         contactName,
-        contactId,
-        contactPhone,
-        contactEmail,
-        supervisorName,
-        supervisorDepartment,
-        supervisorPhone,
+        contactId: normalizedContactId,
+        contactPhone: normalizedContactPhone,
+        contactEmail: contactEmail || null,
+        supervisorName: supervisorName || null,
+        supervisorDepartment: supervisorDepartment || null,
+        supervisorPhone: normalizedSupervisorPhone,
         venue,
         expectedAttendance: expectedAttendance
           ? parseInt(expectedAttendance)
@@ -197,15 +213,15 @@ export const createEventRequest = async (req, res) => {
         seatingArrangement,
         parkingRequired: parkingRequired === true,
         estimatedBudget: estimatedBudget ? parseFloat(estimatedBudget) : null,
-        budgetBreakdown,
-        sponsorshipDetails,
+        budgetBreakdown: budgetBreakdown || null,
+        sponsorshipDetails: sponsorshipDetails || null,
         fundSource: Array.isArray(fundSource)
           ? fundSource.join(", ")
           : fundSource || null,
-        riskAssessment,
-        safetyMeasures,
-        emergencyPlan,
-        contingency,
+        riskAssessment: riskAssessment || null,
+        safetyMeasures: safetyMeasures || null,
+        emergencyPlan: emergencyPlan || null,
+        contingency: contingency || null,
         submittedBy: userId,
       },
       include: {

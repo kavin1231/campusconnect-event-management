@@ -1,35 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/common/Sidebar";
 import { C, FONT } from "../constants/colors";
 import { Icon } from "../components/common/Icon";
 import { Lbl, Inp, Txta, Sel, Pills, SecHead, InfoBox, InnerCard, Toggle, Btn, Grid2 } from "../components/common/Primitives";
-import { EVENT_TYPES, PURPOSES, AUDIENCES, VENUES_LIST, FUND_SOURCES, FORM_STEPS, VENUE_DATA, EVENTS_BY_DAY, FACULTIES, ORGANIZING_BODIES } from "../constants/staticData";
+import { EVENT_TYPES, VENUES_LIST, VENUE_DATA, ORGANIZING_BODIES } from "../constants/staticData";
 import { checkVenueConflict, getVenueStatus } from "../utils/helpers";
+import { getUser } from "../utils/auth";
+import { FeedbackToast } from "../components/common/FeedbackUI";
 import { eventRequestAPI } from "../services/api";
 
-function Step1({ d, set }) {
-  const wc = d.purpose_desc ? d.purpose_desc.trim().split(/\s+/).filter(Boolean).length : 0;
+function Step1({ d, set, onOpenCalendar, errors }) {
+  const conflicts = checkVenueConflict(d.venue, d.date);
+  const venueInfo = VENUE_DATA.find(v => v.name === d.venue);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <SecHead icon={<Icon.FileText />} title="Basic Event Information" subtitle="Give the administration a clear snapshot of your event." />
-      <div><Lbl required>Event Title</Lbl><Inp placeholder="e.g. IEEE Annual Tech Symposium 2026" value={d.title||""} onChange={e => set({...d, title:e.target.value})} /></div>
+      <SecHead icon={<Icon.FileText />} title="Core Event Info" subtitle="Fast essentials for a quick approval review." />
+      <div>
+        <Lbl required>Event Title</Lbl>
+        <Inp placeholder="e.g. IEEE Annual Tech Symposium 2026" value={d.title||""} onChange={e => set({...d, title:e.target.value})} />
+        {errors.title && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.title}</p>}
+      </div>
       <div>
         <Lbl required>Type of Event</Lbl>
         <Pills options={EVENT_TYPES} value={d.event_type} onChange={v => set({...d, event_type:v, event_type_other:""})} />
+        {errors.event_type && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.event_type}</p>}
         {d.event_type === "Other" && <div style={{ marginTop:"12px" }}><Lbl>Specify Event Type</Lbl><Inp placeholder="Describe your event type..." value={d.event_type_other||""} onChange={e => set({...d, event_type_other:e.target.value})} /></div>}
-      </div>
-      <div>
-        <Lbl required>Purpose / Objective</Lbl>
-        <Pills options={PURPOSES} value={d.purpose_tag} onChange={v => set({...d, purpose_tag:v})} />
-        <div style={{ marginTop:"14px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:"7px" }}>
-            <Lbl>Brief Description</Lbl>
-            <span style={{ fontSize:"10px", fontFamily:FONT, color:wc>200?C.error:wc>0&&wc<20?C.secondary:C.textDim }}>{wc}/200</span>
-          </div>
-          <Txta rows={3} placeholder="Explain the goals and expected outcomes of this event..." value={d.purpose_desc||""} onChange={e => set({...d, purpose_desc:e.target.value})} style={{ borderColor:wc>200?C.error:C.border }} />
-          {wc>0&&wc<20 && <p style={{ fontSize:"11px", color:C.secondary, marginTop:"5px", fontFamily:FONT }}>Min. 20 words recommended.</p>}
-          {wc>200 && <p style={{ fontSize:"11px", color:C.error, marginTop:"5px", fontFamily:FONT }}>Exceeds 200-word limit.</p>}
-        </div>
       </div>
       <div>
         <Lbl required>Date & Time</Lbl>
@@ -37,70 +32,20 @@ function Step1({ d, set }) {
           <div><Lbl>Event Date</Lbl><Inp type="date" value={d.date||""} onChange={e => set({...d, date:e.target.value})} /></div>
           <div><Lbl>Start Time</Lbl><Inp type="time" value={d.start_time||""} onChange={e => set({...d, start_time:e.target.value})} /></div>
           <div><Lbl>End Time</Lbl><Inp type="time" value={d.end_time||""} onChange={e => set({...d, end_time:e.target.value})} /></div>
-          <div><Lbl>Setup Start</Lbl><Inp type="time" value={d.setup_time||""} onChange={e => set({...d, setup_time:e.target.value})} /></div>
         </Grid2>
-        <div style={{ marginTop:"14px", maxWidth:"50%" }}><Lbl>Teardown End Time</Lbl><Inp type="time" value={d.teardown_time||""} onChange={e => set({...d, teardown_time:e.target.value})} /></div>
+        {(errors.date || errors.start_time || errors.end_time) && (
+          <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>
+            {errors.date || errors.start_time || errors.end_time}
+          </p>
+        )}
       </div>
-      <div><Lbl required>Target Audience</Lbl><Pills options={AUDIENCES} value={d.audience} onChange={v => set({...d, audience:v})} /></div>
-    </div>
-  );
-}
-
-function Step2({ d, set }) {
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:"24px" }}>
-      <SecHead icon={<Icon.Users />} title="Organizer Details" subtitle="The university needs to know who is accountable for this event." />
       <div>
-        <Lbl required>Name of Organizing Body</Lbl>
-        <Sel value={d.org_name||""} onChange={e => set({...d, org_name:e.target.value})}>
-          <option value="" disabled>Select a Club or Faculty...</option>
-          {ORGANIZING_BODIES.map(org => <option key={org} value={org}>{org}</option>)}
-        </Sel>
-      </div>
-      <InnerCard>
-        <p style={{ margin:"0 0 14px", fontSize:"10px", fontWeight:"700", color:C.primary, textTransform:"uppercase", letterSpacing:"0.07em", fontFamily:FONT }}>Primary Contact Person</p>
-        <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
-          <div><Lbl required>Full Name</Lbl><Inp placeholder="e.g. Kavindu Perera" value={d.contact_name||""} onChange={e => set({...d, contact_name:e.target.value})} /></div>
-          <Grid2>
-            <div><Lbl required>Student / Staff ID</Lbl><Inp placeholder="e.g. S/21/234" value={d.contact_id||""} onChange={e => set({...d, contact_id:e.target.value})} /></div>
-            <div><Lbl required>Phone Number</Lbl><Inp type="tel" placeholder="077 123 4567" value={d.contact_phone||""} onChange={e => set({...d, contact_phone:e.target.value})} /></div>
-          </Grid2>
-          <div><Lbl>Email Address</Lbl><Inp type="email" placeholder="kavindu@university.lk" value={d.contact_email||""} onChange={e => set({...d, contact_email:e.target.value})} /></div>
-        </div>
-      </InnerCard>
-      <InnerCard>
-        <p style={{ margin:"0 0 12px", fontSize:"10px", fontWeight:"700", color:C.primary, textTransform:"uppercase", letterSpacing:"0.07em", fontFamily:FONT }}>Supervising Faculty / Staff Member</p>
-        <InfoBox>Most universities require a Teacher-in-Charge to co-sign the event request.</InfoBox>
-        <div style={{ display:"flex", flexDirection:"column", gap:"14px", marginTop:"16px" }}>
-          <div><Lbl required>Supervisor Name</Lbl><Inp placeholder="e.g. Dr. Nimali Fernando" value={d.supervisor_name||""} onChange={e => set({...d, supervisor_name:e.target.value})} /></div>
-          <Grid2>
-            <div>
-              <Lbl required>Faculty / Department</Lbl>
-              <Sel value={d.supervisor_dept||""} onChange={e => set({...d, supervisor_dept:e.target.value})}>
-                <option value="" disabled>Select Faculty...</option>
-                {FACULTIES.map(fac => <option key={fac} value={fac}>{fac}</option>)}
-              </Sel>
-            </div>
-            <div><Lbl>Contact Number</Lbl><Inp type="tel" placeholder="011 234 5678" value={d.supervisor_phone||""} onChange={e => set({...d, supervisor_phone:e.target.value})} /></div>
-          </Grid2>
-        </div>
-      </InnerCard>
-    </div>
-  );
-}
-
-function Step3({ d, set, onOpenCalendar }) {
-  const conflicts = checkVenueConflict(d.venue, d.date);
-  const venueInfo = VENUE_DATA.find(v => v.name === d.venue);
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:"24px" }}>
-      <SecHead icon={<Icon.Venue />} title="Venue & Logistics" subtitle="Help the facilities team manage campus schedules and resources." />
-      <div>
-        <Lbl required>Proposed Venue</Lbl>
+        <Lbl required>Venue</Lbl>
         <Sel value={d.venue||""} onChange={e => set({...d, venue:e.target.value})}>
           <option value="" disabled>Select a venue on campus...</option>
           {VENUES_LIST.map(v => <option key={v} value={v}>{v}</option>)}
         </Sel>
+        {errors.venue && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.venue}</p>}
         {venueInfo && (
           <div style={{ marginTop:"12px", background:C.neutral, border:`1px solid ${C.border}`, borderRadius:"10px", padding:"14px 16px" }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"10px" }}>
@@ -145,51 +90,71 @@ function Step3({ d, set, onOpenCalendar }) {
           </div>
         )}
       </div>
-      <div><Lbl required>Expected Attendance</Lbl><Inp type="number" placeholder="e.g. 250" value={d.attendance||""} onChange={e => set({...d, attendance:e.target.value})} /><p style={{ fontSize:"11px", color:C.textMuted, marginTop:"5px", fontFamily:FONT }}>Must not exceed venue fire safety capacity.</p></div>
     </div>
   );
 }
 
-function Step4({ d, set }) {
+function Step2({ d, set, prefillName, errors }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:"24px" }}>
-      <SecHead icon={<Icon.Finance />} title="Financials & Sponsorship" subtitle="Be transparent about how funds are managed and sourced." />
-      <InfoBox>All financial information is subject to review. External sponsorships may require separate approval from the Legal or Marketing department.</InfoBox>
-      <div><Lbl required>Estimated Total Budget (LKR)</Lbl><Inp type="number" placeholder="e.g. 150000" value={d.budget||""} onChange={e => set({...d, budget:e.target.value})} /></div>
-      <div><Lbl>Budget Breakdown</Lbl><Txta rows={4} placeholder={"e.g.\nVenue setup — LKR 20,000\nSound & lighting — LKR 45,000\nPrinting & banners — LKR 15,000"} value={d.budget_breakdown||""} onChange={e => set({...d, budget_breakdown:e.target.value})} /></div>
-      <div><Lbl required>Source of Funding</Lbl><Pills options={FUND_SOURCES} value={d.fund_source} multi onChange={v => set({...d, fund_source:v})} /></div>
+      <SecHead icon={<Icon.Users />} title="Organizer & Details" subtitle="Who is hosting, and what is the event about?" />
       <div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"10px" }}><Lbl>External Sponsors?</Lbl><Toggle value={!!d.has_sponsors} onChange={v => set({...d, has_sponsors:v})} /></div>
+        <Lbl required>Organizing Body</Lbl>
+        <Sel value={d.org_name||""} onChange={e => set({...d, org_name:e.target.value})}>
+          <option value="" disabled>Select a Club or Faculty...</option>
+          {ORGANIZING_BODIES.map(org => <option key={org} value={org}>{org}</option>)}
+        </Sel>
+        {errors.org_name && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.org_name}</p>}
+      </div>
+      <div>
+        <Lbl required>Contact Name</Lbl>
+        <Inp
+          placeholder="Logged-in user"
+          value={d.contact_name||""}
+          readOnly={!!prefillName}
+          onChange={e => set({...d, contact_name:e.target.value})}
+        />
+        {!!prefillName && <p style={{ fontSize:"11px", color:C.textMuted, marginTop:"6px", fontFamily:FONT }}>Auto-filled from your profile.</p>}
+        {errors.contact_name && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.contact_name}</p>}
+      </div>
+      <div>
+        <Lbl required>Description</Lbl>
+        <Txta rows={4} placeholder="One-paragraph summary of the event goals and flow..." value={d.description||""} onChange={e => set({...d, description:e.target.value})} />
+        {errors.description && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.description}</p>}
+      </div>
+      <div>
+        <Lbl required>Expected Attendance</Lbl>
+        <Inp type="number" placeholder="e.g. 250" value={d.attendance||""} onChange={e => set({...d, attendance:e.target.value})} />
+        <p style={{ fontSize:"11px", color:C.textMuted, marginTop:"5px", fontFamily:FONT }}>Estimate only. Exact count can be updated later.</p>
+        {errors.attendance && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.attendance}</p>}
+      </div>
+    </div>
+  );
+}
+
+function Step3({ d, set, errors }) {
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:"24px" }}>
+      <SecHead icon={<Icon.Shield />} title="Optional Details" subtitle="These help reviewers but can be kept brief." />
+      <div>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"10px" }}><Lbl>Requires Sponsorship?</Lbl><Toggle value={!!d.has_sponsors} onChange={v => set({...d, has_sponsors:v})} /></div>
         {d.has_sponsors && (
           <InnerCard>
-            <InfoBox>External sponsors require separate approval. Provide details for each sponsor.</InfoBox>
-            <div style={{ marginTop:"14px", display:"flex", flexDirection:"column", gap:"14px" }}>
-              <div><Lbl>Sponsor Names & Details</Lbl><Txta rows={3} placeholder={"1. Dialog Axiata — Cash LKR 50,000\n2. McDonald's — Food provision"} value={d.sponsor_details||""} onChange={e => set({...d, sponsor_details:e.target.value})} /></div>
-            </div>
+            <InfoBox>List sponsors or note if outreach is in progress.</InfoBox>
+            <div style={{ marginTop:"14px" }}><Lbl>Sponsor Details</Lbl><Txta rows={3} placeholder={"1. Dialog Axiata — LKR 50,000 (pending)\n2. Brand X — In discussion"} value={d.sponsor_details||""} onChange={e => set({...d, sponsor_details:e.target.value})} /></div>
+            {errors.sponsor_details && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.sponsor_details}</p>}
           </InnerCard>
         )}
       </div>
-    </div>
-  );
-}
-
-function Step5({ d, set }) {
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:"24px" }}>
-      <SecHead icon={<Icon.Shield />} title="Risk Management & Safety" subtitle="This section determines whether your request is approved or flagged." />
-      <InfoBox warn>Incomplete safety information is the most common reason event requests are rejected. Please fill this carefully.</InfoBox>
       <div>
-        <Lbl required>Security Plan</Lbl>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"8px", marginBottom:"12px" }}>
-          {["Campus Security","Private Security","Volunteer Marshals","No Security Needed"].map(o => (
-            <button key={o} type="button" onClick={() => set({...d, security:o})} style={{ padding:"6px 14px", borderRadius:"6px", fontSize:"12px", fontFamily:FONT, cursor:"pointer", border:`1.5px solid ${d.security===o?C.primary:C.border}`, background:d.security===o?C.primaryLight:C.white, color:d.security===o?C.primary:C.textMuted, fontWeight:d.security===o?"700":"400" }}>{o}</button>
-          ))}
-        </div>
-        <Txta rows={2} placeholder="Describe your crowd management and security plan..." value={d.security_plan||""} onChange={e => set({...d, security_plan:e.target.value})} />
-      </div>
-      <div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"10px" }}><Lbl>Food & Beverage Involved?</Lbl><Toggle value={!!d.has_food} onChange={v => set({...d, has_food:v})} /></div>
-        {d.has_food && <InnerCard><InfoBox>Food vendors must hold a valid health permit.</InfoBox><div style={{ marginTop:"14px" }}><Lbl>Vendor Names & Permit Status</Lbl><Txta rows={3} placeholder={"1. Cafe Delight — Permit valid Dec 2026\n2. Homemade goods — Permit pending"} value={d.food_vendors||""} onChange={e => set({...d, food_vendors:e.target.value})} /></div></InnerCard>}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"10px" }}><Lbl>Includes Food & Beverage?</Lbl><Toggle value={!!d.has_food} onChange={v => set({...d, has_food:v})} /></div>
+        {d.has_food && (
+          <InnerCard>
+            <InfoBox>Food vendors must hold a valid health permit.</InfoBox>
+            <div style={{ marginTop:"14px" }}><Lbl>Vendor Details</Lbl><Txta rows={3} placeholder={"1. Cafe Delight — Permit valid Dec 2026\n2. Homemade goods — Permit pending"} value={d.food_vendors||""} onChange={e => set({...d, food_vendors:e.target.value})} /></div>
+            {errors.food_vendors && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.food_vendors}</p>}
+          </InnerCard>
+        )}
       </div>
       <div style={{ background:C.primaryLight, borderRadius:"12px", padding:"20px", border:`1px solid ${C.border}` }}>
         <p style={{ margin:"0 0 12px", fontSize:"10px", fontWeight:"700", color:C.primary, textTransform:"uppercase", letterSpacing:"0.07em", fontFamily:FONT }}>Declaration</p>
@@ -197,69 +162,92 @@ function Step5({ d, set }) {
           <input type="checkbox" checked={!!d.declaration} onChange={e => set({...d, declaration:e.target.checked})} style={{ width:"16px", height:"16px", marginTop:"2px", accentColor:C.primary, cursor:"pointer", flexShrink:0 }} />
           <span style={{ fontSize:"13px", color:C.text, lineHeight:1.6, fontFamily:FONT }}>I confirm that all information provided is accurate and complete. I understand that submitting false or misleading information may result in rejection and disciplinary action.</span>
         </label>
+        {errors.declaration && <p style={{ fontSize:"11px", color:C.error, marginTop:"6px", fontFamily:FONT }}>{errors.declaration}</p>}
       </div>
-    </div>
-  );
-}
-
-function ReviewStep({ s1, s2, s3, s4, s5 }) {
-  const sections = [
-    { title:"Basic Event Info",  rows:[["Title",s1.title],["Type",s1.event_type],["Date",s1.date],["Time",s1.start_time&&s1.end_time?`${s1.start_time} – ${s1.end_time}`:null],["Audience",s1.audience]] },
-    { title:"Organizer",         rows:[["Org. Body",s2.org_name],["Contact",s2.contact_name],["Supervisor",s2.supervisor_name]] },
-    { title:"Venue & Logistics", rows:[["Venue",s3.venue],["Attendance",s3.attendance?`${s3.attendance} people`:null],["Power",s3.power]] },
-    { title:"Financials",        rows:[["Budget",s4.budget?`LKR ${parseInt(s4.budget).toLocaleString()}`:null],["Funding",Array.isArray(s4.fund_source)?s4.fund_source.join(", "):s4.fund_source],["Sponsors",s4.has_sponsors?"Yes":"No"]] },
-    { title:"Risk & Safety",     rows:[["Security",s5.security],["Food & Bev",s5.has_food?"Yes":"No"],["Declaration",s5.declaration?"✓ Confirmed":"⚠ Pending"]] },
-  ];
-  const allRows = sections.flatMap(s => s.rows);
-  const pct = Math.round((allRows.filter(([,v]) => v && v!=="No").length / allRows.length) * 100);
-  return (
-    <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
-      <SecHead icon={<Icon.Review />} title="Request Summary" subtitle="Review all information before submitting for administrative review." />
-      {sections.map(sec => (
-        <div key={sec.title} style={{ borderRadius:"10px", border:`1px solid ${C.border}`, overflow:"hidden" }}>
-          <div style={{ background:C.primaryLight, padding:"8px 16px", borderBottom:`1px solid ${C.border}` }}>
-            <p style={{ margin:0, fontSize:"10px", fontWeight:"700", color:C.primary, textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:FONT }}>{sec.title}</p>
-          </div>
-          {sec.rows.filter(([,v]) => v).map(([k,v], i, a) => (
-            <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 16px", borderBottom:i<a.length-1?`1px solid ${C.border}`:"none", background:C.white }}>
-              <span style={{ fontSize:"10px", color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:FONT }}>{k}</span>
-              <span style={{ fontSize:"12px", fontWeight:"600", fontFamily:FONT, color:v==="✓ Confirmed"?"#2E8B57":v==="⚠ Pending"?C.secondary:C.text }}>{v}</span>
-            </div>
-          ))}
-        </div>
-      ))}
-      <div style={{ background:C.primary, borderRadius:"12px", padding:"20px 24px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"8px" }}>
-          <span style={{ fontSize:"10px", color:"rgba(255,255,255,.55)", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:FONT }}>Completion</span>
-          <span style={{ fontSize:"10px", color:C.secondary, background:"rgba(255,113,0,.15)", padding:"2px 10px", borderRadius:"100px", border:"1px solid rgba(255,113,0,.4)", fontFamily:FONT }}>Draft</span>
-        </div>
-        <div style={{ fontSize:"28px", fontWeight:"700", color:C.white, fontFamily:FONT, marginBottom:"8px" }}>{pct}%</div>
-        <div style={{ background:"rgba(255,255,255,.15)", borderRadius:"100px", height:"5px", overflow:"hidden" }}>
-          <div style={{ height:"100%", width:`${pct}%`, background:C.secondary, borderRadius:"100px" }} />
-        </div>
-      </div>
-      {!s5.declaration && <InfoBox warn>You must confirm the declaration in Step 5 before submitting.</InfoBox>}
     </div>
   );
 }
 
 export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
+  const user = getUser();
+  const prefillName = user?.name || user?.fullName || user?.username || "";
+  const prefillEmail = user?.email || "";
+  const prefillPhone = user?.phone || user?.contact || "";
+  const prefillId = user?.studentId || user?.staffId || user?.id || "";
   const [step, setStep] = useState(1);
   const [s1, setS1] = useState({});
-  const [s2, setS2] = useState({});
+  const [s2, setS2] = useState({ contact_name: prefillName });
   const [s3, setS3] = useState({});
-  const [s4, setS4] = useState({});
-  const [s5, setS5] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [anim, setAnim] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const TOTAL = 6;
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  const TOTAL = 3;
 
   const goTo = n => { setAnim(true); setTimeout(() => { setStep(n); setAnim(false); }, 180); };
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2600);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
+
+  const validateStep1 = () => {
+    const errors = {};
+    if (!s1.title) errors.title = "Event title is required.";
+    if (!s1.event_type) errors.event_type = "Event type is required.";
+    if (!s1.date) errors.date = "Event date is required.";
+    if (!s1.start_time) errors.start_time = "Start time is required.";
+    if (!s1.end_time) errors.end_time = "End time is required.";
+    if (!s1.venue) errors.venue = "Venue is required.";
+    return errors;
+  };
+
+  const validateStep2 = () => {
+    const errors = {};
+    if (!s2.org_name) errors.org_name = "Organizing body is required.";
+    if (!s2.contact_name) errors.contact_name = "Contact name is required.";
+    if (!s2.description) errors.description = "Description is required.";
+    if (!s2.attendance) errors.attendance = "Expected attendance is required.";
+    return errors;
+  };
+
+  const validateStep3 = () => {
+    const errors = {};
+    if (s3.has_sponsors && !s3.sponsor_details) {
+      errors.sponsor_details = "Sponsor details are required when sponsorship is on.";
+    }
+    if (s3.has_food && !s3.food_vendors) {
+      errors.food_vendors = "Vendor details are required when food is included.";
+    }
+    if (!s3.declaration) errors.declaration = "Please confirm the declaration.";
+    return errors;
+  };
+
+  const handleNext = () => {
+    let errors = {};
+    if (step === 1) errors = validateStep1();
+    if (step === 2) errors = validateStep2();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+    goTo(step + 1);
+  };
+
   const handleSubmit = async () => {
-    if (!s5.declaration) return;
+    const errors = validateStep3();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
     
     setIsLoading(true);
     setError(null);
@@ -271,62 +259,61 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
         title: s1.title,
         eventType: s1.event_type,
         eventTypeOther: s1.event_type_other || null,
-        purposeTag: s1.purpose_tag,
-        purposeDescription: s1.purpose_desc,
+        purposeTag: "General",
+        purposeDescription: s2.description,
         eventDate: s1.date,
         startTime: s1.start_time,
         endTime: s1.end_time,
-        setupTime: s1.setup_time,
-        teardownTime: s1.teardown_time,
-        audience: s1.audience,
+        setupTime: s1.start_time,
+        teardownTime: s1.end_time,
+        audience: "All",
         
         // Step 2: Organizer Details
         organizingBody: s2.org_name,
         contactName: s2.contact_name,
-        contactId: s2.contact_id,
-        contactPhone: s2.contact_phone,
-        contactEmail: s2.contact_email,
-        supervisorName: s2.supervisor_name,
-        supervisorDepartment: s2.supervisor_dept,
-        supervisorPhone: s2.supervisor_phone,
+        contactId: prefillId || "N/A",
+        contactPhone: prefillPhone || "N/A",
+        contactEmail: prefillEmail || "N/A",
+        supervisorName: "N/A",
+        supervisorDepartment: "N/A",
+        supervisorPhone: "",
         
         // Step 3: Venue & Logistics
-        venue: s3.venue,
-        expectedAttendance: parseInt(s3.attendance) || 0,
-        seatingArrangement: s3.seating || "General Seating",
-        parkingRequired: s3.parking || false,
+        venue: s1.venue,
+        expectedAttendance: parseInt(s2.attendance) || 0,
+        seatingArrangement: "General Seating",
+        parkingRequired: false,
         
         // Step 4: Financials
-        estimatedBudget: parseInt(s4.budget) || 0,
-        budgetBreakdown: s4.budget_breakdown || "",
-        sponsorshipDetails: s4.sponsor_details || "",
-        fundSource: Array.isArray(s4.fund_source) ? s4.fund_source : [s4.fund_source].filter(Boolean),
+        estimatedBudget: 1000,
+        budgetBreakdown: "N/A",
+        sponsorshipDetails: s3.sponsor_details || "",
+        fundSource: ["Internal"],
         
         // Step 5: Risk Management & Safety
-        riskAssessment: s5.security_plan || "",
-        safetyMeasures: s5.security || "",
-        emergencyPlan: s5.food_vendors || "",
-        contingency: s5.has_food ? "Food vendor permits required" : "",
+        riskAssessment: "Standard precautions",
+        safetyMeasures: "Standard campus procedures",
+        emergencyPlan: s3.food_vendors || "",
+        contingency: s3.has_food ? "Food vendor permits required" : "",
       };
       
       const response = await eventRequestAPI.submitEventRequest(payload);
       
       if (response.success) {
+        showToast("Event request submitted.", "success");
         setSubmitted(true);
       } else {
         setError(response.message || "Failed to submit request. Please try again.");
+        showToast(response.message || "Failed to submit request.", "error");
       }
     } catch (err) {
       setError(err.message || "An error occurred while submitting your request.");
+      showToast(err.message || "An error occurred while submitting your request.", "error");
       console.error("Submission error:", err);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const titles = ["Basic Event Information","Organizer Details","Venue & Logistics","Financials & Sponsorship","Risk Management & Safety","Review & Submit"];
-  const badges = ["BASIC EVENT INFO","ORGANIZER DETAILS","VENUE & LOGISTICS","FINANCIALS","RISK & SAFETY","FINAL REVIEW"];
-  const pct = Math.round(((step - 1) / TOTAL) * 100);
 
   const handleBack = () => {
     if (onBack) {
@@ -344,13 +331,14 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
         <p style={{ color:C.textMuted, fontSize:"14px", lineHeight:1.7, marginBottom:"20px", fontFamily:FONT }}>Your permission request for <strong style={{ color:C.primary }}>{s1.title || "your event"}</strong> has been submitted for administrative review.</p>
         <div style={{ background:C.tertiary, border:`1px solid ${C.terDark}`, borderRadius:"10px", padding:"14px 18px", fontSize:"13px", color:"#7A6200", marginBottom:"28px", textAlign:"left", lineHeight:1.6, fontFamily:FONT }}><strong>3–5 working days.</strong> Check your university email for updates.</div>
         <div style={{ display:"flex", gap:"12px", justifyContent:"center" }}>
-          <Btn onClick={() => { setSubmitted(false); setStep(1); setS1({}); setS2({}); setS3({}); setS4({}); setS5({}); }}>+ Submit Another</Btn>
+          <Btn onClick={() => { setSubmitted(false); setStep(1); setS1({}); setS2({ contact_name: prefillName }); setS3({}); setFieldErrors({}); }}>+ Submit Another</Btn>
           <Btn variant="outline" onClick={handleBack}>← Dashboard</Btn>
         </div>
       </div>
     </div>
   ) : (
     <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+      <FeedbackToast toast={toast} onClose={() => setToast(null)} />
       <div style={{ width:"100%", maxWidth:"1320px", margin:"0 auto", padding:"0 40px" }}>
         {/* Organizer Dashboard Header */}
         <div
@@ -387,19 +375,10 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
 
       <div style={{ flex:1, overflowY:"auto", padding:"24px 40px 28px" }}>
         <div style={{ maxWidth:"760px", margin:"0 auto" }}>
-          {error && (
-            <div style={{ background:C.secLight, border:`1.5px solid rgba(255,113,0,.4)`, borderRadius:"10px", padding:"14px 16px", marginBottom:"20px", display:"flex", alignItems:"center", gap:"12px" }}>
-              <span style={{ color:C.secondary, display:"flex", fontSize:"20px" }}>⚠</span>
-              <span style={{ fontSize:"13px", color:"#7A3300", fontFamily:FONT }}>{error}</span>
-            </div>
-          )}
           <div style={{ background:C.white, borderRadius:"16px", padding:"36px", border:`1px solid ${C.border}`, boxShadow:"0 4px 24px rgba(5,54,104,.07)", opacity:anim?0:1, transform:anim?"translateY(8px)":"translateY(0)", transition:"opacity .18s, transform .18s" }}>
-            {step===1 && <Step1 d={s1} set={setS1} />}
-            {step===2 && <Step2 d={s2} set={setS2} />}
-            {step===3 && <Step3 d={s3} set={setS3} onOpenCalendar={onOpenCalendar} />}
-            {step===4 && <Step4 d={s4} set={setS4} />}
-            {step===5 && <Step5 d={s5} set={setS5} />}
-            {step===6 && <ReviewStep s1={s1} s2={s2} s3={s3} s4={s4} s5={s5} />}
+            {step===1 && <Step1 d={s1} set={setS1} onOpenCalendar={onOpenCalendar} errors={fieldErrors} />}
+            {step===2 && <Step2 d={s2} set={setS2} prefillName={prefillName} errors={fieldErrors} />}
+            {step===3 && <Step3 d={s3} set={setS3} errors={fieldErrors} />}
           </div>
         </div>
       </div>
@@ -411,9 +390,8 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
             <div key={n} style={{ height:"6px", borderRadius:"100px", transition:"all .3s", width:n===step?"24px":"6px", background:n<step?C.primary:n===step?C.secondary:C.border }} />
           ))}
         </div>
-        {step<5  && <Btn onClick={() => goTo(step+1)}>Next →</Btn>}
-        {step===5 && <Btn onClick={() => goTo(6)}>Review Request →</Btn>}
-        {step===6 && <Btn variant={s5.declaration?"secondary":"disabled"} disabled={!s5.declaration || isLoading} onClick={handleSubmit}><span style={{display:"flex",alignItems:"center",gap:"7px"}}><Icon.Review /> {isLoading ? "Submitting..." : "Submit Request"}</span></Btn>}
+        {step<TOTAL  && <Btn onClick={handleNext}>Next →</Btn>}
+        {step===TOTAL && <Btn variant={s3.declaration?"secondary":"disabled"} disabled={!s3.declaration || isLoading} onClick={handleSubmit}><span style={{display:"flex",alignItems:"center",gap:"7px"}}><Icon.Review /> {isLoading ? "Submitting..." : "Submit Request"}</span></Btn>}
       </div>
     </div>
   );

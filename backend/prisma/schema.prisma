@@ -590,6 +590,7 @@ enum EventRequestStatus {
   APPROVED
   REJECTED
   REVISION_REQUESTED
+  PUBLISHED
 }
 
 model EventRequest {
@@ -601,6 +602,7 @@ model EventRequest {
   eventTypeOther        String?
   purposeTag            String
   purposeDescription    String
+  bannerUrl             String?
   eventDate             DateTime
   startTime             String
   endTime               String
@@ -635,6 +637,10 @@ model EventRequest {
   safetyMeasures        String?
   emergencyPlan         String?
   contingency           String?
+
+  // Step 6: Tickets & Merchandise
+  tickets               Json                  @default("[]")
+  merchandise           Json                  @default("[]")
   
   // Metadata
   status                EventRequestStatus    @default(PENDING)

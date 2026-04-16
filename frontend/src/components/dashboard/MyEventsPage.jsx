@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { C, FONT } from '../../constants/colors';
 import { Icon } from '../common/Icon';
@@ -143,38 +143,41 @@ export default function MyEventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await eventRequestAPI.getMyEventRequests();
+  const fetchRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await eventRequestAPI.getMyEventRequestsAll();
 
-        if (response.success) {
-          const mapped = (response.data || []).map((req) => ({
-            id: req.id,
-            title: req.title || 'Untitled Event',
-            date: formatEventDate(req.eventDate),
-            time: formatTimeRange(req.startTime, req.endTime),
-            venue: req.venue || 'TBD',
-            type: req.eventType || 'Event',
-            status: normalizeStatus(req.status),
-            registered: 0,
-          }));
-          setEvents(mapped);
-        } else {
-          setError(response.message || 'Failed to load your event requests.');
-        }
-      } catch (err) {
-        console.error('Error fetching event requests:', err);
-        setError(err.message || 'Failed to load your event requests.');
-      } finally {
-        setLoading(false);
+      if (response.success) {
+        const mapped = (response.data || []).map((req) => ({
+          id: req.id,
+          title: req.title || 'Untitled Event',
+          date: formatEventDate(req.eventDate),
+          time: formatTimeRange(req.startTime, req.endTime),
+          venue: req.venue || 'TBD',
+          type: req.eventType || 'Event',
+          status: normalizeStatus(req.status),
+          registered: 0,
+        }));
+        setEvents(mapped);
+      } else {
+        setError(response.message || 'Failed to load your event requests.');
       }
-    };
-
-    fetchRequests();
+    } catch (err) {
+      console.error('Error fetching event requests:', err);
+      const fallback = err?.message?.includes('Failed to fetch')
+        ? 'Unable to reach the server. Make sure the backend is running.'
+        : err.message || 'Failed to load your event requests.';
+      setError(fallback);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const palette = isDarkMode
     ? {
@@ -294,8 +297,11 @@ export default function MyEventsPage() {
               <p style={{ fontSize: '14px', color: palette.textMuted, margin: 0 }}>Loading your event requests...</p>
             </div>
           ) : error ? (
-            <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: '14px', padding: '20px 24px', textAlign: 'center' }}>
-              <p style={{ fontSize: '14px', color: C.error, margin: 0 }}>{error}</p>
+            <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: '14px', padding: '24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', color: C.error, margin: '0 0 12px' }}>{error}</p>
+              <button onClick={fetchRequests} style={{ padding: '8px 14px', background: C.primary, color: C.white, border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                Retry
+              </button>
             </div>
           ) : filtered.length === 0 ? (
             <div style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: '14px', padding: '60px 24px', textAlign: 'center' }}>
@@ -309,9 +315,17 @@ export default function MyEventsPage() {
               const isFirst = i === 0;
               const isLast = i === filtered.length - 1;
               const dateParts = splitDateParts(ev.date);
+              const isPending = ev.status === 'pending';
+              const isApproved = ev.status === 'approved';
+              const isPublished = ev.status === 'published';
               return (
                 <div key={ev.id}
-                  style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: isFirst && isLast ? '12px' : isFirst ? '12px 12px 4px 4px' : isLast ? '4px 4px 12px 12px' : '4px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '18px', transition: 'all .18s', position: 'relative' }}>
+                  onClick={() => {
+                    if (isPending) navigate(`/my-events/${ev.id}/pending`);
+                    if (isApproved) navigate(`/my-events/${ev.id}/setup`);
+                    if (isPublished) navigate(`/my-events/${ev.id}/published`);
+                  }}
+                  style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: isFirst && isLast ? '12px' : isFirst ? '12px 12px 4px 4px' : isLast ? '4px 4px 12px 12px' : '4px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '18px', transition: 'all .18s', position: 'relative', cursor: isPending || isApproved || isPublished ? 'pointer' : 'default' }}>
                   <div style={{ position: 'absolute', left: 0, top: '12px', bottom: '12px', width: '3px', borderRadius: '0 3px 3px 0', background: sm.dot }} />
 
                   <div style={{ width: '52px', height: '58px', borderRadius: '10px', background: palette.surfaceAlt, border: `1px solid ${palette.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

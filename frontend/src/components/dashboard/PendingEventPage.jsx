@@ -1,32 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { C, FONT } from '../../constants/colors';
 import { Icon } from '../common/Icon';
 import OrganizerShell from './OrganizerShell';
 import { useTheme } from '../../context/ThemeContext';
-
-const EVENT_MAP = {
-  1: {
-    title: 'IEEE Annual Tech Symposium 2026',
-    type: 'Conference',
-    date: 'Mar 28, 2026',
-    time: '9:00 AM - 5:00 PM',
-    venue: 'Main Auditorium',
-    category: 'Technology',
-    description:
-      'A day-long technology symposium bringing together students, faculty, and industry professionals to explore the frontiers of engineering and computing.',
-  },
-  3: {
-    title: 'Music Night - Spring Edition',
-    type: 'Concert',
-    date: 'Apr 20, 2026',
-    time: '6:00 PM - 10:00 PM',
-    venue: 'Open Air Amphitheatre',
-    category: 'Arts & Culture',
-    description:
-      'An evening of live musical performances by student bands and solo artists, featuring indie, jazz, and classical performances.',
-  },
-};
+import { eventRequestAPI } from '../../services/api';
 
 function Card({ children, style = {}, pad = '20px', palette, isDarkMode }) {
   const surface = palette?.surface ?? C.white;
@@ -65,11 +43,56 @@ function StatusBadge() {
   );
 }
 
+function formatDate(dateString) {
+  if (!dateString) return 'TBD';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return 'TBD';
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  });
+}
+
+function formatDateTime(dateString) {
+  if (!dateString) return 'TBD';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return 'TBD';
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatTime(value) {
+  if (!value) return '';
+  if (/am|pm/i.test(value)) return value;
+  const [hourPart, minutePart = '00'] = String(value).split(':');
+  const hourNum = Number(hourPart);
+  if (Number.isNaN(hourNum)) return value;
+  const period = hourNum >= 12 ? 'PM' : 'AM';
+  const hour12 = ((hourNum + 11) % 12) + 1;
+  const minutes = String(minutePart).padStart(2, '0');
+  return `${hour12}:${minutes} ${period}`;
+}
+
+function formatTimeRange(startTime, endTime) {
+  const start = formatTime(startTime);
+  const end = formatTime(endTime);
+  if (start && end) return `${start} - ${end}`;
+  return start || end || 'Time TBD';
+}
+
 export default function PendingEventPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { isDarkMode } = useTheme();
-  const event = EVENT_MAP[id] || EVENT_MAP[1];
+  const [eventRequest, setEventRequest] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const steps = ['Submitted', 'Under Review', 'Decision', 'Published'];
   const currentStep = 1;
 
@@ -92,6 +115,64 @@ export default function PendingEventPage() {
         textMuted: C.textMuted,
         textDim: C.textDim,
       };
+
+  useEffect(() => {
+    const fetchRequest = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await eventRequestAPI.getEventRequestById(id);
+        if (response.success) {
+          setEventRequest(response.data || null);
+        } else {
+          setError(response.message || 'Failed to load event request.');
+        }
+      } catch (err) {
+        console.error('Error loading event request:', err);
+        setError(err.message || 'Failed to load event request.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchRequest();
+    } else {
+      setLoading(false);
+      setError('Missing event request id.');
+    }
+  }, [id]);
+
+  const title = eventRequest?.title || 'Event Request';
+  const date = formatDate(eventRequest?.eventDate);
+  const time = formatTimeRange(eventRequest?.startTime, eventRequest?.endTime);
+  const venue = eventRequest?.venue || 'TBD';
+  const category = eventRequest?.purposeTag || 'General';
+  const description = eventRequest?.purposeDescription || 'No description provided.';
+  const submittedOn = formatDateTime(eventRequest?.submittedAt);
+
+  if (loading) {
+    return (
+      <OrganizerShell page="events">
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: palette.pageBg, fontFamily: FONT }}>
+          <p style={{ margin: 0, fontSize: '14px', color: palette.textMuted }}>Loading event request...</p>
+        </div>
+      </OrganizerShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <OrganizerShell page="events">
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: palette.pageBg, fontFamily: FONT, padding: '24px' }}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ margin: '0 0 12px', fontSize: '14px', color: C.error }}>{error}</p>
+            <button onClick={() => navigate('/my-events')} style={{ padding: '8px 14px', background: C.primary, color: C.white, border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>Back to My Events</button>
+          </div>
+        </div>
+      </OrganizerShell>
+    );
+  }
 
   return (
     <OrganizerShell page="events">
@@ -117,7 +198,7 @@ export default function PendingEventPage() {
           <div style={{ background: 'rgba(255,255,255,.12)', border: '1px solid rgba(255,255,255,.2)', borderRadius: '12px', padding: '12px 16px', minWidth: '190px' }}>
             <p style={{ margin: 0, fontSize: '10px', color: 'rgba(255,255,255,.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Estimated Review</p>
             <p style={{ margin: '6px 0 0', fontSize: '16px', fontWeight: '800' }}>3-5 working days</p>
-            <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'rgba(255,255,255,.7)' }}>Submitted on {event.date}</p>
+            <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'rgba(255,255,255,.7)' }}>Submitted on {submittedOn}</p>
           </div>
         </div>
       </div>
@@ -144,7 +225,7 @@ export default function PendingEventPage() {
           <span style={{ color: C.warning, display: 'flex', marginTop: '1px' }}><Icon.Info size={15} /></span>
           <div>
             <p style={{ margin: '0 0 2px', fontSize: '12px', fontWeight: '700', color: C.warning }}>Estimated review time: 3-5 working days</p>
-            <p style={{ margin: 0, fontSize: '11px', color: palette.textMuted }}>Submitted on {event.date}. Check your university email for updates from the administration.</p>
+            <p style={{ margin: 0, fontSize: '11px', color: palette.textMuted }}>Submitted on {submittedOn}. Check your university email for updates from the administration.</p>
           </div>
         </div>
       </Card>
@@ -153,15 +234,15 @@ export default function PendingEventPage() {
         <Card palette={palette} isDarkMode={isDarkMode}>
           <SectionHead label="Submitted Request Details" palette={palette} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-            <DetailRow k="Event Title" v={event.title} palette={palette} />
-            <DetailRow k="Type" v={event.type} palette={palette} />
-            <DetailRow k="Date" v={event.date} palette={palette} />
-            <DetailRow k="Time" v={event.time} palette={palette} />
-            <DetailRow k="Venue" v={event.venue} palette={palette} />
-            <DetailRow k="Category" v={event.category} palette={palette} />
+            <DetailRow k="Event Title" v={title} palette={palette} />
+            <DetailRow k="Type" v={eventRequest?.eventType || 'Event'} palette={palette} />
+            <DetailRow k="Date" v={date} palette={palette} />
+            <DetailRow k="Time" v={time} palette={palette} />
+            <DetailRow k="Venue" v={venue} palette={palette} />
+            <DetailRow k="Category" v={category} palette={palette} />
             <div style={{ padding: '13px 0' }}>
               <span style={{ fontSize: '11px', fontWeight: '700', color: palette.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '8px' }}>Description</span>
-              <p style={{ margin: 0, fontSize: '13px', color: palette.text, lineHeight: 1.8 }}>{event.description}</p>
+              <p style={{ margin: 0, fontSize: '13px', color: palette.text, lineHeight: 1.8 }}>{description}</p>
             </div>
           </div>
         </Card>

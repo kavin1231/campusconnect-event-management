@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import { useTheme } from "../../context/ThemeContext";
-import { logisticsAPI } from "../../services/api";
+import { logisticsAPI, eventsAPI } from "../../services/api";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -21,7 +21,7 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { UPCOMING_EVENTS, CONFLICTS } from "../../constants/staticData";
+import { CONFLICTS } from "../../constants/staticData";
 
 const OrganizerDashboard = () => {
   const navigate = useNavigate();
@@ -30,6 +30,8 @@ const OrganizerDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -48,7 +50,34 @@ const OrganizerDashboard = () => {
     }
 
     fetchStats();
+    fetchEvents();
   }, [navigate]);
+
+  const fetchEvents = async () => {
+    try {
+      setEventsLoading(true);
+      const [publishedRes, ongoingRes] = await Promise.all([
+        eventsAPI.listEvents({ status: "PUBLISHED" }),
+        eventsAPI.listEvents({ status: "ONGOING" }),
+      ]);
+
+      const published = publishedRes?.events || [];
+      const ongoing = ongoingRes?.events || [];
+      const combined = [...published, ...ongoing].sort((a, b) =>
+        new Date(a.date) - new Date(b.date),
+      );
+      setEvents(combined);
+      setStats((prev) => ({
+        ...(prev || {}),
+        totalEvents: combined.length,
+      }));
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+      setEvents([]);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -81,24 +110,26 @@ const OrganizerDashboard = () => {
           (r.dueDate && new Date(r.dueDate) < new Date()),
       ).length;
 
-      setStats({
+      setStats((prev) => ({
+        ...(prev || {}),
         availableAssets,
         activeRequests,
         inTransit,
         overdueReturns,
         totalLinks: linksData.length,
-        totalEvents: UPCOMING_EVENTS.length,
+        totalEvents: prev?.totalEvents ?? 0,
         activeConflicts: CONFLICTS.length,
-      });
+      }));
     } catch (error) {
       console.error("Failed to fetch organizer stats:", error);
-      setStats({
+      setStats((prev) => ({
+        ...(prev || {}),
         availableAssets: 0,
         activeRequests: 0,
         inTransit: 0,
         overdueReturns: 0,
         totalLinks: 0,
-      });
+      }));
     } finally {
       setLoading(false);
     }
@@ -107,6 +138,17 @@ const OrganizerDashboard = () => {
   if (!user) return <div className="p-10 text-white">Loading...</div>;
 
   const recent = requests.slice(0, 5);
+
+  const formatEventDate = (value) => {
+    if (!value) return "TBD";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "TBD";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
 
   const statusClass = (status) => {
     if (status === "overdue") return "text-red-300 border-red-500/30 bg-red-500/10";
@@ -402,23 +444,46 @@ const OrganizerDashboard = () => {
 
               <section className={`rounded-2xl border ${isDarkMode ? "border-slate-700/70 bg-[#111827]" : "border-[#FF7100]/30 bg-[#FFFFFF]"} p-5`}>
                 <h2 className={`text-sm uppercase tracking-[0.15em] ${isDarkMode ? "text-slate-300" : "text-[#053668]"} mb-4`}>
-                  Upcoming Events
+                  Published & Ongoing Events
                 </h2>
                 <div className="space-y-3">
-                  {UPCOMING_EVENTS.slice(0, 3).map((ev) => (
-                    <div key={ev.id} className={`p-3 rounded-xl border ${isDarkMode ? "border-slate-700/50 bg-slate-800/30" : "border-[#FF7100]/20 bg-[#F7ECB5]/10"}`}>
-                      <p className={`font-bold text-sm ${isDarkMode ? "text-white" : "text-[#053668]"}`}>{ev.title}</p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <p className="text-[10px] text-slate-400 inline-flex items-center gap-1">
-                          <Calendar size={10} /> {ev.date}
-                        </p>
-                        <p className="text-[10px] text-slate-400 inline-flex items-center gap-1">
-                          <MapPin size={10} /> {ev.venue}
-                        </p>
+                  {eventsLoading ? (
+                    <p className="text-xs text-slate-400">Loading events...</p>
+                  ) : events.length === 0 ? (
+                    <p className="text-xs text-slate-400">No published events yet.</p>
+                  ) : (
+                    events.slice(0, 3).map((ev) => (
+                      <div key={ev.id} className={`p-3 rounded-xl border ${isDarkMode ? "border-slate-700/50 bg-slate-800/30" : "border-[#FF7100]/20 bg-[#F7ECB5]/10"}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700/30 flex-shrink-0">
+                            <img
+                              src={ev.image}
+                              alt={ev.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className={`font-bold text-sm ${isDarkMode ? "text-white" : "text-[#053668]"}`}>{ev.title}</p>
+                            <div className="flex items-center gap-3 mt-1.5">
+                              <p className="text-[10px] text-slate-400 inline-flex items-center gap-1">
+                                <Calendar size={10} /> {formatEventDate(ev.date)}
+                              </p>
+                              <p className="text-[10px] text-slate-400 inline-flex items-center gap-1">
+                                <MapPin size={10} /> {ev.venue || "TBD"}
+                              </p>
+                            </div>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${isDarkMode ? "border-emerald-500/40 text-emerald-300" : "border-[#1B7F4B]/30 text-[#1B7F4B]"}`}>
+                            {(ev.status || "PUBLISHED").toUpperCase()}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  <button 
+                    ))
+                  )}
+                  <button
                     onClick={() => navigate('/my-events')}
                     className={`w-full py-2 text-xs font-bold text-center rounded-lg border ${isDarkMode ? "border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10" : "border-[#FF7100]/30 text-[#FF7100] hover:bg-[#FF7100]/10"} transition`}
                   >

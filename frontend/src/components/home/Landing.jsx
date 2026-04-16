@@ -145,16 +145,29 @@ const Landing = () => {
   };
 
   // ── Fetch events ────────────────────────────────────────────
+  const resolveImageUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http") || url.startsWith("blob:")) return url;
+    return `http://localhost:5000${url}`;
+  };
+
   const fetchEvents = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/events");
+      setLoading(true);
+      const response = await fetch(
+        "http://localhost:5000/api/events/published",
+      );
       const data = await response.json();
       if (data.success) {
-        setEvents(data.events);
-        // Set first event as featured (or highest rated)
-        if (data.events.length > 0) {
-          const featured = data.events[0]; // You can change logic here
-          setFeaturedEvent(featured);
+        const mapped = (data.events || []).map((event) => ({
+          ...event,
+          image: resolveImageUrl(event.image),
+        }));
+        setEvents(mapped);
+        if (mapped.length > 0) {
+          setFeaturedEvent(mapped[0]);
+        } else {
+          setFeaturedEvent(null);
         }
       }
     } catch (error) {
@@ -624,13 +637,11 @@ const Landing = () => {
           {loading ? (
             <div className="loading-state">
               <div className="spinner"></div>
-              <p>Loading amazing events...</p>
+              <p>Loading events...</p>
             </div>
           ) : events.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">🎉</div>
-              <h3>No Events Yet</h3>
-              <p>Check back soon for upcoming campus events!</p>
+              <p>No events available</p>
             </div>
           ) : (
             <div className="events-grid">

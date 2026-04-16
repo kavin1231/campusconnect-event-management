@@ -11,6 +11,31 @@ import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// Get published events (public)
+router.get("/published", async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { date: "asc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        date: true,
+        category: true,
+        location: true,
+        image: true,
+        registeredCount: true,
+        status: true,
+      },
+    });
+
+    res.json({ success: true, events });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Get all events
 router.get("/", async (req, res) => {
   try {

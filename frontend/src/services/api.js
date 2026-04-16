@@ -35,6 +35,30 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   return response;
 };
 
+const fetchWithAuthRaw = async (endpoint, options = {}) => {
+  const token = localStorage.getItem("token");
+  const headers = {
+    ...options.headers,
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  }
+
+  return response;
+};
+
 // ============================================
 // AUTH ENDPOINTS
 // ============================================
@@ -505,8 +529,11 @@ export const chatbotAPI = {
 // EVENTS ENDPOINTS
 // ============================================
 export const eventsAPI = {
-  listEvents: async () => {
-    const response = await fetchWithAuth("/events");
+  listEvents: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(
+      `/events${query ? `?${query}` : ""}`,
+    );
     return response.json();
   },
 };
@@ -652,6 +679,11 @@ export const eventRequestAPI = {
     return response.json();
   },
 
+  getMyEventRequestsAll: async () => {
+    const response = await fetchWithAuth("/event-requests/my");
+    return response.json();
+  },
+
   getEventRequestById: async (id) => {
     const response = await fetchWithAuth(`/event-requests/${id}`);
     return response.json();
@@ -680,6 +712,48 @@ export const eventRequestAPI = {
 
   getEventRequestStats: async () => {
     const response = await fetchWithAuth("/event-requests/stats");
+    return response.json();
+  },
+
+  publishEventRequest: async (id) => {
+    const response = await fetchWithAuth(`/event-requests/${id}/publish`, {
+      method: "POST",
+    });
+    return response.json();
+  },
+
+  updateEventSetup: async (id, payload) => {
+    const response = await fetchWithAuth(`/event-requests/${id}/setup`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  replaceEventTickets: async (id, tickets = []) => {
+    const response = await fetchWithAuth(`/event-requests/${id}/tickets`, {
+      method: "PUT",
+      body: JSON.stringify({ tickets }),
+    });
+    return response.json();
+  },
+
+  replaceEventMerchandise: async (id, items = []) => {
+    const response = await fetchWithAuth(`/event-requests/${id}/merchandise`, {
+      method: "PUT",
+      body: JSON.stringify({ items }),
+    });
+    return response.json();
+  },
+
+  uploadEventBanner: async (id, file) => {
+    const formData = new FormData();
+    formData.append("banner", file);
+
+    const response = await fetchWithAuthRaw(`/event-requests/${id}/banner`, {
+      method: "POST",
+      body: formData,
+    });
     return response.json();
   },
 

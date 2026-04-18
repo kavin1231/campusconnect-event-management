@@ -58,7 +58,7 @@ const StudentDashboard = () => {
   const [studyLoading, setStudyLoading] = useState(false);
   const [studyError, setStudyError] = useState(null);
 
-  // ÔöÇÔöÇ Extracurricular States ÔöÇÔöÇ
+  // ÔöÇÔöÇ Social Hub States ÔöÇÔöÇ
   const [sports, setSports] = useState([]);
   const [extraLinks, setExtraLinks] = useState([]);
   const [activeExtraTab, setActiveExtraTab] = useState('sports');
@@ -868,7 +868,7 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* ÔöÇÔöÇ Extracurricular Section ÔöÇÔöÇ */}
+        {/* ÔöÇÔöÇ Social Hub Section ÔöÇÔöÇ */}
         {filter === "extracurricular" && (
           <div className="sd-study-integrated-view">
             <header className="sd-study-header">

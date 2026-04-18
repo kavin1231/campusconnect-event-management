@@ -137,6 +137,7 @@ model Event {
   budget          Int?
   expectedAttendees Int?
   venue           String?
+  organizer       String?
   submittedBy     Int?
   submittedDate   DateTime?                  @default(now())
   approvedBy      Int?

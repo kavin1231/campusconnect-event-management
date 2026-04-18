@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
 import EventReactions from '../common/EventReactions';
+import { dashboardAPI } from '../../services/api';
 import './EventDetail.css';
 
 const EventDetail = () => {
@@ -12,6 +13,7 @@ const EventDetail = () => {
     const [error, setError] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
+    const [registrationLoading, setRegistrationLoading] = useState(false);
 
     useEffect(() => {
         // Check if user is logged in
@@ -70,6 +72,49 @@ const EventDetail = () => {
             hour12: true
         });
     };
+
+    const handleRegister = async () => {
+        if (!isLoggedIn) {
+            navigate('/login');
+            return;
+        }
+
+        setRegistrationLoading(true);
+        try {
+            const response = await dashboardAPI.registerEvent(eventId);
+            if (response.success) {
+                // Refresh event data
+                const res = await fetch(`http://localhost:5000/api/events/${eventId}`);
+                const data = await res.json();
+                if (data.success) setEvent(data.data);
+            }
+        } catch (err) {
+            console.error('Registration error:', err);
+        } finally {
+            setRegistrationLoading(false);
+        }
+    };
+
+    const handleUnregister = async () => {
+        if (!isLoggedIn) return;
+
+        setRegistrationLoading(true);
+        try {
+            const response = await dashboardAPI.unregisterEvent(eventId);
+            if (response.success) {
+                // Refresh event data
+                const res = await fetch(`http://localhost:5000/api/events/${eventId}`);
+                const data = await res.json();
+                if (data.success) setEvent(data.data);
+            }
+        } catch (err) {
+            console.error('Unregistration error:', err);
+        } finally {
+            setRegistrationLoading(false);
+        }
+    };
+
+    const isRegistered = event?.registrations?.some(r => r.studentId === user?.id);
 
     if (loading) {
         return (
@@ -159,7 +204,7 @@ const EventDetail = () => {
                         <div className="details-grid">
                             <div className="detail-item">
                                 <span className="detail-label">Organizer</span>
-                                <span className="detail-value">{event.organizer || 'Campus Events'}</span>
+                                <span className="detail-value">{event.organizer || 'Organized by Administrator'}</span>
                             </div>
                             <div className="detail-item">
                                 <span className="detail-label">Participants</span>
@@ -206,8 +251,16 @@ const EventDetail = () => {
                             <label>Status</label>
                             <p className="status-active">🟢 Upcoming</p>
                         </div>
-                        <button className="btn-register-sidebar">
-                            {isLoggedIn ? '📝 Register Now' : '🔐 Login to Register'}
+                        <button 
+                            className={`btn-register-sidebar ${isRegistered ? 'btn-joined' : ''}`}
+                            onClick={isRegistered ? handleUnregister : handleRegister}
+                            disabled={registrationLoading}
+                        >
+                            {registrationLoading 
+                                ? '⌛ Processing...' 
+                                : isLoggedIn 
+                                    ? (isRegistered ? '✓ Joined (Cancel)' : '📝 Register Now') 
+                                    : '🔐 Login to Register'}
                         </button>
                     </div>
 

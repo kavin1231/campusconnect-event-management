@@ -6,20 +6,7 @@ import Modal from '../ui/Modal';
 import './StudentProfile.css';
 import '../dashboard/StudentDashboard.css';
 
-const DEPARTMENTS = [
-  'Computer Science',
-  'Information Technology',
-  'Electronics & Communication',
-  'Electrical Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Chemical Engineering',
-  'Biotechnology',
-  'Mathematics',
-  'Physics',
-  'Business Administration',
-  'Other',
-];
+import { FACULTIES } from '../../constants/staticData';
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -355,11 +342,11 @@ const StudentProfile = () => {
                       )}
                     </div>
                     <div className="sp-form-group sp-full">
-                      <label>Department</label>
+                      <label>Faculty/Department</label>
                       {editing ? (
                         <select name="department" value={formData.department} onChange={handleChange} required>
-                          <option value="">Select Department</option>
-                          {DEPARTMENTS.map(d => (
+                          <option value="">Select Faculty/Department</option>
+                          {FACULTIES.map(d => (
                             <option key={d} value={d}>{d}</option>
                           ))}
                         </select>

@@ -26,7 +26,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   });
 
   // Handle 401 Unauthorized
-  if (response.status === 401) {
+  if (response.status === 401 && !endpoint.includes("/auth/login")) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/login";
@@ -50,7 +50,7 @@ const fetchWithAuthRaw = async (endpoint, options = {}) => {
     headers,
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && !endpoint.includes("/auth/login")) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/login";

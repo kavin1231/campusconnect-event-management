@@ -44,6 +44,7 @@ class DashboardController {
       // Fetch all events with registration status
       const events = await prisma.event.findMany({
         where: {
+          status: "PUBLISHED",
           ...(category ? { category } : {}),
           ...(search
             ? { title: { contains: search, mode: "insensitive" } }
@@ -76,9 +77,9 @@ class DashboardController {
       if (filter === "registered") {
         annotated = annotated.filter((e) => e.isRegistered);
       } else if (filter === "upcoming") {
-        annotated = annotated.filter((e) => e.isRegistered && !e.isPast);
+        annotated = annotated.filter((e) => !e.isPast);
       } else if (filter === "past") {
-        annotated = annotated.filter((e) => e.isRegistered && e.isPast);
+        annotated = annotated.filter((e) => e.isPast);
       } else if (filter === "explore") {
         annotated = annotated.filter((e) => !e.isRegistered && !e.isPast);
       }

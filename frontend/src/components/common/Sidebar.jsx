@@ -361,8 +361,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       icon: "🏆",
       query: "?filter=extracurricular",
     },
-    { id: "calendar", label: "Calendar", path: "/calendar", icon: "📅" },
-    // Students should not see Logistics in the sidebar
     {
       id: "study-materials",
       label: "Study Materials",

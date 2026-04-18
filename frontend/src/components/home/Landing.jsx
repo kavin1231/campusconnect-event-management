@@ -146,9 +146,9 @@ const Landing = () => {
 
   // ── Fetch events ────────────────────────────────────────────
   const resolveImageUrl = (url) => {
-    if (!url) return "";
+    if (!url || typeof url !== 'string') return "https://picsum.photos/800/600?grayscale";
     if (url.startsWith("http") || url.startsWith("blob:")) return url;
-    return `http://localhost:5000${url}`;
+    return `http://localhost:5000${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   const fetchEvents = async () => {
@@ -543,96 +543,93 @@ const Landing = () => {
           </button>
         </div>
 
-        <section
-          className="hero-banner"
-          style={{
-            backgroundImage: `url('${featuredEvent?.image || "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=1600"}')`,
-          }}
-        >
-          <div className="hero-overlay"></div>
-          <div className="hero-content">
-            <div className="hero-meta">
-              <span className="featured-tag">FEATURED EVENT</span>
-              <span className="hero-date">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+        {featuredEvent && (
+          <section
+            className="hero-banner"
+            style={{
+              backgroundImage: `url('${featuredEvent.image || "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=1600"}')`,
+            }}
+          >
+            <div className="hero-overlay"></div>
+            <div className="hero-content">
+              <div className="hero-meta">
+                <span className="featured-tag">FEATURED EVENT</span>
+                <span className="hero-date">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  {new Date(featuredEvent.date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+              <h1 className="hero-title">
+                {featuredEvent.title}
+                <span className="highlight-accent">
+                  <br />
+                  {featuredEvent.category}
+                </span>
+              </h1>
+              <p className="hero-desc">
+                {featuredEvent.description}
+              </p>
+              <div className="hero-actions">
+                <button
+                  className="btn-primary"
+                  onClick={(e) => handleRegisterEvent(e, featuredEvent.id)}
+                  disabled={registrationLoading[featuredEvent.id]}
                 >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                {featuredEvent
-                  ? new Date(featuredEvent.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  : "Loading..."}
-              </span>
+                  {registrationLoading[featuredEvent.id]
+                    ? "Processing..."
+                    : "Register Now"}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+                <button className="btn-secondary">Learn More</button>
+              </div>
             </div>
-            <h1 className="hero-title">
-              {featuredEvent ? featuredEvent.title : "Annual University"}{" "}
-              <span className="highlight-accent">
-                <br />
-                {featuredEvent?.category || "2024"}
-              </span>
-            </h1>
-            <p className="hero-desc">
-              {featuredEvent?.description ||
-                "Experience amazing events on campus"}
-            </p>
-            <div className="hero-actions">
-              <button
-                className="btn-primary"
-                onClick={(e) =>
-                  featuredEvent && handleRegisterEvent(e, featuredEvent.id)
-                }
-                disabled={
-                  featuredEvent && registrationLoading[featuredEvent.id]
-                }
-              >
-                {featuredEvent && registrationLoading[featuredEvent.id]
-                  ? "Processing..."
-                  : "Register Now"}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </button>
-              <button className="btn-secondary">Learn More</button>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className="events-section">
-          <div className="section-header">
-            <div className="section-title-wrap">
-              <h2>Upcoming Club Events</h2>
-              <p>Discover what's happening around campus</p>
+          {events.length > 0 && (
+            <div className="section-header">
+              <div className="section-title-wrap">
+                <h2>Upcoming Club Events</h2>
+                <p>Discover what's happening around campus</p>
+              </div>
+              <a href="#view-all" className="view-all">
+                View All <span>&gt;</span>
+              </a>
             </div>
-            <a href="#view-all" className="view-all">
-              View All <span>&gt;</span>
-            </a>
-          </div>
+          )}
 
           {loading ? (
             <div className="loading-state">
@@ -641,7 +638,9 @@ const Landing = () => {
             </div>
           ) : events.length === 0 ? (
             <div className="empty-state">
-              <p>No events available</p>
+              <div className="empty-icon">🎨</div>
+              <h3>No events available</h3>
+              <p>Stay tuned! Amazing campus events are coming soon.</p>
             </div>
           ) : (
             <div className="events-grid">
@@ -661,6 +660,7 @@ const Landing = () => {
                             src={event.image}
                             alt={event.title}
                             className="card-bg-img"
+                            crossOrigin="anonymous"
                           />
                           <div className="image-overlay"></div>
                         </div>

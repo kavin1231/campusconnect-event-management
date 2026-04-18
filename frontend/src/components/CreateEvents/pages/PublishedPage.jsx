@@ -8,13 +8,7 @@ export default function PublishedPage({ event, onBack }) {
   const registrationPct = Math.round((event.registered / event.capacity) * 100);
   const TABS = [{ key: "overview", label: "Overview" }, { key: "orders", label: "Orders" }, { key: "analytics", label: "Analytics" }];
 
-  const mockOrders = [
-    { id: "ORD-001", name: "Ashan Fernando", item: "General Admission", qty: 2, amount: 0, status: "confirmed", date: "Mar 10" },
-    { id: "ORD-002", name: "Dilani Perera", item: "VIP Access", qty: 1, amount: 1500, status: "confirmed", date: "Mar 11" },
-    { id: "ORD-003", name: "Kavinda Rajapaksa", item: "IEEE T-Shirt", qty: 1, amount: 750, status: "confirmed", date: "Mar 12" },
-    { id: "ORD-004", name: "Nadeesha Silva", item: "General Admission", qty: 1, amount: 0, status: "confirmed", date: "Mar 13" },
-    { id: "ORD-005", name: "Thisara Bandara", item: "General Admission", qty: 3, amount: 0, status: "confirmed", date: "Mar 14" },
-  ];
+  const mockOrders = [];
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: FONT }}>

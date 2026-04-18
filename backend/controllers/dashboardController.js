@@ -54,6 +54,9 @@ class DashboardController {
           registrations: {
             where: { studentId },
           },
+          _count: {
+            select: { registrations: true }
+          }
         },
         orderBy: { date: "asc" },
       });
@@ -67,7 +70,8 @@ class DashboardController {
         category: ev.category,
         location: ev.location,
         image: ev.image,
-        registeredCount: ev.registeredCount,
+        registeredCount: ev._count.registrations,
+        organizer: ev.organizer,
         createdAt: ev.createdAt,
         isRegistered: ev.registrations.length > 0,
         isPast: ev.date < now,
@@ -126,12 +130,6 @@ class DashboardController {
         update: {},
       });
 
-      // increment count
-      await prisma.event.update({
-        where: { id: eventId },
-        data: { registeredCount: { increment: 1 } },
-      });
-
       res.json({ success: true, message: "Registered successfully" });
     } catch (err) {
       console.error("Register event error:", err);
@@ -165,12 +163,6 @@ class DashboardController {
 
       await prisma.studentEventRegistration.delete({
         where: { studentId_eventId: { studentId, eventId } },
-      });
-
-      // decrement count (never below 0)
-      await prisma.event.update({
-        where: { id: eventId },
-        data: { registeredCount: { decrement: 1 } },
       });
 
       res.json({ success: true, message: "Unregistered successfully" });

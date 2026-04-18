@@ -25,12 +25,20 @@ router.get("/published", async (req, res) => {
         category: true,
         location: true,
         image: true,
-        registeredCount: true,
+        _count: {
+          select: { registrations: true }
+        },
         status: true,
+        organizer: true,
       },
     });
 
-    res.json({ success: true, events });
+    const mappedEvents = events.map(ev => ({
+      ...ev,
+      registeredCount: ev._count.registrations,
+      _count: undefined
+    }));
+    res.json({ success: true, events: mappedEvents });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -160,6 +168,9 @@ router.get("/:eventId", async (req, res) => {
             studentId: true,
           },
         },
+        _count: {
+          select: { registrations: true }
+        },
       },
     });
 
@@ -194,6 +205,8 @@ router.get("/:eventId", async (req, res) => {
       success: true,
       data: {
         ...event,
+        registeredCount: event._count.registrations,
+        _count: undefined,
         averageRating: parseFloat(avgRating),
         totalReviews: reviews.length,
       },

@@ -372,6 +372,20 @@
     transform: translateY(-2px);
 }
 
+.btn-register-sidebar.btn-joined {
+    background: transparent;
+    color: var(--text-muted);
+    border: 2px solid var(--border-color);
+}
+
+.btn-register-sidebar.btn-joined:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fecaca;
+    box-shadow: none;
+    transform: translateY(0);
+}
+
 /* Share Buttons */
 .share-buttons {
     display: grid;

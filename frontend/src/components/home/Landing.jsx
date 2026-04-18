@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import ChatBot from "../common/ChatBot";
 import { dashboardAPI } from "../../services/api";
@@ -110,6 +110,7 @@ const Footer = ({ user }) => (
 );
 
 const Landing = () => {
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
@@ -134,11 +135,29 @@ const Landing = () => {
     try {
       const response = await dashboardAPI.registerEvent(eventId);
       if (response.success) {
-        // Refresh events to show updated registration status
         await fetchEvents();
       }
     } catch (error) {
       console.error("Registration failed:", error);
+    } finally {
+      setRegistrationLoading((prev) => ({ ...prev, [eventId]: false }));
+    }
+  };
+
+  const handleUnregisterEvent = async (e, eventId) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isLoggedIn) return;
+
+    setRegistrationLoading((prev) => ({ ...prev, [eventId]: true }));
+    try {
+      const response = await dashboardAPI.unregisterEvent(eventId);
+      if (response.success) {
+        await fetchEvents();
+      }
+    } catch (error) {
+      console.error("Unregistration failed:", error);
     } finally {
       setRegistrationLoading((prev) => ({ ...prev, [eventId]: false }));
     }
@@ -154,10 +173,16 @@ const Landing = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "http://localhost:5000/api/events/published",
-      );
-      const data = await response.json();
+      let data;
+      
+      // If logged in, use dashboard API to get registration status
+      if (localStorage.getItem("token")) {
+        data = await dashboardAPI.getEvents({ filter: 'all' });
+      } else {
+        const response = await fetch("http://localhost:5000/api/events/published");
+        data = await response.json();
+      }
+
       if (data.success) {
         const mapped = (data.events || []).map((event) => ({
           ...event,
@@ -589,14 +614,19 @@ const Landing = () => {
                 {featuredEvent.description}
               </p>
               <div className="hero-actions">
-                <button
-                  className="btn-primary"
-                  onClick={(e) => handleRegisterEvent(e, featuredEvent.id)}
-                  disabled={registrationLoading[featuredEvent.id]}
-                >
-                  {registrationLoading[featuredEvent.id]
-                    ? "Processing..."
-                    : "Register Now"}
+                  <button
+                    className={`btn-primary ${featuredEvent.isRegistered ? "btn-joined" : ""}`}
+                    onClick={(e) => featuredEvent.isRegistered 
+                      ? handleUnregisterEvent(e, featuredEvent.id)
+                      : handleRegisterEvent(e, featuredEvent.id)
+                    }
+                    disabled={registrationLoading[featuredEvent.id]}
+                  >
+                    {registrationLoading[featuredEvent.id]
+                      ? "Processing..."
+                      : featuredEvent.isRegistered 
+                        ? "Joined • Cancel" 
+                        : "Register Now"}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -612,7 +642,12 @@ const Landing = () => {
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 </button>
-                <button className="btn-secondary">Learn More</button>
+                <button 
+                  onClick={() => navigate(`/event/${featuredEvent.id}`)} 
+                  className="btn-secondary"
+                >
+                  Learn More
+                </button>
               </div>
             </div>
           </section>
@@ -647,11 +682,11 @@ const Landing = () => {
               {events.map((event, index) => {
                 const formatted = formatDate(event.date);
                 return (
-                  <Link
+                  <div
                     key={event.id}
-                    to={`/event/${event.id}`}
                     className="event-card-link"
-                    style={{ animationDelay: `${index * 0.1}s` }}
+                    style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                    onClick={() => navigate(`/event/${event.id}`)}
                   >
                     <div className="event-card">
                       <div className="card-image-wrap">
@@ -714,16 +749,21 @@ const Landing = () => {
                         </div>
                         <div className="card-footer">
                           <button
-                            onClick={(e) => handleRegisterEvent(e, event.id)}
+                            onClick={(e) => event.isRegistered 
+                              ? handleUnregisterEvent(e, event.id)
+                              : handleRegisterEvent(e, event.id)
+                            }
                             disabled={registrationLoading[event.id]}
-                            className="btn-register"
+                            className={`btn-register ${event.isRegistered ? "btn-joined" : ""}`}
                           >
                             <span>
                               {registrationLoading[event.id]
                                 ? "Processing..."
-                                : "Register Now"}
+                                : event.isRegistered 
+                                  ? "Joined ✓" 
+                                  : "Register Now"}
                             </span>
-                            {!registrationLoading[event.id] && (
+                            {!registrationLoading[event.id] && !event.isRegistered && (
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -743,7 +783,7 @@ const Landing = () => {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

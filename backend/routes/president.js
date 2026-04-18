@@ -52,6 +52,104 @@ router.post(
   PresidentController.createPresident,
 );
 
+router.get(
+  "/vendors",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.listVendors,
+);
+
+router.post(
+  "/vendors",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.createVendor,
+);
+
+router.patch(
+  "/vendors/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.updateVendor,
+);
+
+router.delete(
+  "/vendors/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.deleteVendor,
+);
+
+router.get(
+  "/stalls",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.getStallsByEvent,
+);
+
+router.get(
+  "/stalls/available",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.getAvailableStallsByEvent,
+);
+
+router.get(
+  "/stalls/map",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.getStallMapData,
+);
+
+router.post(
+  "/stalls/assign",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.assignStallToVendor,
+);
+
+router.patch(
+  "/stalls/:stallId",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.updateStallAllocation,
+);
+
+router.patch(
+  "/stalls/:stallId/release",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.releaseStall,
+);
+
+router.get(
+  "/sponsorships",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.listSponsorships,
+);
+
+router.post(
+  "/sponsorships",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.createSponsorship,
+);
+
+router.patch(
+  "/sponsorships/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.updateSponsorship,
+);
+
+router.delete(
+  "/sponsorships/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  PresidentController.deleteSponsorship,
+);
+
 
 
 // admin approve/reject

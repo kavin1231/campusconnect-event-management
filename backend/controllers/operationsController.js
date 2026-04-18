@@ -307,22 +307,38 @@ class OperationsController {
 
   static async createVendor(req, res) {
     try {
-      const { organizationId, name, contactName, contactPhone, contactEmail, requirements } = req.body;
-      if (!organizationId || !name || !contactName || !contactPhone) {
+      const {
+        organizationId,
+        name,
+        companyName,
+        serviceCategory,
+        contactName,
+        contactPhone,
+        contactEmail,
+        address,
+        requirements,
+      } = req.body;
+      if (!name || !contactName || !contactPhone) {
         return res.status(400).json({
           success: false,
-          message: "organizationId, name, contactName and contactPhone are required",
+          message: "name, contactName and contactPhone are required",
         });
       }
 
       const vendor = await prisma.vendorPartner.create({
         data: {
-          organizationId: Number(organizationId),
           name,
+          companyName: companyName || name,
+          serviceCategory: serviceCategory || requirements || "General",
           contactName,
           contactPhone,
           contactEmail,
+          address: address || "",
           requirements,
+          status: "ACTIVE",
+          ...(organizationId
+            ? { organization: { connect: { id: Number(organizationId) } } }
+            : {}),
         },
       });
 

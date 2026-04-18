@@ -14,6 +14,7 @@ import PublishedEventPage from "./components/dashboard/PublishedEventPage";
 import MerchandiseOrdersPage from "./components/dashboard/MerchandiseOrdersPage";
 import CreateEventsApp from "./components/CreateEvents";
 import EventRequestFormPage from "./pages/EventRequestFormPage";
+import MyEventRequestsPage from "./pages/MyEventRequestsPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
@@ -32,6 +33,9 @@ import {
   PresidentApplicationManagement,
   PresidentRegistrationForm,
   StudentNotifications,
+  VendorManagement as GovernanceVendorManagement,
+  StallAllocation,
+  SponsorshipManagement,
 } from "./components/governance";
 import {
   LogisticsDashboard,
@@ -167,9 +171,16 @@ function App() {
           path="/create-event"
           element={
             <ProtectedRoute
-              element={() => (
-                <EventRequestFormPage onBack={() => window.history.back()} />
-              )}
+              element={() => <EventRequestFormPage onBack={() => window.history.back()} />}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/my-event-requests"
+          element={
+            <ProtectedRoute
+              element={MyEventRequestsPage}
               allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
@@ -280,7 +291,34 @@ function App() {
           element={
             <ProtectedRoute
               element={GovernanceDashboard}
-              allowedRoles={["SYSTEM_ADMIN"]}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/vendors"
+          element={
+            <ProtectedRoute
+              element={GovernanceVendorManagement}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/sponsorships"
+          element={
+            <ProtectedRoute
+              element={SponsorshipManagement}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/stalls"
+          element={
+            <ProtectedRoute
+              element={StallAllocation}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
             />
           }
         />

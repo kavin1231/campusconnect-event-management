@@ -1,5 +1,6 @@
 import prisma from "./client.js";
 import bcrypt from "bcryptjs";
+import { getStallCoordinate } from "../utils/stallCoordinates.js";
 
 async function main() {
   console.log("Start seeding...");
@@ -75,260 +76,115 @@ async function main() {
     });
     console.log(`Default Student created with email: ${student.email}`);
 
-    // 4. Seed Sample Events
-    const sampleEvents = [
-      {
-        title: "AI & Robotics Workshop",
-        description:
-          "Hands-on session exploring the future of artificial intelligence and autonomous robotics. Perfect for beginners and enthusiasts!",
-        date: new Date("2026-03-28T10:00:00Z"),
-        category: "TECH",
-        location: "Engineering Block, Hall A",
-        image:
-          "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800",
-        registeredCount: 124,
+    // 6. Seed Basic Study Materials
+    const material1 = await prisma.studyMaterial.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
+        title: "Introduction to Software Engineering - Semester 1",
+        description: "Comprehensive guide for first-year SE students.",
+        semester: "Y1S1",
+        materialType: "pdf",
+        contentUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        createdBy: admin.id,
       },
-      {
-        title: "Intra-University Sprint Meet",
-        description:
-          "The annual track and field competition. Come witness the fastest sprinters on campus battle for the gold medal.",
-        date: new Date("2026-04-02T09:00:00Z"),
-        category: "SPORTS",
-        location: "Main Sports Complex",
-        image:
-          "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=800",
-        registeredCount: 350,
-      },
-      {
-        title: "Midnight Canvas: Live Painting",
-        description:
-          "A serene night of art and creativity. Students from all departments are invited to paint live under the stars.",
-        date: new Date("2026-04-10T19:00:00Z"),
-        category: "ARTS",
-        location: "Central Plaza Garden",
-        image:
-          "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=800",
-        registeredCount: 42,
-      },
-      {
-        title: "Battle of the Bands: Auditions",
-        description:
-          "The music club is looking for the best talent on campus. Auditions for the upcoming annual music festival.",
-        date: new Date("2026-04-15T15:00:00Z"),
-        category: "MUSIC",
-        location: "Auditorium 2",
-        image:
-          "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800",
-        registeredCount: 15,
-      },
-      {
-        title: "International Relations Mock UN",
-        description:
-          "Debate world issues and represent different nations in this immersive Model United Nations simulation.",
-        date: new Date("2026-04-20T08:00:00Z"),
-        category: "DEBATE",
-        location: "Humanities Seminar Room",
-        image:
-          "https://images.unsplash.com/photo-1431576901776-e539bd916ba2?auto=format&fit=crop&q=80&w=800",
-        registeredCount: 88,
-      },
-      {
-        title: "24h Hackathon: Build for Campus",
-        description:
-          "Team up and build solutions that make university life easier. Food, caffeine, and coding - all provided!",
-        date: new Date("2026-04-25T09:00:00Z"),
-        category: "TECH",
-        location: "CS Innovation Lab",
-        image:
-          "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800",
-        registeredCount: 200,
-      },
-    ];
+    });
 
-    console.log("Seeding sample events...");
-    for (const event of sampleEvents) {
-      await prisma.event.upsert({
-        where: { id: sampleEvents.indexOf(event) + 1 }, // Using index as ID for simplicity in seed
-        update: event,
-        create: event,
-      });
-    }
-    console.log("Finished seeding sample events.");
+    const material2 = await prisma.studyMaterial.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
+        title: "Advanced Database Systems Note",
+        description: "Notes on SQL optimization and NoSQL databases.",
+        semester: "Y3S1",
+        materialType: "pdf",
+        contentUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        createdBy: admin.id,
+      },
+    });
 
-    // Seed Assets (20 items with images)
-    console.log("Seeding logistics assets...");
-    const assetsToSeed = [
-      {
-        name: "Projector (Sony Bravia)",
-        description:
-          "High brightness Sony projector, 5000 lumens, Perfect for large events and presentations",
-        imageUrl:
-          "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=400",
-        quantity: 3,
+    // 7. Seed Study Sessions
+    const session1 = await prisma.studySession.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
+        title: "SQL Revision Workshop",
+        description: "Live coding session to cover complex joins and subqueries.",
+        semester: "Y2S1",
+        sessionDate: new Date(Date.now() + 86400000 * 2), // 2 days from now
+        sessionLink: "https://zoom.us/test",
+        createdBy: admin.id,
       },
-      {
-        name: "Speaker System (JBL)",
-        description:
-          "Professional JBL audio system with subwoofer, 2000W peak power",
-        imageUrl:
-          "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&q=80&w=400",
-        quantity: 4,
-      },
-      {
-        name: "Canon EOS 5D Mark IV Camera",
-        description:
-          "Professional DSLR camera with full frame sensor, suitable for events and photography",
-        imageUrl:
-          "https://images.unsplash.com/photo-1606986628025-35d57e735ae0?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "Video Camera (DJI Osmo)",
-        description:
-          "4K video camera with gimbal stabilization for smooth video production",
-        imageUrl:
-          "https://images.unsplash.com/photo-1604081563030-84fd87a13deb?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "Professional Microphone Set",
-        description:
-          "Wireless microphone system with 5 units, suitable for presentations and events",
-        imageUrl:
-          "https://images.unsplash.com/photo-1590119957829-11a3a2e30f0d?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "LED Lighting Setup",
-        description:
-          "Professional RGB LED light panels, dimmable and color-controllable",
-        imageUrl:
-          "https://images.unsplash.com/photo-1511379938547-c1f69b13d835?auto=format&fit=crop&q=80&w=400",
-        quantity: 6,
-      },
-      {
-        name: "Tripod Stand (Heavy Duty)",
-        description:
-          "Professional camera tripod with ball head, supports up to 10kg",
-        imageUrl:
-          "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&q=80&w=400",
-        quantity: 5,
-      },
-      {
-        name: "DJ Console & Mixer",
-        description:
-          "Pioneer DJ mixer with 4 decks, suited for events and parties",
-        imageUrl:
-          "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "Laptop (MacBook Pro)",
-        description:
-          "High-performance laptop with M1 Pro chip for video editing and design",
-        imageUrl:
-          "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=400",
-        quantity: 3,
-      },
-      {
-        name: "Projector Screen (120 inch)",
-        description:
-          "Motorized projection screen with 16:9 aspect ratio, portable frame",
-        imageUrl:
-          "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "Portable Generator (2000W)",
-        description: "Diesel generator for outdoor events, low noise operation",
-        imageUrl:
-          "https://images.unsplash.com/photo-1621524521221-cb9b7a7e9e8f?auto=format&fit=crop&q=80&w=400",
-        quantity: 1,
-      },
-      {
-        name: "Canopy Tent Set (20x20)",
-        description:
-          "Pop-up canopy rental for outdoor events, waterproof material",
-        imageUrl:
-          "https://images.unsplash.com/photo-1519167758993-41ef2167078a?auto=format&fit=crop&q=80&w=400",
-        quantity: 3,
-      },
-      {
-        name: "Professional Mixing Board",
-        description:
-          "Audio mixing console with 32 channels, suitable for large events",
-        imageUrl:
-          "https://images.unsplash.com/photo-1487180144351-b8472da7d491?auto=format&fit=crop&q=80&w=400",
-        quantity: 1,
-      },
-      {
-        name: "Fog Machine (1200W)",
-        description:
-          "Professional fog/haze machine for stage effects and events",
-        imageUrl:
-          "https://images.unsplash.com/photo-1514613535308-eb5405ed5c41?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "Portable Dance Floor",
-        description: "Modular LED-lit dance floor, 16x16 feet total area",
-        imageUrl:
-          "https://images.unsplash.com/photo-1519183233228-b10512dcd4b5?auto=format&fit=crop&q=80&w=400",
-        quantity: 1,
-      },
-      {
-        name: "Wireless Charger Station",
-        description:
-          "Multi-device wireless charging station for events, charges 8 devices",
-        imageUrl:
-          "https://images.unsplash.com/photo-1591695821749-2eff4e0e9e4b?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "Laser Light Show System",
-        description:
-          "Professional ILDA laser projector with 6 color options, 20W power",
-        imageUrl:
-          "https://images.unsplash.com/photo-1478720568477-152d9e3287d3?auto=format&fit=crop&q=80&w=400",
-        quantity: 1,
-      },
-      {
-        name: "Green Screen (2.4x2.4m)",
-        description:
-          "Professional chroma key green screen with stand for video production",
-        imageUrl:
-          "https://images.unsplash.com/photo-1522869635100-ce306400045?auto=format&fit=crop&q=80&w=400",
-        quantity: 1,
-      },
-      {
-        name: "Professional Photography Backdrop",
-        description: "Retractable background for photography studios, 3m wide",
-        imageUrl:
-          "https://images.unsplash.com/photo-1511739001486-6bfe966ce51b?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-      {
-        name: "Sound System (Bose)",
-        description:
-          "Bose professional sound system with clear audio output and wireless connectivity",
-        imageUrl:
-          "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&q=80&w=400",
-        quantity: 2,
-      },
-    ];
+    });
 
-    for (const asset of assetsToSeed) {
-      await prisma.asset.upsert({
-        where: { id: assetsToSeed.indexOf(asset) + 1 },
-        update: asset,
-        create: {
-          ...asset,
-          ownerId: admin.id,
-          status: "AVAILABLE",
-        },
-      });
-    }
-    console.log("Finished seeding 20 logistics assets.");
+    // 8. Seed Sports Clubs
+    const sport1 = await prisma.sport.upsert({
+      where: { name: "NEXORA Cricket Club" },
+      update: {},
+      create: {
+        name: "NEXORA Cricket Club",
+        description: "Official university cricket team. Practice matches on weekends.",
+        coachName: "Coach Michael",
+        whatsappLink: "https://chat.whatsapp.com/test",
+      },
+    });
+
+    const sport2 = await prisma.sport.upsert({
+      where: { name: "Campus Badminton Hub" },
+      update: {},
+      create: {
+        name: "Campus Badminton Hub",
+        description: "Intermediate and beginner friendly badminton sessions.",
+        coachName: "Coach Sarah",
+        whatsappLink: "https://chat.whatsapp.com/test",
+      },
+    });
+
+    // 9. Seed Social Group Links
+    const link1 = await prisma.groupLink.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
+        name: "SE Department Official Group",
+        platform: "WhatsApp",
+        url: "https://chat.whatsapp.com/test",
+        category: "Department",
+      },
+    });
+
+    const link2 = await prisma.groupLink.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
+        name: "NEXORA Gaming Community",
+        platform: "Discord",
+        url: "https://discord.gg/test",
+        category: "Entertainment",
+      },
+    });
+
+    // 10. Seed 1 Upcoming Event (for filter verification)
+    await prisma.event.upsert({
+      where: { id: 101 },
+      update: {
+        image: "https://picsum.photos/seed/welcome2026/800/600",
+      },
+      create: {
+        id: 101,
+        title: "Welcome Week 2026",
+        description: "Main campus welcome event for all students.",
+        date: new Date(Date.now() + 86400000 * 7), // 7 days from now
+        category: "Entertainment",
+        location: "Main Auditorium",
+        image: "https://picsum.photos/seed/welcome2026/800/600",
+        status: "PUBLISHED",
+      },
+    });
 
     console.log("✅ Database seeding completed successfully!");
   } catch (error) {

@@ -356,7 +356,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
     {
       id: "explore-sports",
-      label: "Extracurricular activities",
+      label: "Social links",
       path: "/dashboard",
       icon: "🏆",
       query: "?filter=extracurricular",

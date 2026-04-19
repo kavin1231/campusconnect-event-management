@@ -75,6 +75,81 @@ const swaggerDocument = {
         summary: "List all events",
       },
     },
+    "/api/events/published": {
+      get: {
+        tags: ["Events"],
+        summary: "List published events (public)",
+        responses: {
+          200: {
+            description: "Published events fetched successfully",
+          },
+        },
+      },
+    },
+    "/api/events/{eventId}/stalls": {
+      get: {
+        tags: ["Events"],
+        summary: "Get stall allocations for a specific event",
+        parameters: [
+          {
+            name: "eventId",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            description: "The ID of the event",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Stalls fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean", example: true },
+                    stalls: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: { type: "integer", example: 1 },
+                          eventId: { type: "integer", example: 5 },
+                          stallNumber: { type: "integer", example: 1 },
+                          status: { type: "string", example: "AVAILABLE" },
+                          vendorId: { type: "integer", nullable: true, example: 2 },
+                          serviceCategory: { type: "string", example: "Food" },
+                          mapX: { type: "number", example: 20 },
+                          mapY: { type: "number", example: 12 },
+                          vendor: {
+                            type: "object",
+                            nullable: true,
+                            properties: {
+                              id: { type: "integer", example: 2 },
+                              name: { type: "string", example: "Snack Hub" },
+                              companyName: { type: "string", example: "Snack Hub Ltd" },
+                              contactName: { type: "string", example: "John Doe" },
+                              contactPhone: { type: "string", example: "0771234567" },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Invalid event id",
+          },
+          404: {
+            description: "Event not found",
+          },
+        },
+      },
+    },
     "/api/event-requests/{id}/setup": {
       patch: {
         tags: ["Event Requests"],

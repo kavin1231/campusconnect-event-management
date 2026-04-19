@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
 import EventReactions from '../common/EventReactions';
-import { dashboardAPI } from '../../services/api';
+import { dashboardAPI, eventsAPI } from '../../services/api';
+import VendorStallMap from './VendorStallMap';
 import './EventDetail.css';
 
 const EventDetail = () => {
@@ -14,6 +15,16 @@ const EventDetail = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
     const [registrationLoading, setRegistrationLoading] = useState(false);
+    const [stalls, setStalls] = useState([]);
+    const [stallsLoading, setStallsLoading] = useState(false);
+    const [stallsError, setStallsError] = useState(null);
+
+    const resolveMediaUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+        return `${base}${url.startsWith('/') ? url : `/${url}`}`;
+    };
 
     useEffect(() => {
         // Check if user is logged in
@@ -51,7 +62,23 @@ const EventDetail = () => {
             }
         };
 
+        const fetchStalls = async () => {
+            setStallsLoading(true);
+            setStallsError(null);
+
+            const response = await eventsAPI.getEventStalls(eventId);
+            if (response.success) {
+                setStalls(response.stalls || []);
+            } else {
+                setStalls([]);
+                setStallsError(response.message || 'Failed to load vendor allocations');
+            }
+
+            setStallsLoading(false);
+        };
+
         fetchEvent();
+        fetchStalls();
     }, [eventId]);
 
     const formatDate = (dateStr) => {
@@ -115,6 +142,7 @@ const EventDetail = () => {
     };
 
     const isRegistered = event?.registrations?.some(r => r.studentId === user?.id);
+    const resolvedEventImage = resolveMediaUrl(event?.image);
 
     if (loading) {
         return (
@@ -157,7 +185,7 @@ const EventDetail = () => {
 
             {/* Hero Section */}
             <div className="detail-hero">
-                <img src={event.image} alt={event.title} className="hero-image" />
+                <img src={resolvedEventImage} alt={event.title} className="hero-image" />
                 <div className="hero-overlay"></div>
                 <div className="hero-content">
                     <div className="category-tag">{event.category}</div>
@@ -276,6 +304,17 @@ const EventDetail = () => {
                     </div>
                 </aside>
             </div>
+
+            <section className="section section-map-bottom">
+                <VendorStallMap
+                    stalls={stalls}
+                    loading={stallsLoading}
+                    error={stallsError}
+                    isDarkMode={false}
+                    title={`${event.title} Stall Allocation Map`}
+                    subtitle={event.category || ''}
+                />
+            </section>
         </div>
         </>
     );

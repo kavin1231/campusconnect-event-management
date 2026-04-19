@@ -8,6 +8,7 @@ import {
   getStudentReview,
 } from "../controllers/reviewController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import OperationsController from "../controllers/operationsController.js";
 
 const router = express.Router();
 
@@ -215,6 +216,11 @@ router.get("/:eventId", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// ==================== STALL ALLOCATION ROUTES ====================
+
+// Get stalls for an event (public)
+router.get("/:eventId/stalls", OperationsController.listEventStalls);
 
 // ==================== REVIEWS ROUTES ====================
 

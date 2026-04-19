@@ -73,12 +73,51 @@ const swaggerDocument = {
       get: {
         tags: ["Events"],
         summary: "List all events",
+        parameters: [
+          {
+            name: "status",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Optional event status filter (e.g. PUBLISHED)",
+          },
+          {
+            name: "organizerType",
+            in: "query",
+            required: false,
+            schema: { type: "string", enum: ["CLUB", "FACULTY"] },
+            description: "Optional organizer type filter",
+          },
+          {
+            name: "organizerId",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Optional organizer id filter",
+          },
+        ],
       },
     },
     "/api/events/published": {
       get: {
         tags: ["Events"],
         summary: "List published events (public)",
+        parameters: [
+          {
+            name: "organizerType",
+            in: "query",
+            required: false,
+            schema: { type: "string", enum: ["CLUB", "FACULTY"] },
+            description: "Optional organizer type filter",
+          },
+          {
+            name: "organizerId",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Optional organizer id filter",
+          },
+        ],
         responses: {
           200: {
             description: "Published events fetched successfully",

@@ -174,6 +174,8 @@ async function main() {
       update: {
         image: "https://picsum.photos/seed/welcome2026/800/600",
         organizer: "Campus Events",
+        organizerType: "FACULTY",
+        organizerId: "faculty-of-computing",
         category: "Entertainment",
         location: "Main Auditorium",
       },
@@ -185,6 +187,8 @@ async function main() {
         category: "Entertainment",
         location: "Main Auditorium",
         organizer: "Campus Events",
+        organizerType: "FACULTY",
+        organizerId: "faculty-of-computing",
         image: "https://picsum.photos/seed/welcome2026/800/600",
         status: "PUBLISHED",
       },

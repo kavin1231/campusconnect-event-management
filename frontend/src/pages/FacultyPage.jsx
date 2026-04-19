@@ -1,8 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Header from "../components/common/Header";
 import { Icon } from "../components/common/Icon";
+import OrganizedEventsSection from "../components/events/OrganizedEventsSection";
 import { FACULTY_DATA } from "../constants/facultyData";
+import { eventsAPI } from "../services/api";
 import "./FacultyPage.css";
+
+const FACULTY_ORGANIZER_ALIASES = {
+  "sliit business school": "Faculty of Business",
+  "faculty of architechture": "School of Architecture",
+};
+
+const normalizeOrganizerId = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 export default function FacultyPage() {
   const [selectedFaculty, setSelectedFaculty] = useState(FACULTY_DATA[0]);
@@ -10,6 +24,15 @@ export default function FacultyPage() {
   const tabsRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [organizedEvents, setOrganizedEvents] = useState([]);
+  const [organizedEventsLoading, setOrganizedEventsLoading] = useState(false);
+
+  const getFacultyOrganizerId = (faculty) => {
+    if (!faculty?.name) return "";
+    const normalizedName = String(faculty.name).trim().toLowerCase();
+    const organizerName = FACULTY_ORGANIZER_ALIASES[normalizedName] || faculty.name;
+    return normalizeOrganizerId(organizerName);
+  };
 
   const filteredFaculties = useMemo(() => {
     return FACULTY_DATA.filter((faculty) =>
@@ -40,6 +63,37 @@ export default function FacultyPage() {
       window.removeEventListener("resize", onResize);
     };
   }, [filteredFaculties.length, selectedFaculty.id]);
+
+  useEffect(() => {
+    const fetchOrganizedEvents = async () => {
+      if (!selectedFaculty?.name) {
+        setOrganizedEvents([]);
+        return;
+      }
+
+      setOrganizedEventsLoading(true);
+      try {
+        const response = await eventsAPI.listEvents({
+          status: "PUBLISHED",
+          organizerType: "FACULTY",
+          organizerId: getFacultyOrganizerId(selectedFaculty),
+        });
+
+        if (response?.success) {
+          setOrganizedEvents(response.events || []);
+        } else {
+          setOrganizedEvents([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch faculty organized events:", error);
+        setOrganizedEvents([]);
+      } finally {
+        setOrganizedEventsLoading(false);
+      }
+    };
+
+    fetchOrganizedEvents();
+  }, [selectedFaculty.id]);
 
   const scrollTabs = (dir) => {
     if (!tabsRef.current) return;
@@ -149,6 +203,14 @@ export default function FacultyPage() {
                 <p>{selectedFaculty.mission}</p>
               </div>
 
+              <OrganizedEventsSection
+                title="Organized Events"
+                subtitle={`Events organized by ${selectedFaculty.name}`}
+                events={organizedEvents}
+                loading={organizedEventsLoading}
+                emptyText="No events available"
+              />
+
               <div>
                 <h3>Faculty Highlights</h3>
                 <ul className="faculty-highlights">
@@ -189,17 +251,6 @@ export default function FacultyPage() {
                 </div>
               </div>
 
-              <div>
-                <h3>Signature Events</h3>
-                <div className="faculty-event-grid">
-                  {selectedFaculty.events.map((eventItem) => (
-                    <article key={eventItem.title} className="faculty-event-card">
-                      <h4>{eventItem.title}</h4>
-                      <p>{eventItem.date}</p>
-                    </article>
-                  ))}
-                </div>
-              </div>
             </div>
           </article>
         </section>

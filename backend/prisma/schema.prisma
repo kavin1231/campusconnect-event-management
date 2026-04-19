@@ -139,6 +139,8 @@ model Event {
   expectedAttendees Int?
   venue           String?
   organizer       String?
+  organizerType   String?
+  organizerId     String?
   submittedBy     Int?
   submittedDate   DateTime?                  @default(now())
   approvedBy      Int?

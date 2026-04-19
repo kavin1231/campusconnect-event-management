@@ -262,7 +262,7 @@ class AuthController {
         return res.status(400).json({ success: false, message: 'Name, department, and year are required.' });
       }
 
-      const updated = await StudentModel.update(userId, {
+      const updated = await StudentModel.update(parseInt(userId), {
         name,
         department,
         year: parseInt(year),
@@ -296,7 +296,7 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('Update profile error:', error);
+      console.error('Update profile error details:', error);
       res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
   }
@@ -522,6 +522,61 @@ class AuthController {
       res.status(500).json({
         success: false,
         message: 'Server error during role revocation',
+        error: error.message
+      });
+    }
+  }
+
+  // Create new user directly (Admin only)
+  static async createUser(req, res) {
+    try {
+      const { name, email, password, role } = req.body;
+
+      if (!name || !email || !password || !role) {
+        return res.status(400).json({
+          success: false,
+          message: 'All fields are required'
+        });
+      }
+
+      // Check if email exists
+      const emailExists = await UserModel.emailExists(email);
+      const studentEmailExists = await StudentModel.emailExists(email);
+
+      if (emailExists || studentEmailExists) {
+        return res.status(409).json({
+          success: false,
+          message: 'Email already registered'
+        });
+      }
+
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Create user
+      const user = await UserModel.create({
+        name,
+        email,
+        password: hashedPassword,
+        role
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Staff user created successfully',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      });
+    } catch (error) {
+      console.error('Create user error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error during user creation',
         error: error.message
       });
     }

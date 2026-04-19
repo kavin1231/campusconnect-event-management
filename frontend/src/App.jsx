@@ -15,6 +15,8 @@ import PublishedEventPage from "./components/dashboard/PublishedEventPage";
 import MerchandiseOrdersPage from "./components/dashboard/MerchandiseOrdersPage";
 import CreateEventsApp from "./components/CreateEvents";
 import EventRequestFormPage from "./pages/EventRequestFormPage";
+import MyEventRequestsPage from "./pages/MyEventRequestsPage";
+import FacultyPage from "./pages/FacultyPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
@@ -100,6 +102,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/event/:eventId" element={<EventDetail />} />
+        <Route path="/faculty" element={<FacultyPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
@@ -204,9 +207,16 @@ function App() {
           path="/create-event"
           element={
             <ProtectedRoute
-              element={() => (
-                <EventRequestFormPage onBack={() => window.history.back()} />
-              )}
+              element={() => <EventRequestFormPage onBack={() => window.history.back()} />}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/my-event-requests"
+          element={
+            <ProtectedRoute
+              element={MyEventRequestsPage}
               allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }

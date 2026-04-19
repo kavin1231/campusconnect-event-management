@@ -476,7 +476,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to right, rgba(15, 12, 11, 0.9) 0%, rgba(15, 12, 11, 0.4) 60%, rgba(15, 12, 11, 0.1) 100%);
+    background: linear-gradient(to right, rgba(15, 12, 11, 0.7) 0%, rgba(15, 12, 11, 0.3) 60%, rgba(15, 12, 11, 0.1) 100%);
 }
 
 .hero-content {
@@ -864,6 +864,31 @@ body {
 
 .btn-register:hover svg {
     transform: translateX(2px);
+}
+
+.btn-register.btn-joined {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+}
+
+.btn-register.btn-joined:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.btn-primary.btn-joined {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.btn-primary.btn-joined:hover {
+    background: rgba(239, 68, 68, 0.8);
+    border-color: #ef4444;
 }
 
 .load-more-container {

@@ -18,30 +18,7 @@ const ClubOnboarding = () => {
       // Fetch from backend when available
       // const data = await clubOnboardingAPI.getApplications();
       // For now, use mock data
-      const mockApplications = [
-        {
-          id: 1,
-          clubName: "Drama Club",
-          president: "John Doe",
-          email: "john@university.edu",
-          members: 45,
-          description: "We perform theatrical productions",
-          status: "pending",
-          submittedDate: "2024-03-20",
-          documents: ["constitution", "budget_proposal"],
-        },
-        {
-          id: 2,
-          clubName: "Robotics Club",
-          president: "Jane Smith",
-          email: "jane@university.edu",
-          members: 32,
-          description: "Innovation through robotics",
-          status: "pending",
-          submittedDate: "2024-03-19",
-          documents: ["constitution", "budget_proposal", "curriculum"],
-        },
-      ];
+      const mockApplications = [];
       setApplications(mockApplications);
     } catch (error) {
       console.error("Failed to fetch club applications:", error);

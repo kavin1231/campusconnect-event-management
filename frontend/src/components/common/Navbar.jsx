@@ -39,7 +39,6 @@ export function Navbar({ page, onNavigate, notifOpen, setNotifOpen }) {
           NEXORA
         </span>
       </div>
-
       {[["dashboard", "Dashboard"], ["create", "Events"], ["clubs", "Clubs"], ["venues", "Logistics"], ["requests", "Reports"]].map(([key, label]) => (
         <a
           key={key}

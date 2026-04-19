@@ -364,13 +364,6 @@ const AssetsTab = () => {
         </div>
       )}
 
-      <motion.button
-        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition"
-        whileTap={{ scale: 0.98 }}
-      >
-        + Add New Asset
-      </motion.button>
-
       {loading ? (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
           <p className="text-gray-400">Loading assets...</p>

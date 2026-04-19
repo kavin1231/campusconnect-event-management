@@ -6,20 +6,7 @@ import Modal from '../ui/Modal';
 import './StudentProfile.css';
 import '../dashboard/StudentDashboard.css';
 
-const DEPARTMENTS = [
-  'Computer Science',
-  'Information Technology',
-  'Electronics & Communication',
-  'Electrical Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Chemical Engineering',
-  'Biotechnology',
-  'Mathematics',
-  'Physics',
-  'Business Administration',
-  'Other',
-];
+import { FACULTIES } from '../../constants/staticData';
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -296,9 +283,9 @@ const StudentProfile = () => {
                 <h1>{profile?.name}</h1>
                 <div className="sp-meta-tags">
                   <span className="sp-role-tag">STUDENT</span>
-                  <span className="sp-meta-sep">\u2022</span>
+                  <span className="sp-meta-sep">•</span>
                   <span>{profile?.department}</span>
-                  <span className="sp-meta-sep">\u2022</span>
+                  <span className="sp-meta-sep">•</span>
                   <span>{getYearLabel(profile?.year)}</span>
                 </div>
               </div>
@@ -355,11 +342,11 @@ const StudentProfile = () => {
                       )}
                     </div>
                     <div className="sp-form-group sp-full">
-                      <label>Department</label>
+                      <label>Faculty/Department</label>
                       {editing ? (
                         <select name="department" value={formData.department} onChange={handleChange} required>
-                          <option value="">Select Department</option>
-                          {DEPARTMENTS.map(d => (
+                          <option value="">Select Faculty/Department</option>
+                          {FACULTIES.map(d => (
                             <option key={d} value={d}>{d}</option>
                           ))}
                         </select>
@@ -444,7 +431,7 @@ const StudentProfile = () => {
               name="currentPassword" 
               value={passwordData.currentPassword} 
               onChange={handlePassChange} 
-              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+              placeholder="••••••••"
             />
           </div>
           <div className="sp-form-group" style={{ marginBottom: '20px' }}>
@@ -454,7 +441,7 @@ const StudentProfile = () => {
               name="newPassword" 
               value={passwordData.newPassword} 
               onChange={handlePassChange} 
-              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+              placeholder="••••••••"
             />
           </div>
           <div className="sp-form-group">
@@ -464,7 +451,7 @@ const StudentProfile = () => {
               name="confirmPassword" 
               value={passwordData.confirmPassword} 
               onChange={handlePassChange} 
-              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+              placeholder="••••••••"
             />
           </div>
         </div>

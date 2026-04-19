@@ -66,7 +66,8 @@ const ResourceAvailabilityEngine = () => {
         setRequests(requestsData.requests || []);
       } else {
         setErrorMsg(
-          requestsData.message || "Unable to load booking requests for availability.",
+          requestsData.message ||
+            "Unable to load booking requests for availability.",
         );
       }
     } catch (error) {
@@ -151,7 +152,7 @@ const ResourceAvailabilityEngine = () => {
             <div className="px-8 py-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-lg flex items-center justify-center text-2xl">
-                  ≡ƒÜ½
+                  ⚙️
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-white">
@@ -175,7 +176,7 @@ const ResourceAvailabilityEngine = () => {
                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                     }`}
                   >
-                    {mode === "timeline" ? "≡ƒôè Timeline" : "≡ƒôà Calendar"}
+                    {mode === "timeline" ? "📊 Timeline" : "📅 Calendar"}
                   </button>
                 ))}
               </div>
@@ -201,7 +202,7 @@ const ResourceAvailabilityEngine = () => {
               <div className="lg:col-span-1">
                 <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 sticky top-28">
                   <h2 className="text-lg font-bold text-white mb-4">
-                    ≡ƒôª Assets
+                    📦 Assets
                   </h2>
                   <div className="space-y-2">
                     {loading ? (
@@ -221,26 +222,26 @@ const ResourceAvailabilityEngine = () => {
                       />
                     ) : (
                       assets.map((asset) => {
-                      const bookingsCount = getAssetBookings(asset.id).length;
-                      return (
-                        <button
-                          key={asset.id}
-                          onClick={() => setSelectedAsset(asset)}
-                          className={`w-full text-left p-4 rounded-lg transition ${
-                            selectedAsset?.id === asset.id
-                              ? "bg-rose-600 text-white"
-                              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                          }`}
-                        >
-                          <p className="font-medium">
-                            {asset.name || "Unnamed"}
-                          </p>
-                          <p className="text-xs mt-1">
-                            {bookingsCount} booking
-                            {bookingsCount !== 1 ? "s" : ""}
-                          </p>
-                        </button>
-                      );
+                        const bookingsCount = getAssetBookings(asset.id).length;
+                        return (
+                          <button
+                            key={asset.id}
+                            onClick={() => setSelectedAsset(asset)}
+                            className={`w-full text-left p-4 rounded-lg transition ${
+                              selectedAsset?.id === asset.id
+                                ? "bg-rose-600 text-white"
+                                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                            }`}
+                          >
+                            <p className="font-medium">
+                              {asset.name || "Unnamed"}
+                            </p>
+                            <p className="text-xs mt-1">
+                              {bookingsCount} booking
+                              {bookingsCount !== 1 ? "s" : ""}
+                            </p>
+                          </button>
+                        );
                       })
                     )}
                   </div>
@@ -352,7 +353,9 @@ const ResourceAvailabilityEngine = () => {
               <div className="lg:col-span-3">
                 {loading ? (
                   <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                    <p className="text-gray-400 text-lg">Loading availability timeline...</p>
+                    <p className="text-gray-400 text-lg">
+                      Loading availability timeline...
+                    </p>
                   </div>
                 ) : selectedAsset ? (
                   <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
@@ -530,4 +533,3 @@ const BookingCard = ({ booking }) => (
 );
 
 export default ResourceAvailabilityEngine;
-

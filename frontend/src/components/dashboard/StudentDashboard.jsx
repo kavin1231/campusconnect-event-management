@@ -11,9 +11,6 @@ const FILTERS = [
   { key: "all", label: "All Events" },
   { key: "upcoming", label: "Upcoming" },
   { key: "past", label: "Past Events" },
-  { key: "explore", label: "Explore" },
-  { key: "study", label: "Study Materials" },
-  { key: "extracurricular", label: "Extracurriculars" },
 ];
 
 const CATEGORIES = [
@@ -29,7 +26,7 @@ const CATEGORIES = [
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     registered: 0,
@@ -61,7 +58,7 @@ const StudentDashboard = () => {
   const [studyLoading, setStudyLoading] = useState(false);
   const [studyError, setStudyError] = useState(null);
 
-  // ÔöÇÔöÇ Extracurricular States ÔöÇÔöÇ
+  // ÔöÇÔöÇ Social Hub States ÔöÇÔöÇ
   const [sports, setSports] = useState([]);
   const [extraLinks, setExtraLinks] = useState([]);
   const [activeExtraTab, setActiveExtraTab] = useState('sports');
@@ -463,7 +460,7 @@ const StudentDashboard = () => {
                     className={`sd-filter-tab ${filter === f.key ? "sd-filter-active" : ""}`}
                     onClick={() => {
                       setFilter(f.key);
-                      window.history.replaceState(null, "", `?filter=${f.key}`);
+                      setSearchParams({ filter: f.key, category });
                     }}
                   >
                     {f.label}
@@ -475,7 +472,10 @@ const StudentDashboard = () => {
                   <button
                     key={c}
                     className={`sd-chip ${category === c ? "sd-chip-active" : ""}`}
-                    onClick={() => setCategory(c)}
+                    onClick={() => {
+                      setCategory(c);
+                      setSearchParams({ filter, category: c });
+                    }}
                   >
                     {c}
                   </button>
@@ -868,7 +868,7 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* ÔöÇÔöÇ Extracurricular Section ÔöÇÔöÇ */}
+        {/* ÔöÇÔöÇ Social Hub Section ÔöÇÔöÇ */}
         {filter === "extracurricular" && (
           <div className="sd-study-integrated-view">
             <header className="sd-study-header">

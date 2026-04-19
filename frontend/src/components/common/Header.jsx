@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Header.css";
 import ThemeToggle from "./ThemeToggle";
+import LogoutConfirmationModal from "./LogoutConfirmationModal";
 
 export default function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [user, setUser] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const profileRef = useRef(null);
 
@@ -32,10 +35,23 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    setShowProfileMenu(false);
+  };
+
+  const handleLogoutConfirm = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
+  };
+
+  const isActiveRoute = (to) => {
+    if (to === "/") {
+      return location.pathname === "/";
+    }
+
+    return location.pathname === to || location.pathname.startsWith(`${to}/`);
   };
 
   return (
@@ -50,19 +66,25 @@ export default function Header() {
           <span>NEXORA</span>
         </div>
         <div className="nav-links">
-          <Link to="/" className="nav-link">
+          <Link to="/" className={`nav-link ${isActiveRoute("/") ? "active" : ""}`}>
             Explore
           </Link>
-          <Link to="/dashboard" className="nav-link active">
+          <Link to="/dashboard" className={`nav-link ${isActiveRoute("/dashboard") ? "active" : ""}`}>
             Dashboard
           </Link>
+          <Link to="/clubs" className={`nav-link ${isActiveRoute("/clubs") ? "active" : ""}`}>
+            Clubs
+          </Link>
+          <Link to="/faculty" className={`nav-link ${isActiveRoute("/faculty") ? "active" : ""}`}>
+            Faculty
+          </Link>
           {user && user.role && user.role.toUpperCase() !== "STUDENT" && (
-            <Link to="/logistics" className="nav-link">
+            <Link to="/logistics" className={`nav-link ${isActiveRoute("/logistics") ? "active" : ""}`}>
               Logistics
             </Link>
           )}
           {user && user.role && user.role.toUpperCase() !== "STUDENT" && (
-            <Link to="/create-events" className="nav-link">
+            <Link to="/create-events" className={`nav-link ${isActiveRoute("/create-events") ? "active" : ""}`}>
               Create Events
             </Link>
           )}
@@ -219,7 +241,7 @@ export default function Header() {
                 </div>
                 <div className="profile-menu-divider"></div>
                 <button
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   className="profile-menu-item logout"
                 >
                   <svg
@@ -248,6 +270,11 @@ export default function Header() {
           </Link>
         )}
       </div>
+      <LogoutConfirmationModal 
+        isOpen={showLogoutModal} 
+        onClose={() => setShowLogoutModal(false)} 
+        onConfirm={handleLogoutConfirm} 
+      />
     </nav>
   );
 }

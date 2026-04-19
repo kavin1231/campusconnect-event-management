@@ -13,6 +13,9 @@ import operationsRoutes from "./routes/operations.js";
 import sportsRoutes from "./routes/sports.js";
 import studySupportRoutes from "./routes/studySupport.js";
 import groupLinkRoutes from "./routes/groupLink.js";
+import eventRequestRoutes from "./routes/eventRequest.js";
+import merchandiseRoutes from "./routes/merchandise.js";
+import analyticsRoutes from "./routes/analytics.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -46,6 +49,9 @@ app.use("/api/operations", operationsRoutes);
 app.use("/api/sports", sportsRoutes);
 app.use("/api/study-support", studySupportRoutes);
 app.use("/api/group-links", groupLinkRoutes);
+app.use("/api/event-requests", eventRequestRoutes);
+app.use("/api/merchandise", merchandiseRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // test database connection
 app.get("/db-test", async (req, res) => {

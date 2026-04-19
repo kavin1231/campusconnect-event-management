@@ -1,19 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { C, FONT } from "../constants/colors";
+import Header from "../components/common/Header";
 import { Icon } from "../components/common/Icon";
 import { CLUBS_DATA } from "../constants/clubsData";
-
-const NAV_ITEMS = [
-  { key: "explore", label: "Explore", to: "/" },
-  { key: "dashboard", label: "Dashboard", to: "/dashboard" },
-  { key: "clubs", label: "Clubs", to: "/clubs" },
-  { key: "logistics", label: "Logistics", to: "/logistics" },
-  { key: "create", label: "Create Events", to: "/create-events" },
-];
+import "./ClubsModule.css";
 
 export function ClubsModule() {
-  const location = useLocation();
   const [selectedClub, setSelectedClub] = useState(CLUBS_DATA[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const [editMode, setEditMode] = useState(false);
@@ -52,6 +43,17 @@ export function ClubsModule() {
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
   };
 
+  useEffect(() => {
+    handleScroll();
+
+    const onResize = () => handleScroll();
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
+  }, [filteredClubs.length, selectedClub.id]);
+
   const scrollTabs = (dir) => {
     if (!tabsRef.current) return;
     tabsRef.current.scrollBy({ left: dir === "left" ? -260 : 260, behavior: "smooth" });
@@ -83,114 +85,59 @@ export function ClubsModule() {
   };
 
   return (
-    <>
+    <div className="clubs-page" style={{ "--club-theme": selectedClub.themeColor }}>
+      <Header />
+
       {editMode && editData && canEdit && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            background: "rgba(5, 18, 46, 0.62)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              width: "min(620px, 100%)",
-              background: C.white,
-              borderRadius: "14px",
-              border: `1px solid ${C.border}`,
-              boxShadow: "0 22px 50px rgba(5,54,104,.25)",
-              padding: "22px",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <h2 style={{ margin: 0, color: C.text, fontFamily: FONT, fontSize: "24px", fontWeight: 800 }}>Edit Club Details</h2>
-              <button
-                onClick={handleCancelEdit}
-                style={{
-                  width: "30px",
-                  height: "30px",
-                  borderRadius: "8px",
-                  border: `1px solid ${C.border}`,
-                  background: C.neutral,
-                  color: C.textMuted,
-                  cursor: "pointer",
-                }}
-              >
+        <div className="clubs-modal-backdrop">
+          <div className="clubs-modal">
+            <div className="clubs-modal-head">
+              <h2>Edit Club Details</h2>
+              <button onClick={handleCancelEdit} className="clubs-modal-close" aria-label="Close edit modal">
                 x
               </button>
             </div>
 
-            <div style={{ display: "grid", gap: "10px" }}>
+            <div className="clubs-edit-form">
               <input
                 type="text"
                 value={editData.name}
                 onChange={(e) => handleEditFieldChange("name", e.target.value)}
-                style={inputStyle}
+                className="clubs-input"
               />
               <textarea
                 rows={3}
                 value={editData.description}
                 onChange={(e) => handleEditFieldChange("description", e.target.value)}
-                style={{ ...inputStyle, resize: "vertical" }}
+                className="clubs-textarea"
               />
               <textarea
                 rows={2}
                 value={editData.mission}
                 onChange={(e) => handleEditFieldChange("mission", e.target.value)}
-                style={{ ...inputStyle, resize: "vertical" }}
+                className="clubs-textarea"
               />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: "10px" }}>
+              <div className="clubs-edit-inline">
                 <input
                   type="number"
                   value={editData.memberCount}
                   onChange={(e) => handleEditFieldChange("memberCount", Number(e.target.value) || 0)}
-                  style={inputStyle}
+                  className="clubs-input"
                 />
                 <input
                   type="color"
                   value={editData.themeColor}
                   onChange={(e) => handleEditFieldChange("themeColor", e.target.value)}
-                  style={{ ...inputStyle, padding: "6px", cursor: "pointer" }}
+                  className="clubs-color-input"
                 />
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
-              <button
-                onClick={handleSaveEdit}
-                style={{
-                  flex: 1,
-                  padding: "11px 16px",
-                  borderRadius: "10px",
-                  border: "none",
-                  background: selectedClub.themeColor,
-                  color: C.white,
-                  cursor: "pointer",
-                  fontFamily: FONT,
-                  fontWeight: 700,
-                }}
-              >
+            <div className="clubs-modal-actions">
+              <button onClick={handleSaveEdit} className="clubs-save-btn">
                 Save Changes
               </button>
-              <button
-                onClick={handleCancelEdit}
-                style={{
-                  flex: 1,
-                  padding: "11px 16px",
-                  borderRadius: "10px",
-                  border: `1px solid ${C.border}`,
-                  background: C.neutral,
-                  color: C.textMuted,
-                  cursor: "pointer",
-                  fontFamily: FONT,
-                  fontWeight: 700,
-                }}
-              >
+              <button onClick={handleCancelEdit} className="clubs-cancel-btn">
                 Cancel
               </button>
             </div>
@@ -198,133 +145,35 @@ export function ClubsModule() {
         </div>
       )}
 
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          background: C.neutral,
-        }}
-      >
-        <div
-          style={{
-            height: "70px",
-            background: C.primary,
-            borderBottom: "1px solid rgba(255,255,255,0.12)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 26px",
-            gap: "20px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "20px", minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
-              <img
-                src="/logo/Nexora event logo design.png"
-                alt="NEXORA"
-                style={{ width: "36px", height: "28px", objectFit: "contain", background: C.white, borderRadius: "4px", padding: "3px" }}
-              />
-              <span style={{ color: C.white, fontFamily: FONT, fontSize: "32px", fontWeight: 800, letterSpacing: "-0.02em" }}>
-                NEXORA
-              </span>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
-              {NAV_ITEMS.map((item) => {
-                const active = location.pathname === item.to;
-                return (
-                  <Link
-                    key={item.key}
-                    to={item.to}
-                    style={{
-                      textDecoration: "none",
-                      color: active ? C.secondary : "rgba(255,255,255,0.85)",
-                      borderBottom: active ? `2px solid ${C.secondary}` : "2px solid transparent",
-                      paddingBottom: "2px",
-                      fontSize: "14px",
-                      fontFamily: FONT,
-                      fontWeight: active ? 700 : 500,
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          <div
-            style={{
-              width: "210px",
-              height: "38px",
-              borderRadius: "8px",
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.14)",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "0 10px",
-            }}
-          >
-            <Icon.Search size={14} />
-            <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px", fontFamily: FONT }}>Search...</span>
-          </div>
-        </div>
-
-        <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "18px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+      <main className="clubs-main">
+        <section className="clubs-section-card">
+          <div className="clubs-header">
             <div>
-              <h1 style={{ margin: "0 0 4px", fontSize: "30px", color: C.text, fontFamily: FONT, fontWeight: 800 }}>
-                Clubs Module
-              </h1>
-              <p style={{ margin: 0, fontSize: "14px", color: C.textMuted, fontFamily: FONT }}>
+              <h1 className="clubs-title">Clubs Module</h1>
+              <p className="clubs-subtitle">
                 Explore clubs, leadership teams, committee members, and signature events.
               </p>
             </div>
             {canEdit && (
-              <button
-                onClick={handleEditClick}
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: "10px",
-                  border: "none",
-                  background: selectedClub.themeColor,
-                  color: C.white,
-                  cursor: "pointer",
-                  fontFamily: FONT,
-                  fontWeight: 700,
-                }}
-              >
+              <button onClick={handleEditClick} className="clubs-edit-btn">
                 Edit Club
               </button>
             )}
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              background: C.white,
-              border: `1px solid ${C.border}`,
-              borderRadius: "12px",
-              padding: "10px 14px",
-            }}
-          >
-            <Icon.Search size={16} style={{ color: C.textDim }} />
+          <div className="clubs-search">
+            <Icon.Search size={16} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search clubs by name..."
-              style={{ ...inputStyle, border: "none", padding: 0, background: "transparent" }}
             />
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div className="clubs-tabs-wrap">
             {canScrollLeft && (
-              <button onClick={() => scrollTabs("left")} style={scrollBtnStyle}>
+              <button onClick={() => scrollTabs("left")} className="clubs-scroll-btn" aria-label="Scroll left">
                 <Icon.ChevronLeft size={14} />
               </button>
             )}
@@ -332,14 +181,7 @@ export function ClubsModule() {
             <div
               ref={tabsRef}
               onScroll={handleScroll}
-              style={{
-                display: "flex",
-                gap: "8px",
-                overflowX: "auto",
-                flex: 1,
-                scrollbarWidth: "none",
-                paddingBottom: "4px",
-              }}
+              className="clubs-tabs"
             >
               {filteredClubs.map((club) => {
                 const active = selectedClub.id === club.id;
@@ -347,18 +189,8 @@ export function ClubsModule() {
                   <button
                     key={club.id}
                     onClick={() => setSelectedClub(club)}
-                    style={{
-                      whiteSpace: "nowrap",
-                      padding: "8px 14px",
-                      borderRadius: "999px",
-                      border: active ? `2px solid ${club.themeColor}` : `1px solid ${C.border}`,
-                      background: active ? `${club.themeColor}14` : C.white,
-                      color: active ? club.themeColor : C.textMuted,
-                      fontFamily: FONT,
-                      fontSize: "13px",
-                      fontWeight: active ? 700 : 600,
-                      cursor: "pointer",
-                    }}
+                    className={active ? "clubs-tab active" : "clubs-tab"}
+                    style={active ? { "--club-theme": club.themeColor } : undefined}
                   >
                     {club.name}
                   </button>
@@ -367,86 +199,47 @@ export function ClubsModule() {
             </div>
 
             {canScrollRight && (
-              <button onClick={() => scrollTabs("right")} style={scrollBtnStyle}>
+              <button onClick={() => scrollTabs("right")} className="clubs-scroll-btn" aria-label="Scroll right">
                 <Icon.ChevronRight size={14} />
               </button>
             )}
           </div>
 
-          <div
-            style={{
-              borderRadius: "16px",
-              overflow: "hidden",
-              border: `1px solid ${C.border}`,
-              background: C.white,
-            }}
-          >
+          <article className="clubs-hero">
             <div
-              style={{
-                height: "280px",
-                backgroundImage: `url(${selectedClub.bannerImage})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                position: "relative",
-                display: "flex",
-                alignItems: "flex-end",
-                padding: "22px",
-              }}
+              className="clubs-banner"
+              style={{ backgroundImage: `url(${selectedClub.bannerImage})` }}
             >
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,.62), transparent)" }} />
-              <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "flex-end", gap: "14px" }}>
-                <img
-                  src={selectedClub.logo}
-                  alt={selectedClub.name}
-                  style={{ width: "78px", height: "78px", borderRadius: "12px", border: `3px solid ${C.white}`, objectFit: "cover" }}
-                />
+              <div className="clubs-banner-content">
+                <img src={selectedClub.logo} alt={selectedClub.name} className="clubs-banner-logo" />
                 <div>
-                  <h2 style={{ margin: "0 0 4px", color: C.white, fontFamily: FONT, fontSize: "28px", fontWeight: 800 }}>
-                    {selectedClub.name}
-                  </h2>
-                  <p style={{ margin: 0, color: "rgba(255,255,255,0.9)", fontSize: "14px", fontFamily: FONT }}>
-                    {selectedClub.memberCount} active members
-                  </p>
+                  <h2>{selectedClub.name}</h2>
+                  <p>{selectedClub.memberCount} active members</p>
                 </div>
               </div>
             </div>
 
-            <div style={{ padding: "22px", display: "grid", gap: "18px" }}>
+            <div className="clubs-content">
               <div>
-                <h3 style={{ margin: "0 0 8px", color: C.text, fontFamily: FONT, fontSize: "18px", fontWeight: 800 }}>About</h3>
-                <p style={{ margin: 0, color: C.textMuted, fontFamily: FONT, lineHeight: 1.65 }}>{selectedClub.description}</p>
+                <h3>About</h3>
+                <p>{selectedClub.description}</p>
               </div>
 
               <div>
-                <h3 style={{ margin: "0 0 8px", color: C.text, fontFamily: FONT, fontSize: "18px", fontWeight: 800 }}>Mission</h3>
-                <p style={{ margin: 0, color: C.textMuted, fontFamily: FONT, lineHeight: 1.65 }}>{selectedClub.mission}</p>
+                <h3>Mission</h3>
+                <p>{selectedClub.mission}</p>
               </div>
 
               <div>
-                <h3 style={{ margin: "0 0 12px", color: C.text, fontFamily: FONT, fontSize: "18px", fontWeight: 800 }}>
-                  Leadership Team
-                </h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: "12px" }}>
+                <h3>Leadership Team</h3>
+                <div className="clubs-grid">
                   {selectedClub.leadership.map((member, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        border: `1px solid ${C.border}`,
-                        borderRadius: "12px",
-                        background: C.white,
-                        padding: "12px",
-                        display: "flex",
-                        gap: "10px",
-                        alignItems: "center",
-                      }}
-                    >
-                      <img src={member.avatar} alt={member.name} style={{ width: "44px", height: "44px", borderRadius: "50%", objectFit: "cover" }} />
+                    <div key={idx} className="clubs-person-card">
+                      <img src={member.avatar} alt={member.name} />
                       <div>
-                        <p style={{ margin: "0 0 2px", color: selectedClub.themeColor, fontSize: "11px", fontWeight: 700, fontFamily: FONT }}>
-                          {member.role}
-                        </p>
-                        <p style={{ margin: "0 0 2px", color: C.text, fontSize: "13px", fontWeight: 700, fontFamily: FONT }}>{member.name}</p>
-                        <p style={{ margin: 0, color: C.textMuted, fontSize: "11px", fontFamily: FONT }}>{member.subrole}</p>
+                        <p className="clubs-role-tag">{member.role}</p>
+                        <p className="clubs-name">{member.name}</p>
+                        <p className="clubs-subrole">{member.subrole}</p>
                       </div>
                     </div>
                   ))}
@@ -454,70 +247,21 @@ export function ClubsModule() {
               </div>
 
               <div>
-                <h3 style={{ margin: "0 0 12px", color: C.text, fontFamily: FONT, fontSize: "18px", fontWeight: 800 }}>
-                  Members / Committee
-                </h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px" }}>
+                <h3>Members / Committee</h3>
+                <div className="clubs-committee-grid">
                   {selectedClub.members.map((member, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        border: `1px solid ${C.border}`,
-                        borderRadius: "12px",
-                        background: C.white,
-                        padding: "12px",
-                        textAlign: "center",
-                      }}
-                    >
-                      <img
-                        src={member.avatar}
-                        alt={member.name}
-                        style={{
-                          width: "48px",
-                          height: "48px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          marginBottom: "8px",
-                          border: `2px solid ${selectedClub.themeColor}22`,
-                        }}
-                      />
-                      <p style={{ margin: "0 0 3px", color: selectedClub.themeColor, fontSize: "11px", fontWeight: 700, fontFamily: FONT }}>
-                        {member.role}
-                      </p>
-                      <h5 style={{ margin: 0, color: C.text, fontSize: "12px", fontFamily: FONT, fontWeight: 700 }}>{member.name}</h5>
+                    <div key={idx} className="clubs-committee-card">
+                      <img src={member.avatar} alt={member.name} />
+                      <p className="clubs-role-tag">{member.role}</p>
+                      <h5 className="clubs-name">{member.name}</h5>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </>
+          </article>
+        </section>
+      </main>
+    </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  border: `1px solid ${C.border}`,
-  borderRadius: "8px",
-  padding: "10px 12px",
-  color: C.text,
-  background: C.white,
-  fontFamily: FONT,
-  fontSize: "14px",
-  boxSizing: "border-box",
-};
-
-const scrollBtnStyle = {
-  width: "36px",
-  height: "36px",
-  borderRadius: "8px",
-  border: `1px solid ${C.border}`,
-  background: C.white,
-  color: C.textMuted,
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};

@@ -31,17 +31,21 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import LogoutConfirmationModal from "./LogoutConfirmationModal";
 import { authAPI } from "../../services/api";
 import ThemeToggle from "./ThemeToggle";
 
 const Sidebar = ({ activePage, isAdmin = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUserState] = useState(() => JSON.parse(localStorage.getItem("user") || "{}"));
+  const [user, setUserState] = useState(() =>
+    JSON.parse(localStorage.getItem("user") || "{}"),
+  );
   const role = user?.role;
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -59,7 +63,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     refreshProfile();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    setProfileOpen(false);
+  };
+
+  const handleLogoutConfirm = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/");
@@ -85,9 +94,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   }, [location.pathname, location.search]);
 
   const showStaffMenu =
-    isAdmin ||
-    role === "SYSTEM_ADMIN" ||
-    role === "EVENT_ORGANIZER";
+    isAdmin || role === "SYSTEM_ADMIN" || role === "EVENT_ORGANIZER";
 
   const adminMenuItems = [
     {
@@ -207,7 +214,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     },
     {
       id: "extracurricular",
-      label: "Extracurricular",
+      label: "Manage Social",
       path: "/admin/group-links",
       icon: "🏆",
     },
@@ -241,9 +248,15 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         {
           id: "create-events",
           label: "Request Permission",
-          path: "/create-events",
+          path: "/create-event",
           icon: "➕",
           badge: "NEW",
+        },
+        {
+          id: "my-event-requests",
+          label: "My Event Requests",
+          path: "/my-event-requests",
+          icon: "📋",
         },
         {
           id: "calendar-conflict",
@@ -378,9 +391,13 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const studentMenuItems = [
     { id: "home", label: "Home", path: "/", icon: "🏠" },
     { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
-    { id: "explore-sports", label: "Extracurricular activities", path: "/dashboard", icon: "🏆", query: "?filter=extracurricular" },
-    { id: "calendar", label: "Calendar", path: "/calendar", icon: "📅" },
-    // Students should not see Logistics in the sidebar
+    {
+      id: "explore-sports",
+      label: "Social links",
+      path: "/dashboard",
+      icon: "🏆",
+      query: "?filter=extracurricular",
+    },
     {
       id: "study-materials",
       label: "Study Materials",
@@ -400,12 +417,22 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     if (isAdmin) {
       menuItems = [
         ...presidentMenuItems,
-        { id: "switch-to-student", label: "Student View", path: "/dashboard", icon: "🏠" }
+        {
+          id: "switch-to-student",
+          label: "Student View",
+          path: "/dashboard",
+          icon: "🏠",
+        },
       ];
     } else {
       menuItems = [
         ...studentMenuItems,
-        { id: "president-workspace", label: "President Workspace", path: "/admin-dashboard", icon: "🛡️" }
+        {
+          id: "president-workspace",
+          label: "President Workspace",
+          path: "/admin-dashboard",
+          icon: "🛡️",
+        },
       ];
     }
   } else if (isAdmin || role === "SYSTEM_ADMIN") {
@@ -416,7 +443,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
 
   useEffect(() => {
     if (!showStaffMenu) return;
-    
+
     // Auto-expand operations for organizer if nothing is expanded
     if (role === "EVENT_ORGANIZER" && !expandedMenu) {
       setExpandedMenu("organizer-operations");
@@ -484,7 +511,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "checkout-tracking": <Wrench className={iconClass} />,
       "availability-engine": <Settings className={iconClass} />,
       "ops-intel": <Brain className={iconClass} />,
-      "president-workspace": <ShieldAlert className={`${iconClass} text-emerald-400`} />,
+      "president-workspace": (
+        <ShieldAlert className={`${iconClass} text-emerald-400`} />
+      ),
       "switch-to-student": <Home className={`${iconClass} text-primary`} />,
     };
     if (iconMap[id]) return iconMap[id];
@@ -505,7 +534,8 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   }, [role, isAdmin, user?.entityName]);
 
   const dashboardPath = useMemo(() => {
-    if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT") return "/admin-dashboard";
+    if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT")
+      return "/admin-dashboard";
     if (role === "EVENT_ORGANIZER") return "/organizer-dashboard";
     return "/dashboard";
   }, [role]);
@@ -513,9 +543,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   return (
     <>
       {isAdmin && (
-        <header
-          className="sd-topbar"
-        >
+        <header className="sd-topbar">
           <div className="sd-topbar-left">
             <button
               onClick={() => setMobileOpen((prev) => !prev)}
@@ -574,7 +602,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                   </Link>
                   <button
                     className="sd-user-dropdown-link sd-user-logout"
-                    onClick={handleLogout}
+                    onClick={handleLogoutClick}
                     type="button"
                   >
                     <LogOut size={15} />
@@ -646,7 +674,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                         </button>
                         <div className="sd-menu-item-right">
                           {section.badge && (
-                            <span className="sd-menu-badge">{section.badge}</span>
+                            <span className="sd-menu-badge">
+                              {section.badge}
+                            </span>
                           )}
                           <button
                             onClick={() => toggleMenu(section.id)}
@@ -673,7 +703,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                             </span>
                             <span>{item.label}</span>
                             {item.badge && (
-                              <span className="sd-submenu-badge">{item.badge}</span>
+                              <span className="sd-submenu-badge">
+                                {item.badge}
+                              </span>
                             )}
                           </Link>
                         ))}
@@ -726,7 +758,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
             </div>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
             className="sd-side-logout-btn"
             title="Sign Out"
             type="button"
@@ -735,6 +767,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           </button>
         </div>
       </aside>
+
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogoutConfirm}
+      />
     </>
   );
 };

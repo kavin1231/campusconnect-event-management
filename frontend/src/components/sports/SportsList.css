@@ -4,7 +4,7 @@
 
 .sports-list-container {
   padding: 40px 48px;
-  background: #fdfdfd; /* Minimal off-white */
+  background: var(--bg-dark); 
   min-height: calc(100vh - 72px);
 }
 
@@ -79,8 +79,8 @@
 
 /* ── Sport Card ──────────────────────────────── */
 .sport-card-student {
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 24px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -138,7 +138,7 @@
 
 .sport-description {
   font-size: 1rem;
-  color: #64748b;
+  color: var(--text-muted);
   line-height: 1.6;
   margin: 0;
   display: -webkit-box;
@@ -151,7 +151,7 @@
 
 .sport-meta {
   padding-top: 15px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -160,7 +160,7 @@
 .coach-avatar {
   width: 40px;
   height: 40px;
-  background: #f1f5f9;
+  background: var(--bg-input);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -184,7 +184,7 @@
 .coach-name {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #334155;
+  color: var(--text-main);
 }
 
 .btn-join-whatsapp {
@@ -222,20 +222,21 @@
 .sd-empty {
   text-align: center;
   padding: 80px 40px;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 24px;
-  border: 2px dashed #e2e8f0;
+  border: 2px dashed var(--border-color);
+  color: var(--text-muted);
 }
 
 .sd-empty h3 {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #334155;
+  color: var(--text-main);
   margin-bottom: 10px;
 }
 
 .sd-empty p {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* ── Animations ───────────────────────────────── */

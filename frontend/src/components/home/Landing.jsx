@@ -288,6 +288,9 @@ const Landing = () => {
             <Link to="/clubs" className="nav-link">
               Clubs
             </Link>
+            <Link to="/faculty" className="nav-link">
+              Faculty
+            </Link>
             {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
               <Link to="/logistics" className="nav-link">
                 Logistics

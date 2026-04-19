@@ -15,6 +15,7 @@ import MerchandiseOrdersPage from "./components/dashboard/MerchandiseOrdersPage"
 import CreateEventsApp from "./components/CreateEvents";
 import EventRequestFormPage from "./pages/EventRequestFormPage";
 import MyEventRequestsPage from "./pages/MyEventRequestsPage";
+import MerchandisePurchasePage from "./pages/MerchandisePurchasePage";
 import { CalendarPage } from "./pages/CalendarPage";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
@@ -67,6 +68,15 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/event/:eventId" element={<EventDetail />} />
+        <Route
+          path="/merchandise/purchase"
+          element={
+            <ProtectedRoute
+              element={MerchandisePurchasePage}
+              allowedRoles={["STUDENT", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />

@@ -4,7 +4,8 @@ import { C, FONT } from '../../constants/colors';
 import { Icon } from '../common/Icon';
 import OrganizerShell from './OrganizerShell';
 import { useTheme } from '../../context/ThemeContext';
-import { eventRequestAPI } from '../../services/api';
+import { eventRequestAPI, eventsAPI } from '../../services/api';
+import VendorStallMap from '../events/VendorStallMap';
 
 function StatusBadge() {
   return (
@@ -88,6 +89,9 @@ export default function PublishedEventPage() {
   const [eventRequest, setEventRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stalls, setStalls] = useState([]);
+  const [stallsLoading, setStallsLoading] = useState(false);
+  const [stallsError, setStallsError] = useState(null);
 
   const palette = isDarkMode
     ? {
@@ -135,6 +139,35 @@ export default function PublishedEventPage() {
     } else {
       setLoading(false);
       setError('Missing event request id.');
+    }
+  }, [id]);
+
+  // Fetch stall allocation data
+  useEffect(() => {
+    const fetchStalls = async () => {
+      if (!id) return;
+      try {
+        setStallsLoading(true);
+        setStallsError(null);
+        const response = await eventsAPI.getEventStalls(id);
+        if (response.success) {
+          setStalls(response.stalls || []);
+          if (response.message && response.stalls?.length === 0) {
+            setStallsError(response.message);
+          }
+        } else {
+          setStallsError(response.message || 'Failed to load stall data');
+        }
+      } catch (err) {
+        console.error('Error loading stalls:', err);
+        setStallsError('Failed to load stall allocation data');
+      } finally {
+        setStallsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchStalls();
     }
   }, [id]);
 
@@ -356,6 +389,18 @@ export default function PublishedEventPage() {
                 <span style={{ fontSize: '10px', padding: '3px 9px', borderRadius: '100px', background: isDarkMode ? 'rgba(96,165,250,.16)' : C.primaryLight, color: C.primary, fontWeight: '600' }}>{category}</span>
               </div>
             </Card>
+
+            <div style={{ gridColumn: '1 / -1' }}>
+              <VendorStallMap
+                stalls={stalls}
+                loading={stallsLoading}
+                error={stallsError}
+                isDarkMode={isDarkMode}
+                mapImage={bannerPreview}
+                title={`${title} Stall Allocation Map`}
+                subtitle={category}
+              />
+            </div>
           </div>
         )}
 

@@ -520,6 +520,32 @@ class OperationsController {
       return res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
   }
+
+  static async listEventStalls(req, res) {
+    try {
+      const eventId = toInt(req.params.eventId);
+      if (!eventId) {
+        return res.status(400).json({ success: false, message: "Invalid event id" });
+      }
+
+      const stalls = await prisma.eventStall.findMany({
+        where: { eventId },
+        include: {
+          vendor: { select: { id: true, name: true, companyName: true, contactName: true, contactPhone: true } },
+        },
+        orderBy: { stallNumber: "asc" },
+      });
+
+      if (stalls.length === 0) {
+        return res.json({ success: true, stalls: [], message: "No stalls allocated for this event" });
+      }
+
+      return res.json({ success: true, stalls });
+    } catch (error) {
+      console.error("List event stalls error:", error);
+      return res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+  }
 }
 
 export default OperationsController;

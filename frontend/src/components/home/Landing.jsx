@@ -50,9 +50,6 @@ const Footer = ({ user }) => (
             <li>
               <a href="#explore">Explore Events</a>
             </li>
-            <li>
-              <a href="#clubs">Clubs</a>
-            </li>
             {(!user || (user && user.role && user.role.toUpperCase() !== "STUDENT")) && (
               <li>
                 <Link to="/logistics">Logistics</Link>
@@ -288,10 +285,19 @@ const Landing = () => {
             <Link to="/dashboard" className="nav-link">
               Dashboard
             </Link>
-
-            <a href="#clubs" className="nav-link">
+            <Link to="/clubs" className="nav-link">
               Clubs
-            </a>
+            </Link>
+            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
+              <Link to="/logistics" className="nav-link">
+                Logistics
+              </Link>
+            )}
+            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
+              <Link to="/create-events" className="nav-link">
+                Create Events
+              </Link>
+            )}
           </div>
         </div>
         <div className="nav-right">

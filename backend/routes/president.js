@@ -1,5 +1,6 @@
 import express from "express";
 import PresidentController from "../controllers/presidentController.js";
+import FinanceDashboardController from "../controllers/financeDashboardController.js";
 import { verifyToken, requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -148,6 +149,41 @@ router.delete(
   verifyToken,
   requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
   PresidentController.deleteSponsorship,
+);
+
+router.get(
+  "/finance/dashboard",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  FinanceDashboardController.getDashboard,
+);
+
+router.get(
+  "/finance/records",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  FinanceDashboardController.listRecords,
+);
+
+router.post(
+  "/finance/records",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  FinanceDashboardController.createRecord,
+);
+
+router.patch(
+  "/finance/records/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  FinanceDashboardController.updateRecord,
+);
+
+router.delete(
+  "/finance/records/:id",
+  verifyToken,
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
+  FinanceDashboardController.deleteRecord,
 );
 
 

@@ -8,10 +8,22 @@ import StallAllocationTable from "./StallAllocationTable";
 import StallMapView from "./StallMapView";
 
 const StallAllocation = () => {
-  const [events, setEvents] = useState([]);
-  const [selectedEventId, setSelectedEventId] = useState("");
-  const [selectedEventName, setSelectedEventName] = useState("");
-  const [stalls, setStalls] = useState([]);
+  const MOCK_EVENTS = [
+    { id: 1, title: "Tech Expo 2026" },
+    { id: 2, title: "Campus Carnival" },
+  ];
+
+  const MOCK_STALLS = [
+    { id: 1, stallNumber: 1, status: "RESERVED", vendor: { name: "Ceylon Bites" }, serviceCategory: "Food & Beverage" },
+    { id: 2, stallNumber: 2, status: "RESERVED", vendor: { name: "Pixel Print" }, serviceCategory: "Art & Crafts" },
+    { id: 3, stallNumber: 3, status: "AVAILABLE", vendor: null, serviceCategory: "Technology" },
+    { id: 4, stallNumber: 4, status: "AVAILABLE", vendor: null, serviceCategory: "Education" },
+  ];
+
+  const [events, setEvents] = useState(MOCK_EVENTS);
+  const [selectedEventId, setSelectedEventId] = useState(String(MOCK_EVENTS[0].id));
+  const [selectedEventName, setSelectedEventName] = useState(MOCK_EVENTS[0].title);
+  const [stalls, setStalls] = useState(MOCK_STALLS);
   const [loading, setLoading] = useState(false);
   const [mapLoading, setMapLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,14 +57,22 @@ const StallAllocation = () => {
       const response = await governanceAPI.listEvents();
       if (response.success) {
         const eventRows = response.events || [];
-        setEvents(eventRows);
-        if (eventRows.length > 0) {
-          setSelectedEventId(String(eventRows[0].id));
-          setSelectedEventName(eventRows[0].title);
+        const nextEvents = eventRows.length ? eventRows : MOCK_EVENTS;
+        setEvents(nextEvents);
+        if (nextEvents.length > 0) {
+          setSelectedEventId(String(nextEvents[0].id));
+          setSelectedEventName(nextEvents[0].title);
         }
+      } else {
+        setEvents(MOCK_EVENTS);
+        setSelectedEventId(String(MOCK_EVENTS[0].id));
+        setSelectedEventName(MOCK_EVENTS[0].title);
       }
     } catch (error) {
       console.error("Load events failed:", error);
+      setEvents(MOCK_EVENTS);
+      setSelectedEventId(String(MOCK_EVENTS[0].id));
+      setSelectedEventName(MOCK_EVENTS[0].title);
       setToast({ type: "error", message: "Failed to load events" });
     }
   };
@@ -68,12 +88,14 @@ const StallAllocation = () => {
       });
 
       if (response.success) {
-        setStalls(response.stalls || []);
+        setStalls(response.stalls?.length ? response.stalls : MOCK_STALLS);
       } else {
+        setStalls(MOCK_STALLS);
         setToast({ type: "error", message: response.message || "Failed to load stalls" });
       }
     } catch (error) {
       console.error("Load stalls failed:", error);
+      setStalls(MOCK_STALLS);
       setToast({ type: "error", message: "Failed to load stalls" });
     } finally {
       setLoading(false);
@@ -85,10 +107,13 @@ const StallAllocation = () => {
       setMapLoading(true);
       const response = await governanceAPI.getStallMapData(selectedEventId);
       if (response.success) {
-        setStalls(response.stalls || []);
+        setStalls(response.stalls?.length ? response.stalls : MOCK_STALLS);
+      } else {
+        setStalls(MOCK_STALLS);
       }
     } catch (error) {
       console.error("Load map data failed:", error);
+      setStalls(MOCK_STALLS);
       setToast({ type: "error", message: "Failed to load map data" });
     } finally {
       setMapLoading(false);

@@ -14,3 +14,9 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Console Troubleshooting
+
+If you see warnings like `injection-topics.js` or `Node cannot be found in the current page`, verify in a clean browser profile (or Incognito with extensions disabled) before treating them as app bugs. These messages are commonly injected by browser extensions and are not caused by React/Vite application code.
+
+The app now ships a valid `public/favicon.ico` file to avoid default browser favicon 404 requests.

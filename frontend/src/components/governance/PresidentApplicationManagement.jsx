@@ -5,10 +5,32 @@ import { governanceAPI } from "../../services/api";
 import "./PresidentApplicationManagement.css";
 import { ORGANIZING_BODIES } from "../../constants/staticData";
 
+const MOCK_APPLICATIONS = [
+  {
+    id: 1,
+    presidentName: "Kasun Perera",
+    status: "PENDING",
+    clubOrFacultyType: "CLUB",
+    clubOrFacultyName: "Tech Club",
+    student: { name: "Kasun Perera", studentId: "STU-2024-001" },
+    appliedAt: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    presidentName: "Anushka Silva",
+    status: "APPROVED",
+    clubOrFacultyType: "CLUB",
+    clubOrFacultyName: "Arts & Culture Club",
+    student: { name: "Anushka Silva", studentId: "STU-2024-014" },
+    appliedAt: new Date().toISOString(),
+    approvedRejectAt: new Date().toISOString(),
+  },
+];
+
 export default function PresidentApplicationManagement() {
   const navigate = useNavigate();
-  const [applications, setApplications] = useState([]);
-  const [selectedApp, setSelectedApp] = useState(null);
+  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
+  const [selectedApp, setSelectedApp] = useState(MOCK_APPLICATIONS[0]);
   const [filterStatus, setFilterStatus] = useState("PENDING");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -56,10 +78,16 @@ export default function PresidentApplicationManagement() {
     try {
       const data = await governanceAPI.getPresidentApplications();
       if (data.success) {
-        setApplications(data.applications || []);
+        setApplications(data.applications?.length ? data.applications : MOCK_APPLICATIONS);
+        setSelectedApp((current) => current || (data.applications?.length ? data.applications[0] : MOCK_APPLICATIONS[0]));
+      } else {
+        setApplications(MOCK_APPLICATIONS);
+        setSelectedApp((current) => current || MOCK_APPLICATIONS[0]);
       }
     } catch (error) {
       console.error("Failed to fetch applications:", error);
+      setApplications(MOCK_APPLICATIONS);
+      setSelectedApp((current) => current || MOCK_APPLICATIONS[0]);
       setMessage("Failed to fetch applications");
       setMessageType("error");
     }

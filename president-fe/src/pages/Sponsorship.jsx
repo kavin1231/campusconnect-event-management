@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpDown, Handshake, Plus } from 'lucide-react'
 import sponsorshipSeed from '../../asset/json/sporsorship.json'
 import Button from '../components/ui/Button'
@@ -8,6 +8,12 @@ import SponsorshipForm from '../components/sponsorship/SponsorshipForm'
 import SponsorshipTable from '../components/sponsorship/SponsorshipTable'
 import useSortedRecords from '../hooks/useSortedRecords'
 import { normalizeSponsorshipSeed } from '../utils/sponsorshipAdapters'
+import {
+  fetchSponsorships,
+  createSponsorship as createSponsorshipApi,
+  updateSponsorship as updateSponsorshipApi,
+  deleteSponsorship as deleteSponsorshipApi,
+} from '../services/sponsorshipApi'
 
 const INITIAL_SPONSORSHIPS = normalizeSponsorshipSeed(sponsorshipSeed)
 
@@ -16,6 +22,31 @@ export default function Sponsorship() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingSponsorship, setEditingSponsorship] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function loadSponsorships() {
+      try {
+        const rows = await fetchSponsorships()
+        if (active) {
+          setSponsorships(rows)
+          setErrorMessage('')
+        }
+      } catch (error) {
+        if (active) {
+          setErrorMessage(error.message || 'Failed to load sponsorships from backend')
+        }
+      }
+    }
+
+    loadSponsorships()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const filteredRows = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -54,35 +85,38 @@ export default function Sponsorship() {
     setEditingSponsorship(null)
   }
 
-  function handleSaveSponsorship(nextValues) {
-    if (editingSponsorship) {
-      setSponsorships((current) =>
-        current.map((row) =>
-          row.id === editingSponsorship.id
-            ? {
-                ...row,
-                ...nextValues,
-              }
-            : row
+  async function handleSaveSponsorship(nextValues) {
+    try {
+      if (editingSponsorship) {
+        const updated = await updateSponsorshipApi(editingSponsorship.id, nextValues)
+        setSponsorships((current) =>
+          current.map((row) => (row.id === editingSponsorship.id ? updated : row))
         )
-      )
-    } else {
-      setSponsorships((current) => {
-        const nextId = current.length ? Math.max(...current.map((row) => row.id)) + 1 : 1
-        return [...current, { id: nextId, ...nextValues }]
-      })
-    }
+      } else {
+        const created = await createSponsorshipApi(nextValues)
+        setSponsorships((current) => [created, ...current])
+      }
 
-    closeModal()
+      setErrorMessage('')
+      closeModal()
+    } catch (error) {
+      setErrorMessage(error.message || 'Failed to save sponsorship')
+    }
   }
 
-  function handleDeleteSponsorship(row) {
+  async function handleDeleteSponsorship(row) {
     const shouldDelete = window.confirm(`Delete sponsorship by "${row.name}"?`)
     if (!shouldDelete) {
       return
     }
 
-    setSponsorships((current) => current.filter((item) => item.id !== row.id))
+    try {
+      await deleteSponsorshipApi(row.id)
+      setSponsorships((current) => current.filter((item) => item.id !== row.id))
+      setErrorMessage('')
+    } catch (error) {
+      setErrorMessage(error.message || 'Failed to delete sponsorship')
+    }
   }
 
   return (
@@ -134,6 +168,12 @@ export default function Sponsorship() {
           </div>
         </div>
       </div>
+
+      {errorMessage ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+          {errorMessage}
+        </div>
+      ) : null}
 
       <SponsorshipTable
         rows={sortedRecords}

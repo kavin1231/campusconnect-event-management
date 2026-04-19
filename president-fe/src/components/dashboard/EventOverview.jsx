@@ -22,40 +22,48 @@ export default function EventOverview({ eventData }) {
   const totalVendorFees = eventData.vendors.reduce((sum, vendor) => sum + vendor.fee, 0)
   const totalVendorProfit = eventData.vendors.reduce((sum, vendor) => sum + vendor.profit, 0)
   const totalIncomeForChart = totalSponsorContribution + totalVendorFees + eventData.merchandise_income
+  const safeIncomeTotal = totalIncomeForChart > 0 ? totalIncomeForChart : 1
+  const safeExpenseTotal = eventData.total_expenses > 0 ? eventData.total_expenses : 1
   const expenseEntries = Object.entries(eventData.expenses)
   const highestExpenseEntry = expenseEntries.reduce(
     (maxEntry, currentEntry) => (currentEntry[1] > maxEntry[1] ? currentEntry : maxEntry),
     expenseEntries[0]
   )
 
-  const topSponsor = eventData.sponsors.reduce(
-    (top, sponsor) => (sponsor.amount > top.amount ? sponsor : top),
-    eventData.sponsors[0]
-  )
+  const topSponsor =
+    eventData.sponsors.length > 0
+      ? eventData.sponsors.reduce(
+          (top, sponsor) => (sponsor.amount > top.amount ? sponsor : top),
+          eventData.sponsors[0]
+        )
+      : { name: 'N/A', amount: 0, profit_share: 0 }
 
-  const topVendor = eventData.vendors.reduce(
-    (top, vendor) => (vendor.profit > top.profit ? vendor : top),
-    eventData.vendors[0]
-  )
+  const topVendor =
+    eventData.vendors.length > 0
+      ? eventData.vendors.reduce(
+          (top, vendor) => (vendor.profit > top.profit ? vendor : top),
+          eventData.vendors[0]
+        )
+      : { name: 'N/A', profit: 0 }
 
   const incomeChartData = [
     {
       name: 'Sponsors',
       value: totalSponsorContribution,
       color: '#0D4480',
-      percentage: ((totalSponsorContribution / totalIncomeForChart) * 100).toFixed(1),
+      percentage: ((totalSponsorContribution / safeIncomeTotal) * 100).toFixed(1),
     },
     {
       name: 'Vendor Fees',
       value: totalVendorFees,
       color: '#FF7100',
-      percentage: ((totalVendorFees / totalIncomeForChart) * 100).toFixed(1),
+      percentage: ((totalVendorFees / safeIncomeTotal) * 100).toFixed(1),
     },
     {
       name: 'Merchandise',
       value: eventData.merchandise_income,
       color: '#15803D',
-      percentage: ((eventData.merchandise_income / totalIncomeForChart) * 100).toFixed(1),
+      percentage: ((eventData.merchandise_income / safeIncomeTotal) * 100).toFixed(1),
     },
   ]
 
@@ -64,25 +72,25 @@ export default function EventOverview({ eventData }) {
       name: 'Lighting',
       value: eventData.expenses.lighting,
       color: '#1D4ED8',
-      percentage: ((eventData.expenses.lighting / eventData.total_expenses) * 100).toFixed(1),
+      percentage: ((eventData.expenses.lighting / safeExpenseTotal) * 100).toFixed(1),
     },
     {
       name: 'Sound',
       value: eventData.expenses.sound,
       color: '#F97316',
-      percentage: ((eventData.expenses.sound / eventData.total_expenses) * 100).toFixed(1),
+      percentage: ((eventData.expenses.sound / safeExpenseTotal) * 100).toFixed(1),
     },
     {
       name: 'Costumes',
       value: eventData.expenses.costumes,
       color: '#9333EA',
-      percentage: ((eventData.expenses.costumes / eventData.total_expenses) * 100).toFixed(1),
+      percentage: ((eventData.expenses.costumes / safeExpenseTotal) * 100).toFixed(1),
     },
     {
       name: 'Miscellaneous',
       value: eventData.expenses.miscellaneous,
       color: '#14B8A6',
-      percentage: ((eventData.expenses.miscellaneous / eventData.total_expenses) * 100).toFixed(1),
+      percentage: ((eventData.expenses.miscellaneous / safeExpenseTotal) * 100).toFixed(1),
     },
   ]
 

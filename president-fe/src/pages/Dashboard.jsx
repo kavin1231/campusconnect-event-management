@@ -1,19 +1,60 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Download } from 'lucide-react'
-import eventData from '../../asset/json/event.json'
 import EventOverview from '../components/dashboard/EventOverview'
 import EventSidebar from '../components/dashboard/EventSidebar'
 import Button from '../components/ui/Button'
 import { exportDashboardPdf } from '../utils/dashboardPdf'
+import { fetchDashboardEvents } from '../services/dashboardApi'
 
 export default function Dashboard() {
-  const [selectedEventName, setSelectedEventName] = useState(eventData[0]?.event_name ?? '')
+  const [events, setEvents] = useState([])
+  const [selectedEventName, setSelectedEventName] = useState('')
   const [isExporting, setIsExporting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
   const dashboardSectionRef = useRef(null)
 
+  useEffect(() => {
+    let active = true
+
+    async function loadDashboardData() {
+      try {
+        setIsLoading(true)
+        const rows = await fetchDashboardEvents()
+
+        if (!active) {
+          return
+        }
+
+        setEvents(rows)
+        setSelectedEventName((current) => {
+          if (current && rows.some((row) => row.event_name === current)) {
+            return current
+          }
+          return rows[0]?.event_name ?? ''
+        })
+        setErrorMessage('')
+      } catch (error) {
+        if (active) {
+          setErrorMessage(error.message || 'Failed to load dashboard data')
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadDashboardData()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   const selectedEvent = useMemo(
-    () => eventData.find((eventItem) => eventItem.event_name === selectedEventName) ?? null,
-    [selectedEventName]
+    () => events.find((eventItem) => eventItem.event_name === selectedEventName) ?? null,
+    [events, selectedEventName]
   )
 
   async function handleDownloadPdf() {
@@ -60,14 +101,24 @@ export default function Dashboard() {
       <section ref={dashboardSectionRef} className="grid gap-5 lg:grid-cols-12 lg:items-start">
         <div className="lg:col-span-3">
           <EventSidebar
-            events={eventData}
+            events={events}
             selectedEventName={selectedEventName}
             onSelectEvent={setSelectedEventName}
           />
         </div>
 
         <div className="lg:col-span-9">
-          <EventOverview eventData={selectedEvent} />
+          {isLoading ? (
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-gray-500 shadow-sm dark:border-primary-700 dark:bg-primary-900/30 dark:text-gray-300">
+              Loading dashboard data...
+            </div>
+          ) : errorMessage ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+              {errorMessage}
+            </div>
+          ) : (
+            <EventOverview eventData={selectedEvent} />
+          )}
         </div>
       </section>
     </div>

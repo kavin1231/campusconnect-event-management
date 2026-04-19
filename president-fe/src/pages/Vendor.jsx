@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpDown, Plus, Store } from 'lucide-react'
 import seedVendors from '../../asset/json/vendor.json'
 import stallData from '../../asset/json/stall.json'
@@ -9,6 +9,12 @@ import VendorForm from '../components/vendor/VendorForm'
 import VendorTable from '../components/vendor/VendorTable'
 import useSortedRecords from '../hooks/useSortedRecords'
 import { normalizeVendorSeed, getSelectableStalls } from '../utils/vendorAdapters'
+import {
+  fetchVendors,
+  createVendor as createVendorApi,
+  updateVendor as updateVendorApi,
+  deleteVendor as deleteVendorApi,
+} from '../services/vendorApi'
 
 const INITIAL_VENDORS = normalizeVendorSeed(seedVendors)
 
@@ -17,6 +23,31 @@ export default function Vendor() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingVendor, setEditingVendor] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function loadVendors() {
+      try {
+        const rows = await fetchVendors()
+        if (active) {
+          setVendors(rows)
+          setErrorMessage('')
+        }
+      } catch (error) {
+        if (active) {
+          setErrorMessage(error.message || 'Failed to load vendors from backend')
+        }
+      }
+    }
+
+    loadVendors()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const filteredVendors = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -60,35 +91,38 @@ export default function Vendor() {
     setEditingVendor(null)
   }
 
-  function handleSaveVendor(nextValues) {
-    if (editingVendor) {
-      setVendors((current) =>
-        current.map((vendor) =>
-          vendor.id === editingVendor.id
-            ? {
-                ...vendor,
-                ...nextValues,
-              }
-            : vendor
+  async function handleSaveVendor(nextValues) {
+    try {
+      if (editingVendor) {
+        const updated = await updateVendorApi(editingVendor.id, nextValues)
+        setVendors((current) =>
+          current.map((vendor) => (vendor.id === editingVendor.id ? updated : vendor))
         )
-      )
-    } else {
-      setVendors((current) => {
-        const nextId = current.length ? Math.max(...current.map((vendor) => vendor.id)) + 1 : 1
-        return [...current, { id: nextId, ...nextValues }]
-      })
-    }
+      } else {
+        const created = await createVendorApi(nextValues)
+        setVendors((current) => [created, ...current])
+      }
 
-    closeModal()
+      setErrorMessage('')
+      closeModal()
+    } catch (error) {
+      setErrorMessage(error.message || 'Failed to save vendor')
+    }
   }
 
-  function handleDeleteVendor(vendor) {
+  async function handleDeleteVendor(vendor) {
     const shouldDelete = window.confirm(`Delete vendor "${vendor.name}"?`)
     if (!shouldDelete) {
       return
     }
 
-    setVendors((current) => current.filter((item) => item.id !== vendor.id))
+    try {
+      await deleteVendorApi(vendor.id)
+      setVendors((current) => current.filter((item) => item.id !== vendor.id))
+      setErrorMessage('')
+    } catch (error) {
+      setErrorMessage(error.message || 'Failed to delete vendor')
+    }
   }
 
   return (
@@ -140,6 +174,12 @@ export default function Vendor() {
           </div>
         </div>
       </div>
+
+      {errorMessage ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+          {errorMessage}
+        </div>
+      ) : null}
 
       <VendorTable
         vendors={sortedRecords}

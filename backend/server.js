@@ -1,13 +1,17 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
 import prisma from "./prisma/client.js";
+import swaggerDocument from "./swagger.js";
 import authRoutes from "./routes/auth.js";
 import chatbotRoutes from "./routes/chatbot.js";
 import eventRoutes from "./routes/events.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import logisticsRoutes from "./routes/logistics.js";
 import presidentRoutes from "./routes/president.js";
+import vendorRoutes from "./routes/vendor.js";
+import sponsorshipRoutes from "./routes/sponsorship.js";
 // import studySupportRoutes from "./routes/studySupport.js";  // TODO: Convert to ES modules
 
 dotenv.config();
@@ -16,6 +20,12 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.get("/api-docs.json", (req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req, res) => {
   res.send("NEXORA API running");
@@ -28,6 +38,8 @@ app.use("/api/events", eventRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/logistics", logisticsRoutes);
 app.use("/api/president", presidentRoutes);
+app.use("/api/president/vendors", vendorRoutes);
+app.use("/api/president/sponsorships", sponsorshipRoutes);
 // app.use("/api/study-support", studySupportRoutes);  // TODO: Convert to ES modules
 
 // test database connection

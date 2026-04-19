@@ -9,6 +9,28 @@ const parseTimeToMinutes = (value) => {
   return hours * 60 + minutes;
 };
 
+const sanitizeEventDescription = (value) => {
+  const raw = String(value || "");
+  const cleaned = raw
+    .replace(/\r/g, "")
+    .split("\n")
+    .filter(
+      (line) =>
+        !/(Failed to load resource|ERR_CONNECTION_REFUSED|Internal Server Error|No routes matched location|\[vite\]|localhost:\d+\/api\/)/i.test(
+          line,
+        ),
+    )
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) {
+    return "Event details will be announced soon.";
+  }
+
+  return cleaned.slice(0, 500);
+};
+
 const assertSubmitter = (request, userId) => {
   if (!userId || request.submittedBy !== userId) {
     return {
@@ -48,6 +70,10 @@ const publishEvent = async (eventRequestId) => {
       return { error: "NOT_APPROVED" };
     }
 
+    const safeDescription = sanitizeEventDescription(
+      request.purposeDescription || request.description,
+    );
+
     const existing = await tx.event.findFirst({
       where: {
         submittedBy: request.submittedBy,
@@ -57,10 +83,20 @@ const publishEvent = async (eventRequestId) => {
     });
 
     if (existing) {
+      const updateData = {};
+
       if (request.bannerUrl && existing.image !== request.bannerUrl) {
+        updateData.image = request.bannerUrl;
+      }
+
+      if (existing.description !== safeDescription) {
+        updateData.description = safeDescription;
+      }
+
+      if (Object.keys(updateData).length > 0) {
         await tx.event.update({
           where: { id: existing.id },
-          data: { image: request.bannerUrl },
+          data: updateData,
         });
       }
 
@@ -78,7 +114,7 @@ const publishEvent = async (eventRequestId) => {
     const createdEvent = await tx.event.create({
       data: {
         title: request.title,
-        description: request.purposeDescription || "",
+        description: safeDescription,
         date: request.eventDate,
         category: request.purposeTag || "General",
         location: request.venue || "TBD",
@@ -546,7 +582,7 @@ export const updateEventSetup = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 
@@ -602,7 +638,7 @@ export const updateEventBanner = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 
@@ -653,7 +689,7 @@ export const replaceEventTickets = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 
@@ -707,10 +743,10 @@ export const replaceEventMerchandise = async (req, res) => {
         .json({ success: false, message: auth.error.message });
     }
 
-    if (request.status !== "APPROVED") {
+    if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 

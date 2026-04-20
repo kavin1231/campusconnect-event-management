@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
-import { dashboardAPI, sportsAPI, groupLinksAPI, studySupportAPI } from "../../services/api";
+import { dashboardAPI, sportsAPI, groupLinksAPI, studySupportAPI, resolveImageUrl } from "../../services/api";
 import { FileText, Link as LinkIcon, Video, Calendar, AlertCircle, Trophy, Users, ExternalLink, Loader2 as LoaderIcon } from 'lucide-react';
 import "./StudentDashboard.css";
 
@@ -509,11 +509,12 @@ const StudentDashboard = () => {
                   <div
                     key={ev.id}
                     className={`sd-event-card ${ev.isPast ? "sd-event-past" : ""} ${ev.isRegistered ? "sd-event-registered" : ""}`}
+                    onClick={() => navigate(`/event/${ev.id}`)}
                   >
                     {/* image */}
                     <div className="sd-card-img-wrap">
                       <img
-                        src={ev.image}
+                        src={resolveImageUrl(ev.image)}
                         alt={ev.title}
                         className="sd-card-img"
                       />
@@ -628,7 +629,10 @@ const StudentDashboard = () => {
                       ) : ev.isRegistered ? (
                         <button
                           className="sd-btn-unregister"
-                          onClick={() => toggleRegistration(ev)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleRegistration(ev);
+                          }}
                           disabled={busy}
                         >
                           {busy ? (
@@ -659,7 +663,10 @@ const StudentDashboard = () => {
                       ) : (
                         <button
                           className="sd-btn-register"
-                          onClick={() => toggleRegistration(ev)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleRegistration(ev);
+                          }}
                           disabled={busy}
                         >
                           {busy ? (

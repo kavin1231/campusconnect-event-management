@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
 import EventReactions from '../common/EventReactions';
-import { dashboardAPI } from '../../services/api';
+import { dashboardAPI, resolveImageUrl } from '../../services/api';
 import './EventDetail.css';
 
 const EventDetail = () => {
@@ -157,7 +157,7 @@ const EventDetail = () => {
 
             {/* Hero Section */}
             <div className="detail-hero">
-                <img src={event.image} alt={event.title} className="hero-image" />
+                <img src={resolveImageUrl(event.image)} alt={event.title} className="hero-image" />
                 <div className="hero-overlay"></div>
                 <div className="hero-content">
                     <div className="category-tag">{event.category}</div>

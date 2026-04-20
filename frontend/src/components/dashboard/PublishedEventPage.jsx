@@ -4,7 +4,7 @@ import { C, FONT } from '../../constants/colors';
 import { Icon } from '../common/Icon';
 import OrganizerShell from './OrganizerShell';
 import { useTheme } from '../../context/ThemeContext';
-import { eventRequestAPI } from '../../services/api';
+import { eventRequestAPI, resolveImageUrl } from '../../services/api';
 
 function StatusBadge() {
   return (
@@ -158,13 +158,7 @@ export default function PublishedEventPage() {
   const tickets = eventRequest?.tickets || [];
   const merch = eventRequest?.merchandise || [];
   const registrationPct = capacity > 0 ? Math.round((registered / capacity) * 100) : 0;
-  const resolveBannerUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
-    return `${base}${url}`;
-  };
-  const bannerPreview = resolveBannerUrl(eventRequest?.bannerUrl || '');
+  const bannerPreview = resolveImageUrl(eventRequest?.bannerUrl || '');
 
   if (loading) {
     return (

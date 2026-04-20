@@ -7,6 +7,16 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 /**
+ * Helper to resolve image URLs from relative paths
+ */
+export const resolveImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return "https://picsum.photos/800/600?grayscale";
+  if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
+  const base = API_BASE_URL.replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+/**
  * Fetch wrapper with token authentication
  */
 const fetchWithAuth = async (endpoint, options = {}) => {

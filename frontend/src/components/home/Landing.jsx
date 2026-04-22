@@ -307,12 +307,12 @@ const Landing = () => {
             <Link to="/faculty" className="nav-link">
               Faculty
             </Link>
-            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
+            {(user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase())) && (
               <Link to="/logistics" className="nav-link">
                 Logistics
               </Link>
             )}
-            {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
+            {(user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase())) && (
               <Link to="/create-events" className="nav-link">
                 Create Events
               </Link>

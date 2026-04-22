@@ -10,8 +10,10 @@ export const ThemeProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    // Save theme preference to localStorage
-    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+    // Keep CSS variable theme and persisted preference in sync.
+    const theme = isDarkMode ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [isDarkMode]);
 
   const toggleTheme = () => {
@@ -19,7 +21,7 @@ export const ThemeProvider = ({ children }) => {
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDarkMode, theme: isDarkMode ? "dark" : "light", toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

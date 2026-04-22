@@ -16,6 +16,8 @@ import {
   LogOut,
   Menu,
   PieChart,
+  PanelLeftClose,
+  PanelLeftOpen,
   Package,
   Plus,
   Search,
@@ -44,6 +46,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const role = user?.role;
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const profileRef = useRef(null);
@@ -546,6 +549,14 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
         <header className="sd-topbar">
           <div className="sd-topbar-left">
             <button
+              onClick={() => setCollapsed((prev) => !prev)}
+              className="sd-collapse-btn"
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              type="button"
+            >
+              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            </button>
+            <button
               onClick={() => setMobileOpen((prev) => !prev)}
               className="sd-menu-btn"
               aria-label="Toggle sidebar"
@@ -635,7 +646,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       )}
 
       <aside
-        className={`sd-sidebar ${mobileOpen ? "sd-mobile-open" : ""} ${!isAdmin ? "sd-student-theme" : ""}`}
+        className={`sd-sidebar ${mobileOpen ? "sd-mobile-open" : ""} ${collapsed ? "sd-collapsed" : ""} ${!isAdmin ? "sd-student-theme" : ""}`}
       >
         {isAdmin && (
           <div className="sd-side-header">
@@ -666,6 +677,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                           }}
                           className="sd-menu-item-left sd-menu-item-trigger"
                           type="button"
+                          title={section.label}
                         >
                           <span className="sd-menu-icon">
                             {getNavIcon(section.id, true)}
@@ -715,11 +727,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                     <Link
                       to={section.path}
                       className={`sd-side-link ${isActive(section.path) ? "sd-side-active" : ""}`}
+                      title={section.label}
                     >
                       <span className="sd-side-link-icon">
                         {getNavIcon(section.id, true)}
                       </span>
-                      <span>{section.label}</span>
+                      <span className="sd-side-link-label">{section.label}</span>
                     </Link>
                   )}
                 </div>
@@ -732,11 +745,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                   key={item.id}
                   to={item.query ? `${item.path}${item.query}` : item.path}
                   className={`sd-side-link ${isActive(item.path, item.query) ? "sd-side-active" : ""}`}
+                  title={item.label}
                 >
                   <span className="sd-side-link-icon">
                     {getNavIcon(item.id)}
                   </span>
-                  <span>{item.label}</span>
+                  <span className="sd-side-link-label">{item.label}</span>
                 </Link>
               ))}
             </>

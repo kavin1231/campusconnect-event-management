@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Trash2, Edit2, X } from 'lucide-react';
+import { resolveImageUrl } from '../../services/api';
 import './EventRatings.css';
 
 const EventRatings = ({ eventId, isLoggedIn, studentId }) => {
@@ -345,7 +346,7 @@ const ReviewCard = ({ review, isOwner, onDelete, onEditSuccess }) => {
                 <div className="erc-author">
                     {review.student.profileImage && (
                         <img
-                            src={review.student.profileImage}
+                            src={resolveImageUrl(review.student.profileImage)}
                             alt={review.student.name}
                             className="erc-avatar"
                         />

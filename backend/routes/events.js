@@ -43,6 +43,7 @@ router.get("/published", async (req, res) => {
     const events = await prisma.event.findMany({
       where: {
         status: "PUBLISHED",
+        date: { gte: new Date() },
         ...organizerFilterResult.filter,
       },
       orderBy: { date: "asc" },

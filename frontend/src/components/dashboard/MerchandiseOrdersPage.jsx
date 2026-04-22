@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { C, FONT } from '../../constants/colors';
 import { Icon } from '../common/Icon';
 import OrganizerShell from './OrganizerShell';
-import { merchandiseAPI } from '../../services/api';
+import { merchandiseAPI, resolveImageUrl } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 
 function Tab({ active, children, onClick }) {
@@ -69,7 +69,7 @@ function ProductCard({ title, price, desc, soldOut, image, onClick, palette }) {
         style={{
           height: '108px',
           background: image
-            ? `linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.35)), url(${image}) center/cover no-repeat`
+            ? `linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.35)), url(${resolveImageUrl(image)}) center/cover no-repeat`
             : soldOut
               ? 'linear-gradient(135deg,#dce6f5,#f2f5fb)'
               : 'linear-gradient(135deg,#1b232f,#334155)',

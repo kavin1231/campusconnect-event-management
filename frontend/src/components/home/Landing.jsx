@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import ChatBot from "../common/ChatBot";
-import { dashboardAPI } from "../../services/api";
+import { dashboardAPI, resolveImageUrl } from "../../services/api";
 import "./Landing.css";
 import LogoutConfirmationModal from "../common/LogoutConfirmationModal";
 import ThemeToggle from "../common/ThemeToggle";
@@ -171,11 +171,6 @@ const Landing = () => {
   };
 
   // ── Fetch events ────────────────────────────────────────────
-  const resolveImageUrl = (url) => {
-    if (!url || typeof url !== 'string') return "https://picsum.photos/800/600?grayscale";
-    if (url.startsWith("http") || url.startsWith("blob:")) return url;
-    return `http://localhost:5000${url.startsWith('/') ? '' : '/'}${url}`;
-  };
 
   const fetchEvents = async () => {
     try {
@@ -195,9 +190,9 @@ const Landing = () => {
       // Students can use the dashboard feed for registration state.
       // Other roles should always use the public published feed.
       if (localStorage.getItem("token") && String(currentUser?.role || "").toUpperCase() === "STUDENT") {
-        data = await dashboardAPI.getEvents({ filter: 'all' });
+        data = await dashboardAPI.getEvents({ filter: 'upcoming' });
       } else {
-        const response = await fetch("http://localhost:5000/api/events/published");
+        const response = await fetch(`${dashboardAPI.getEvents.API_BASE_URL || "http://localhost:5000/api"}/events/published`);
         data = await response.json();
       }
 

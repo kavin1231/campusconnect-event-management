@@ -408,6 +408,13 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       icon: "📖",
       query: "?filter=study",
     },
+    {
+      id: "merchandise",
+      label: "Merchandise",
+      path: "/dashboard",
+      icon: "🛍️",
+      query: "?filter=orders",
+    },
     { id: "profile", label: "My Profile", path: "/profile", icon: "👤" },
   ];
 
@@ -480,6 +487,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "my-events": <CalendarDays className={iconClass} />,
       "create-events": <Plus className={iconClass} />,
       "merch-orders": <ShoppingBag className={iconClass} />,
+      merchandise: <ShoppingBag className={iconClass} />,
       "my-requests": <FileText className={iconClass} />,
       "venues-mgmt": <MapPin className={iconClass} />,
       "staffing-mgmt": <Users className={iconClass} />,

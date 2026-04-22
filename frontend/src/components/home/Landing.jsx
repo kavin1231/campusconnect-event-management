@@ -190,9 +190,9 @@ const Landing = () => {
       // Students can use the dashboard feed for registration state.
       // Other roles should always use the public published feed.
       if (localStorage.getItem("token") && String(currentUser?.role || "").toUpperCase() === "STUDENT") {
-        data = await dashboardAPI.getEvents({ filter: 'all' });
+        data = await dashboardAPI.getEvents({ filter: 'upcoming' });
       } else {
-        const response = await fetch("http://localhost:5000/api/events/published");
+        const response = await fetch(`${dashboardAPI.getEvents.API_BASE_URL || "http://localhost:5000/api"}/events/published`);
         data = await response.json();
       }
 

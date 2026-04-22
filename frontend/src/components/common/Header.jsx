@@ -78,12 +78,12 @@ export default function Header() {
           <Link to="/faculty" className={`nav-link ${isActiveRoute("/faculty") ? "active" : ""}`}>
             Faculty
           </Link>
-          {user && user.role && user.role.toUpperCase() !== "STUDENT" && (
+          {user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase()) && (
             <Link to="/logistics" className={`nav-link ${isActiveRoute("/logistics") ? "active" : ""}`}>
               Logistics
             </Link>
           )}
-          {user && user.role && user.role.toUpperCase() !== "STUDENT" && (
+          {user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase()) && (
             <Link to="/create-events" className={`nav-link ${isActiveRoute("/create-events") ? "active" : ""}`}>
               Create Events
             </Link>

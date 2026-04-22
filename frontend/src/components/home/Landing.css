@@ -758,6 +758,21 @@ body {
     letter-spacing: 0.5px;
 }
 
+.merch-stock-badge {
+    padding: 8px 10px;
+}
+
+.merch-stock-badge .month {
+    margin-top: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.4px;
+}
+
+.merch-price-badge {
+    color: var(--secondary-color, #f59e0b);
+    font-size: 0.85rem;
+}
+
 .card-body {
     padding: 24px;
     display: flex;

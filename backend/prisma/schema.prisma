@@ -44,12 +44,45 @@ enum Role {
   OPERATIONS_MANAGER
 }
 
+enum ClubStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum ClubRole {
+  PRESIDENT
+  VICE_PRESIDENT
+  TREASURER
+  MEMBER
+}
+
 enum AssetStatus {
   AVAILABLE
   UNAVAILABLE
   MAINTENANCE
   DAMAGED
   ARCHIVED
+}
+
+enum AssetCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+}
+
+enum AssetCategory {
+  EQUIPMENT
+  FURNITURE
+  TECHNOLOGY
+  SPORTS
+  SOUND_SYSTEM
+  DECORATION
+  VEHICLES
+  OTHER
 }
 
 enum BookingStatus {
@@ -60,6 +93,29 @@ enum BookingStatus {
   RETURNED
   CANCELLED
   DAMAGED
+}
+
+enum DamageType {
+  PHYSICAL
+  MECHANICAL
+  ELECTRONIC
+  STRUCTURAL
+  OTHER
+}
+
+enum DamageSeverity {
+  MINOR
+  MODERATE
+  MAJOR
+  CRITICAL
+}
+
+enum DamageStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RESOLVED
+  IN_PROGRESS
 }
 
 enum ApplicationStatus {
@@ -96,6 +152,7 @@ model User {
   requestedBookings AssetBooking[]  @relation("AssetBookingRequester")
   approvedReturns  AssetBooking[]   @relation("ReturnApprovedBy")
   damageReports    DamageReport[]   @relation("DamageReportedByUser")
+  damageApprovals  DamageReport[]   @relation("DamageApprovedBy")
   
   // Governance/Apps relations
   approvedApplications PresidentApplication[]
@@ -249,24 +306,42 @@ model AssetBooking {
 }
 
 model DamageReport {
-  id            Int       @id @default(autoincrement())
-  assetId       Int
-  bookingId     Int?
-  clubId        Int
-  reportedBy    Int
-  title         String
-  description   String
-  damageType    String    
-  severity      String    
-  status        String    @default("PENDING") 
-  images        String[]  @default([])
-  estimatedCost Float?
-  resolution    String?
-  createdAt     DateTime  @default(now())
+  id              Int                @id @default(autoincrement())
+  bookingId       Int?               @unique
+  booking         AssetBooking?      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   
-  asset    Asset         @relation(fields: [assetId], references: [id])
-  club     Club          @relation(fields: [clubId], references: [id])
-  reporter User          @relation(name: "DamageReportedByUser", fields: [reportedBy], references: [id])
+  assetId         Int
+  asset           Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  clubId          Int
+  club            Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  reportedBy      Int
+  reporter        User               @relation(name: "DamageReportedByUser", fields: [reportedBy], references: [id])
+  
+  title           String
+  description     String
+  damageType      DamageType
+  severity        DamageSeverity
+  
+  images          String[]           // Damage photos
+  estimatedCost   Float?
+  actualCost      Float?
+  
+  status          DamageStatus       @default(PENDING)
+  approvedById    Int?
+  approvedBy      User?              @relation(name: "DamageApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  
+  penalty         Float?
+  resolutionNotes String?
+  
+  createdAt       DateTime           @default(now())
+  resolvedAt      DateTime?
+
+  @@index([assetId])
+  @@index([clubId])
+  @@index([status])
+  @@map("DamageReport")
 }
 
 model MaintenanceRecord {
@@ -660,7 +735,7 @@ model EventRequest {
   safetyMeasures        String?
   emergencyPlan         String?
   contingency           String?
-
+ 
   // Step 6: Tickets & Merchandise
   tickets               Json                  @default("[]")
   merchandise           Json                  @default("[]")

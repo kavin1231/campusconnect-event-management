@@ -8,14 +8,43 @@ import {
   getStudentReview,
 } from "../controllers/reviewController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import OperationsController from "../controllers/operationsController.js";
 
 const router = express.Router();
+
+const parseOrganizerFilter = (query) => {
+  const organizerTypeRaw = String(query.organizerType || "").trim();
+  const organizerIdRaw = String(query.organizerId || "").trim();
+
+  const filter = {};
+  if (organizerTypeRaw) {
+    const organizerType = organizerTypeRaw.toUpperCase();
+    if (!["CLUB", "FACULTY"].includes(organizerType)) {
+      return { error: "organizerType must be CLUB or FACULTY" };
+    }
+    filter.organizerType = organizerType;
+  }
+
+  if (organizerIdRaw) {
+    filter.organizerId = organizerIdRaw;
+  }
+
+  return { filter };
+};
 
 // Get published events (public)
 router.get("/published", async (req, res) => {
   try {
+    const organizerFilterResult = parseOrganizerFilter(req.query);
+    if (organizerFilterResult.error) {
+      return res.status(400).json({ success: false, message: organizerFilterResult.error });
+    }
+
     const events = await prisma.event.findMany({
-      where: { status: "PUBLISHED" },
+      where: {
+        status: "PUBLISHED",
+        ...organizerFilterResult.filter,
+      },
       orderBy: { date: "asc" },
       select: {
         id: true,
@@ -30,6 +59,8 @@ router.get("/published", async (req, res) => {
         },
         status: true,
         organizer: true,
+        organizerType: true,
+        organizerId: true,
       },
     });
 
@@ -48,7 +79,15 @@ router.get("/published", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const { status } = req.query;
-    const filter = status ? { status: status.toUpperCase() } : {};
+    const organizerFilterResult = parseOrganizerFilter(req.query);
+    if (organizerFilterResult.error) {
+      return res.status(400).json({ success: false, message: organizerFilterResult.error });
+    }
+
+    const filter = {
+      ...(status ? { status: String(status).toUpperCase() } : {}),
+      ...organizerFilterResult.filter,
+    };
 
     const events = await prisma.event.findMany({
       where: filter,
@@ -215,6 +254,11 @@ router.get("/:eventId", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// ==================== STALL ALLOCATION ROUTES ====================
+
+// Get stalls for an event (public)
+router.get("/:eventId/stalls", OperationsController.listEventStalls);
 
 // ==================== REVIEWS ROUTES ====================
 

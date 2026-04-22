@@ -592,6 +592,34 @@ export const eventsAPI = {
     );
     return response.json();
   },
+
+  getEventStalls: async (eventId) => {
+    try {
+      const response = await fetchWithAuth(`/events/${eventId}/stalls`);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          stalls: [],
+          message: data.message || "Failed to load stall allocation data",
+        };
+      }
+
+      return {
+        success: true,
+        stalls: data.stalls || [],
+        message: data.message,
+      };
+    } catch (error) {
+      console.error("Error fetching event stalls:", error);
+      return {
+        success: false,
+        stalls: [],
+        message: "Failed to load stall allocation data",
+      };
+    }
+  },
 };
 
 // ============================================

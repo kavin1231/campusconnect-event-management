@@ -1,8 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Header from "../components/common/Header";
 import { Icon } from "../components/common/Icon";
+import OrganizedEventsSection from "../components/events/OrganizedEventsSection";
 import { CLUBS_DATA } from "../constants/clubsData";
+import { eventsAPI } from "../services/api";
 import "./ClubsModule.css";
+
+const CLUB_ORGANIZER_ALIASES = {
+  "rotaract club": "Rotaract Club of SLIIT",
+  "arts & culture": "SLIIT Arts Society",
+  "photography club": "SLIIT Photography Club",
+};
+
+const normalizeOrganizerId = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 export function ClubsModule() {
   const [selectedClub, setSelectedClub] = useState(CLUBS_DATA[0]);
@@ -13,6 +28,15 @@ export function ClubsModule() {
   const tabsRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [organizedEvents, setOrganizedEvents] = useState([]);
+  const [organizedEventsLoading, setOrganizedEventsLoading] = useState(false);
+
+  const getClubOrganizerId = (club) => {
+    if (!club?.name) return "";
+    const normalizedName = String(club.name).trim().toLowerCase();
+    const organizerName = CLUB_ORGANIZER_ALIASES[normalizedName] || club.name;
+    return normalizeOrganizerId(organizerName);
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -53,6 +77,37 @@ export function ClubsModule() {
       window.removeEventListener("resize", onResize);
     };
   }, [filteredClubs.length, selectedClub.id]);
+
+  useEffect(() => {
+    const fetchOrganizedEvents = async () => {
+      if (!selectedClub?.id) {
+        setOrganizedEvents([]);
+        return;
+      }
+
+      setOrganizedEventsLoading(true);
+      try {
+        const response = await eventsAPI.listEvents({
+          status: "PUBLISHED",
+          organizerType: "CLUB",
+          organizerId: getClubOrganizerId(selectedClub),
+        });
+
+        if (response?.success) {
+          setOrganizedEvents(response.events || []);
+        } else {
+          setOrganizedEvents([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch club organized events:", error);
+        setOrganizedEvents([]);
+      } finally {
+        setOrganizedEventsLoading(false);
+      }
+    };
+
+    fetchOrganizedEvents();
+  }, [selectedClub.id]);
 
   const scrollTabs = (dir) => {
     if (!tabsRef.current) return;
@@ -229,6 +284,14 @@ export function ClubsModule() {
                 <h3>Mission</h3>
                 <p>{selectedClub.mission}</p>
               </div>
+
+              <OrganizedEventsSection
+                title="Organized Events"
+                subtitle={`Events organized by ${selectedClub.name}`}
+                events={organizedEvents}
+                loading={organizedEventsLoading}
+                emptyText="No events available"
+              />
 
               <div>
                 <h3>Leadership Team</h3>

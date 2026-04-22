@@ -17,6 +17,7 @@ import CreateEventsApp from "./components/CreateEvents";
 import EventRequestFormPage from "./pages/EventRequestFormPage";
 import MyEventRequestsPage from "./pages/MyEventRequestsPage";
 import FacultyPage from "./pages/FacultyPage";
+import SettingsPage from "./pages/SettingsPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
@@ -112,6 +113,20 @@ function App() {
           element={
             <ProtectedRoute
               element={StudentProfile}
+              allowedRoles={[
+                "STUDENT",
+                "SYSTEM_ADMIN",
+                "EVENT_ORGANIZER",
+                "CLUB_PRESIDENT",
+              ]}
+            />
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute
+              element={SettingsPage}
               allowedRoles={[
                 "STUDENT",
                 "SYSTEM_ADMIN",

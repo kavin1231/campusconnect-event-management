@@ -118,6 +118,16 @@ const Landing = () => {
   const [registrationLoading, setRegistrationLoading] = useState({});
   const profileRef = useRef(null);
 
+  const summarizeDescription = (value) => {
+    const normalized = String(value || "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!normalized) return "Event details will be announced soon.";
+    if (normalized.length <= 220) return normalized;
+    return `${normalized.slice(0, 220)}...`;
+  };
+
   // ── Register for event ──────────────────────────────────────
   const handleRegisterEvent = async (e, eventId) => {
     e.preventDefault();
@@ -166,9 +176,20 @@ const Landing = () => {
     try {
       setLoading(true);
       let data;
+      let currentUser = null;
       
-      // If logged in, use dashboard API to get registration status
-      if (localStorage.getItem("token")) {
+      const userDataStr = localStorage.getItem("user");
+      if (userDataStr) {
+        try {
+          currentUser = JSON.parse(userDataStr);
+        } catch {
+          currentUser = null;
+        }
+      }
+
+      // Students can use the dashboard feed for registration state.
+      // Other roles should always use the public published feed.
+      if (localStorage.getItem("token") && String(currentUser?.role || "").toUpperCase() === "STUDENT") {
         data = await dashboardAPI.getEvents({ filter: 'all' });
       } else {
         const response = await fetch("http://localhost:5000/api/events/published");
@@ -282,6 +303,9 @@ const Landing = () => {
             </Link>
             <Link to="/clubs" className="nav-link">
               Clubs
+            </Link>
+            <Link to="/faculty" className="nav-link">
+              Faculty
             </Link>
             {(user && user.role && user.role.toUpperCase() !== "STUDENT") && (
               <Link to="/logistics" className="nav-link">
@@ -612,7 +636,7 @@ const Landing = () => {
                 </span>
               </h1>
               <p className="hero-desc">
-                {featuredEvent.description}
+                {summarizeDescription(featuredEvent.description)}
               </p>
               <div className="hero-actions">
                   <button

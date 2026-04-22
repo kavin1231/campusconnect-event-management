@@ -1,0 +1,222 @@
+/* Stall Cell Component Styles */
+
+.stall-cell-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.stall-cell {
+  width: 100%;
+  height: 100%;
+  border: 2px solid;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  border-color: #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.stall-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stall-number {
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.stall-vendor {
+  font-size: 8px;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  max-width: 100%;
+}
+
+/* Allocated Stall Status */
+.stall-allocated {
+  background-color: #d1fae5;
+  border-color: #6ee7b7;
+  background: linear-gradient(135deg, #dcfce7 0%, #c6f6d5 100%);
+}
+
+.stall-allocated .stall-number {
+  color: #047857;
+}
+
+.stall-allocated .stall-vendor {
+  color: #065f46;
+}
+
+.stall-allocated:hover {
+  background: linear-gradient(135deg, #bbf7d0 0%, #a7f3d0 100%);
+  border-color: #34d399;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
+/* Available Stall Status */
+.stall-available {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  border-style: dashed;
+}
+
+.stall-available .stall-number {
+  color: #6b7280;
+}
+
+.stall-available:hover {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Empty Grid Position */
+.stall-empty {
+  background-color: transparent;
+  border-color: transparent;
+  cursor: default;
+  opacity: 0.5;
+}
+
+.stall-empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.stall-empty .stall-number {
+  color: #d1d5db;
+}
+
+/* Tooltip Styles */
+.stall-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #111827;
+  color: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  animation: tooltipFadeIn 0.15s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.stall-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: #111827;
+  border-radius: 1px;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+.tooltip-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.tooltip-description {
+  font-weight: 400;
+  opacity: 0.9;
+  text-align: center;
+}
+
+.tooltip-vendor-info {
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.tooltip-contact {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* Dark Mode Support */
+.stall-cell {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  .stall-allocated {
+    color-scheme: dark;
+  }
+}
+
+/* Responsive Sizing */
+@media (max-width: 1024px) {
+  .stall-cell {
+    border-width: 1.5px;
+  }
+
+  .stall-number {
+    font-size: 10px;
+  }
+
+  .stall-vendor {
+    font-size: 7px;
+    -webkit-line-clamp: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .stall-cell {
+    border-width: 1px;
+    padding: 2px;
+    gap: 1px;
+  }
+
+  .stall-number {
+    font-size: 9px;
+  }
+
+  .stall-vendor {
+    font-size: 6px;
+  }
+
+  .stall-tooltip {
+    font-size: 10px;
+  }
+}

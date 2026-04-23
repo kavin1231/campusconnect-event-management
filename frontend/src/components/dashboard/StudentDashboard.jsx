@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
-import { dashboardAPI, sportsAPI, groupLinksAPI, studySupportAPI } from "../../services/api";
+import { dashboardAPI, sportsAPI, groupLinksAPI, studySupportAPI, merchandiseAPI, resolveImageUrl } from "../../services/api";
 import { FileText, Link as LinkIcon, Video, Calendar, AlertCircle, Trophy, Users, ExternalLink, Loader2 as LoaderIcon } from 'lucide-react';
 import "./StudentDashboard.css";
 
@@ -11,6 +11,10 @@ const FILTERS = [
   { key: "all", label: "All Events" },
   { key: "upcoming", label: "Upcoming" },
   { key: "past", label: "Past Events" },
+  { key: "orders", label: "My Orders" },
+  { key: "explore", label: "Explore" },
+  { key: "study", label: "Study Materials" },
+  { key: "extracurricular", label: "Social" },
 ];
 
 const CATEGORIES = [
@@ -64,6 +68,10 @@ const StudentDashboard = () => {
   const [activeExtraTab, setActiveExtraTab] = useState('sports');
   const [extraLoading, setExtraLoading] = useState(false);
   const [extraError, setExtraError] = useState(null);
+  const [merchOrders, setMerchOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
+  const [expandedOrderIds, setExpandedOrderIds] = useState([]);
 
   // ÔöÇÔöÇ Auth guard ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
   useEffect(() => {
@@ -181,6 +189,33 @@ const StudentDashboard = () => {
       fetchExtraData();
     }
   }, [user, filter, fetchStudyData, fetchExtraData]);
+
+  const fetchMerchOrders = useCallback(async () => {
+    if (filter !== "orders") return;
+    setOrdersLoading(true);
+    setOrdersError(null);
+    try {
+      const response = await merchandiseAPI.getOrders();
+      if (response?.success) {
+        const list = Array.isArray(response.orders) ? response.orders : [];
+        list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setMerchOrders(list);
+      } else {
+        setOrdersError(response?.message || "Failed to load your merchandise orders.");
+      }
+    } catch (err) {
+      console.error("Error loading merchandise orders:", err);
+      setOrdersError(err?.message || "Failed to load your merchandise orders.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [filter]);
+
+  useEffect(() => {
+    if (user && filter === "orders") {
+      fetchMerchOrders();
+    }
+  }, [user, filter, fetchMerchOrders]);
 
   const getFilteredMaterials = () => {
     if (!Array.isArray(studyMaterials)) return [];
@@ -330,6 +365,79 @@ const StudentDashboard = () => {
     return map[cat] || "#64748b";
   };
 
+  const formatDateTime = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const ORDER_STEPS = ["Submitted", "Payment Check", "Confirmed", "Ready/Delivered"];
+
+  const getOrderTrackerMeta = (statusRaw) => {
+    const status = String(statusRaw || "PENDING").toUpperCase();
+
+    if (status.includes("REJECT") || status.includes("CANCEL")) {
+      return {
+        label: "Rejected",
+        tone: "rejected",
+        stepIndex: 1,
+        helper: "Payment was not approved. Please re-submit with a valid payment slip.",
+      };
+    }
+
+    if (status.includes("READY")) {
+      return {
+        label: "Ready for Pickup",
+        tone: "confirmed",
+        stepIndex: 3,
+        helper: "Payment verified. Your order is ready for pickup.",
+      };
+    }
+
+    if (status.includes("DELIVER") || status.includes("COMPLETE") || status.includes("FULFIL") || status.includes("COLLECT")) {
+      return {
+        label: "Delivered",
+        tone: "complete",
+        stepIndex: 3,
+        helper: "Your order has completed fulfillment.",
+      };
+    }
+
+    if (status.includes("PAID") || status.includes("CONFIRM") || status.includes("APPROV")) {
+      return {
+        label: "Payment Confirmed",
+        tone: "confirmed",
+        stepIndex: 2,
+        helper: "Your payment has been verified and your order is being prepared.",
+      };
+    }
+
+    return {
+      label: "Payment Verification Pending",
+      tone: "pending",
+      stepIndex: 1,
+      helper: "Order submitted and waiting for payment verification.",
+    };
+  };
+
+  const isEventsView =
+    filter !== "study" && filter !== "extracurricular" && filter !== "orders";
+
+  const toggleOrderTracker = (orderId) => {
+    setExpandedOrderIds((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId],
+    );
+  };
+
   // ÔöÇÔöÇ Render ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
   return (
     <>
@@ -378,7 +486,7 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {filter !== "study" && filter !== "extracurricular" && (
+        {isEventsView && (
           <header className="sd-header">
             <div className="sd-header-content">
               <div className="sd-header-text">
@@ -404,7 +512,7 @@ const StudentDashboard = () => {
         <main className="sd-main">
 
           {/* Stats row */}
-          {filter !== "study" && filter !== "extracurricular" && (
+          {isEventsView && (
             <div className="sd-stats-row">
               {[
                 {
@@ -451,7 +559,7 @@ const StudentDashboard = () => {
           )}
 
           {/* ── Filter + Category bar ── */}
-          {(filter !== "study" && filter !== "extracurricular") && (
+          {isEventsView && (
             <div className="sd-controls">
               <div className="sd-filter-tabs">
                 {FILTERS.map((f) => (
@@ -485,7 +593,7 @@ const StudentDashboard = () => {
           )}
 
           {/* Event Grid content */}
-          {filter !== "study" && filter !== "extracurricular" && (
+          {isEventsView && (
             <>
           {loading ? (
             <div className="sd-loading">
@@ -509,11 +617,12 @@ const StudentDashboard = () => {
                   <div
                     key={ev.id}
                     className={`sd-event-card ${ev.isPast ? "sd-event-past" : ""} ${ev.isRegistered ? "sd-event-registered" : ""}`}
+                    onClick={() => navigate(`/event/${ev.id}`)}
                   >
                     {/* image */}
                     <div className="sd-card-img-wrap">
                       <img
-                        src={ev.image}
+                        src={resolveImageUrl(ev.image)}
                         alt={ev.title}
                         className="sd-card-img"
                       />
@@ -628,7 +737,10 @@ const StudentDashboard = () => {
                       ) : ev.isRegistered ? (
                         <button
                           className="sd-btn-unregister"
-                          onClick={() => toggleRegistration(ev)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleRegistration(ev);
+                          }}
                           disabled={busy}
                         >
                           {busy ? (
@@ -659,7 +771,10 @@ const StudentDashboard = () => {
                       ) : (
                         <button
                           className="sd-btn-register"
-                          onClick={() => toggleRegistration(ev)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleRegistration(ev);
+                          }}
                           disabled={busy}
                         >
                           {busy ? (
@@ -697,6 +812,130 @@ const StudentDashboard = () => {
             </>
           )}
         </main>
+
+        {filter === "orders" && (
+          <section className="sd-orders-tracker-view">
+            <div className="sd-orders-header-card">
+              <div className="sd-orders-header-main">
+                <div className="sd-orders-icon">📦</div>
+                <div>
+                  <h2>My Merchandise Orders</h2>
+                  <p>Track each order from submission to payment confirmation and delivery.</p>
+                </div>
+              </div>
+              <div className="sd-orders-summary">
+                <span className="sd-orders-summary-label">Total Orders</span>
+                <strong>{merchOrders.length}</strong>
+              </div>
+            </div>
+
+            {ordersLoading ? (
+              <div className="sd-loading">
+                <div className="sd-spinner" />
+                <p>Loading your orders...</p>
+              </div>
+            ) : ordersError ? (
+              <div className="sd-study-error">
+                <AlertCircle size={32} />
+                <h3>{ordersError}</h3>
+                <button onClick={fetchMerchOrders}>Try Again</button>
+              </div>
+            ) : merchOrders.length === 0 ? (
+              <div className="sd-empty">
+                <div className="sd-empty-icon">🧾</div>
+                <h3>No merchandise orders yet</h3>
+                <p>When you place an order, its tracker will appear here.</p>
+              </div>
+            ) : (
+              <div className="sd-orders-list">
+                {merchOrders.map((order) => {
+                  const meta = getOrderTrackerMeta(order.status);
+                  const isExpanded = expandedOrderIds.includes(order.id);
+                  return (
+                    <article className="sd-order-list-item" key={order.id}>
+                      <div className="sd-order-list-row">
+                        <div className="sd-order-list-main">
+                          <p className="sd-order-label">Order #{order.id}</p>
+                          <h3>{order.items?.[0]?.product?.name || "Merchandise Order"}</h3>
+                          <p className="sd-order-submitted">Submitted on {formatDateTime(order.createdAt)}</p>
+                        </div>
+
+                        <div className="sd-order-list-status">
+                          <span className={`sd-order-badge sd-order-badge-${meta.tone}`}>{meta.label}</span>
+                          <p className="sd-order-helper">{meta.helper}</p>
+                          {order.pickupLocation && (
+                            <p className="sd-order-helper" style={{ marginTop: "4px", fontWeight: 700 }}>
+                              Pickup Location: {order.pickupLocation}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="sd-order-list-metrics">
+                          <div className="sd-order-metric">
+                            <span>Total</span>
+                            <strong>${Number(order.totalAmount || 0).toFixed(2)}</strong>
+                          </div>
+                          <div className="sd-order-metric">
+                            <span>Items</span>
+                            <strong>{Array.isArray(order.items) ? order.items.length : 0}</strong>
+                          </div>
+                          <div className="sd-order-metric">
+                            <span>Payment Slip</span>
+                            {order.paymentSlipUrl ? (
+                              <a
+                                href={`http://localhost:5000${order.paymentSlipUrl}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                View Attached Slip
+                              </a>
+                            ) : (
+                              <strong>Not attached</strong>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          className="sd-order-toggle"
+                          type="button"
+                          onClick={() => toggleOrderTracker(order.id)}
+                          aria-expanded={isExpanded}
+                          aria-label={isExpanded ? "Collapse order progress" : "Expand order progress"}
+                        >
+                          <span className={`sd-order-toggle-icon ${isExpanded ? "open" : ""}`}>▾</span>
+                        </button>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="sd-order-tracker-panel">
+                          <div className="sd-order-steps">
+                            {ORDER_STEPS.map((step, idx) => {
+                              const done = idx < meta.stepIndex;
+                              const active = idx === meta.stepIndex;
+                              return (
+                                <div key={`${order.id}-${step}`} className="sd-order-step-item">
+                                  <span className={`sd-order-step-dot ${done ? "done" : ""} ${active ? "active" : ""}`}>
+                                    {done ? "✓" : idx + 1}
+                                  </span>
+                                  <span className={`sd-order-step-text ${done || active ? "current" : ""}`}>{step}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {order.pickupLocation && (
+                            <div style={{ marginTop: "10px", fontSize: "13px", color: "var(--text-main)" }}>
+                              Collection Point: <strong>{order.pickupLocation}</strong>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
         
         {/* ÔöÇÔöÇ Study Support Section ÔöÇÔöÇ */}
         {filter === "study" && (

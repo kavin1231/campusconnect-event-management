@@ -7,6 +7,16 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 /**
+ * Helper to resolve image URLs from relative paths
+ */
+export const resolveImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return "https://picsum.photos/800/600?grayscale";
+  if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
+  const base = API_BASE_URL.replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+/**
  * Fetch wrapper with token authentication
  */
 const fetchWithAuth = async (endpoint, options = {}) => {
@@ -885,6 +895,18 @@ export const merchandiseAPI = {
     return response.json();
   },
 
+  uploadProductImage: async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetchWithAuthRaw("/merchandise/products/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    return response.json();
+  },
+
   updateProduct: async (id, productData) => {
     const response = await fetchWithAuth(`/merchandise/products/${id}`, {
       method: "PATCH",
@@ -896,6 +918,51 @@ export const merchandiseAPI = {
   deleteProduct: async (id) => {
     const response = await fetchWithAuth(`/merchandise/products/${id}`, {
       method: "DELETE",
+    });
+    return response.json();
+  },
+
+  createOrder: async (orderData) => {
+    const response = await fetchWithAuth("/merchandise/orders", {
+      method: "POST",
+      body: JSON.stringify(orderData),
+    });
+    return response.json();
+  },
+
+  getOrders: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(
+      `/merchandise/orders${query ? `?${query}` : ""}`,
+    );
+    return response.json();
+  },
+
+  getOrderById: async (id) => {
+    const response = await fetchWithAuth(`/merchandise/orders/${id}`);
+    return response.json();
+  },
+
+  updateOrder: async (id, orderData) => {
+    const response = await fetchWithAuth(`/merchandise/orders/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(orderData),
+    });
+    return response.json();
+  },
+
+  getOrdersByProduct: async (productId, params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(
+      `/merchandise/products/${productId}/orders${query ? `?${query}` : ""}`,
+    );
+    return response.json();
+  },
+
+  distributeProductOrders: async (productId, payload) => {
+    const response = await fetchWithAuth(`/merchandise/products/${productId}/distribute`, {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
     return response.json();
   },

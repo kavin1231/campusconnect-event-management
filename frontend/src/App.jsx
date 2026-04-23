@@ -18,6 +18,7 @@ import EventRequestFormPage from "./pages/EventRequestFormPage";
 import MyEventRequestsPage from "./pages/MyEventRequestsPage";
 import FacultyPage from "./pages/FacultyPage";
 import SettingsPage from "./pages/SettingsPage";
+import MerchandisePurchasePage from "./pages/MerchandisePurchasePage";
 import { CalendarPage } from "./pages/CalendarPage";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
@@ -104,6 +105,15 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/event/:eventId" element={<EventDetail />} />
         <Route path="/faculty" element={<FacultyPage />} />
+        <Route
+          path="/merchandise/purchase"
+          element={
+            <ProtectedRoute
+              element={MerchandisePurchasePage}
+              allowedRoles={["STUDENT", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />

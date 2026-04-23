@@ -43,6 +43,7 @@ router.get("/published", async (req, res) => {
     const events = await prisma.event.findMany({
       where: {
         status: "PUBLISHED",
+        date: { gte: new Date() },
         ...organizerFilterResult.filter,
       },
       orderBy: { date: "asc" },
@@ -70,6 +71,46 @@ router.get("/published", async (req, res) => {
       _count: undefined
     }));
     res.json({ success: true, events: mappedEvents });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get events for calendar view (organized by full date)
+router.get("/calendar/view", async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: { status: "APPROVED" },
+      orderBy: { date: "asc" },
+    });
+
+    // Transform and organize events by full date (YYYY-MM-DD)
+    const eventsByDay = {};
+    
+    events.forEach((event) => {
+      // Format date as YYYY-MM-DD to ensure events only show on their specific date/month
+      const eventDate = new Date(event.date);
+      const fullDateKey = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}-${String(eventDate.getDate()).padStart(2, "0")}`;
+      
+      if (!eventsByDay[fullDateKey]) {
+        eventsByDay[fullDateKey] = [];
+      }
+
+      eventsByDay[fullDateKey].push({
+        id: event.id,
+        title: event.title,
+        type: event.category, // Map category to type for frontend
+        venue: event.location, // Map location to venue for frontend
+        org: "Event Organizer", // Default org; can be enhanced later with org names
+        conflict: false, // Default; can be enhanced with conflict detection logic
+        date: event.date,
+        image: event.image,
+        description: event.description,
+        registeredCount: event.registeredCount,
+      });
+    });
+
+    res.json({ success: true, eventsByDay });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

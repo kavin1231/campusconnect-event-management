@@ -204,13 +204,24 @@ const publishEvent = async (eventRequestId) => {
         updateData.description = safeDescription;
       }
 
-      if (organizerType && existing.organizerType !== organizerType) {
+      if (existing.status !== "PUBLISHED") {
+        updateData.status = "PUBLISHED";
+      }
+
+      if (!existing.organizerType) {
         updateData.organizerType = organizerType;
       }
 
-      if (organizerId && existing.organizerId !== organizerId) {
+      if (!existing.organizerId) {
         updateData.organizerId = organizerId;
       }
+
+      if (!existing.organizer) {
+        updateData.organizer = organizer.organizerName || request.organizingBody;
+      }
+
+      // organizerType and organizerId are stored in EventRequest, not Event
+      // Only update image and description which exist in Event table
 
       if (Object.keys(updateData).length > 0) {
         await tx.event.update({
@@ -241,18 +252,11 @@ const publishEvent = async (eventRequestId) => {
           request.bannerUrl ||
           "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1600",
         status: "PUBLISHED",
-        budget: request.estimatedBudget
-          ? Math.round(request.estimatedBudget)
-          : null,
-        expectedAttendees: request.expectedAttendance,
-        venue: request.venue,
-        submittedBy: request.submittedBy,
-        submittedDate: request.submittedAt,
-        approvedBy: request.reviewedBy,
-        approvedAt: request.reviewedAt,
-        organizer: organizer.organizerName || request.organizingBody || null,
+        organizer: organizer.organizerName || request.organizingBody,
         organizerType,
-        organizerId: organizerId || null,
+        organizerId,
+        submittedBy: request.submittedBy,
+        submittedDate: request.submittedAt || new Date(),
       },
     });
 
@@ -396,6 +400,8 @@ export const createEventRequest = async (req, res) => {
         safetyMeasures: safetyMeasures || null,
         emergencyPlan: emergencyPlan || null,
         contingency: contingency || null,
+        status: "PENDING",
+        submittedAt: new Date(),
         submittedBy: userId,
       },
       include: {

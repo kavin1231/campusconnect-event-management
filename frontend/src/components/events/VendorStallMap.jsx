@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { enrichStallsWithPositions } from '../../utils/stallDataMapper';
 import './VendorStallMap.css';
 
 export default function VendorStallMap({
@@ -21,15 +22,31 @@ export default function VendorStallMap({
     setMapLoadFailed(false);
   }, [preferredMapImage]);
 
+  /**
+   * Enrich stalls with fixed position coordinates from stallPositions config.
+   * This merges API stall data (vendor/status) with fixed map positions.
+   * The enrichment happens here automatically - no need to do it before passing stalls prop.
+   */
   const normalizedStalls = useMemo(
-    () =>
-      (stalls || []).map((stall, index) => ({
-        ...stall,
-        // Clamp to map boundaries to avoid markers escaping the image container.
-        mapX: Math.min(96, Math.max(4, Number(stall.mapX ?? 50))),
-        mapY: Math.min(96, Math.max(4, Number(stall.mapY ?? 50))),
-        _index: index,
-      })),
+    () => {
+      if (!stalls || stalls.length === 0) return [];
+      
+      try {
+        // Enrich each stall with its fixed position coordinates
+        return enrichStallsWithPositions(stalls);
+      } catch (err) {
+        console.error('[VendorStallMap] Error enriching stalls:', err);
+        // Fallback: return stalls with default positioning if enrichment fails
+        return (stalls || []).map((stall, index) => ({
+          ...stall,
+          mapX: Math.min(96, Math.max(4, Number(stall.mapX ?? 50))),
+          mapY: Math.min(96, Math.max(4, Number(stall.mapY ?? 50))),
+          category: stall.category || 'General',
+          description: stall.description || `Stall ${stall.stallNumber}`,
+          _index: index,
+        }));
+      }
+    },
     [stalls],
   );
 
@@ -118,10 +135,13 @@ export default function VendorStallMap({
               style={{ left: `${stall.mapX}%`, top: `${stall.mapY}%` }}
               onMouseEnter={() => setHoveredStallId(stall.id)}
               onMouseLeave={() => setHoveredStallId(null)}
+              data-testid={`stall-${stall.stallNumber}`}
+              data-stall-number={stall.stallNumber}
+              data-reserved={isReserved ? 'true' : 'false'}
             >
               <button
                 className={`stall-map-pin ${isReserved ? 'stall-map-pin-reserved' : 'stall-map-pin-free'}`}
-                aria-label={`Stall ${stall.stallNumber}`}
+                aria-label={`Stall ${stall.stallNumber} - ${stall.category} - ${isReserved ? 'Reserved' : 'Available'}`}
                 type="button"
               >
                 {stall.stallNumber}
@@ -130,13 +150,17 @@ export default function VendorStallMap({
               {isHovered ? (
                 <div className="stall-map-tooltip">
                   <div className="stall-map-tooltip-title">Stall {stall.stallNumber}</div>
-                  <div className="stall-map-tooltip-line">Status: {isReserved ? 'Reserved' : 'Free'}</div>
-                  <div className="stall-map-tooltip-line">Vendor: {stall.vendor?.name || stall.vendor?.companyName || 'Unassigned'}</div>
+                  <div className="stall-map-tooltip-line">Status: <strong>{isReserved ? 'Reserved' : 'Available'}</strong></div>
+                  <div className="stall-map-tooltip-line">Category: <strong>{stall.category || 'General'}</strong></div>
+                  {stall.description && (
+                    <div className="stall-map-tooltip-line">Location: <strong>{stall.description}</strong></div>
+                  )}
+                  <div className="stall-map-tooltip-line">Vendor: <strong>{stall.vendor?.name || stall.vendor?.companyName || 'Unassigned'}</strong></div>
                   {stall.vendor?.contactName ? (
-                    <div className="stall-map-tooltip-line">Contact: {stall.vendor.contactName}</div>
+                    <div className="stall-map-tooltip-line">Contact: <strong>{stall.vendor.contactName}</strong></div>
                   ) : null}
                   {stall.vendor?.contactPhone ? (
-                    <div className="stall-map-tooltip-line">Phone: {stall.vendor.contactPhone}</div>
+                    <div className="stall-map-tooltip-line">Phone: <strong>{stall.vendor.contactPhone}</strong></div>
                   ) : null}
                 </div>
               ) : null}

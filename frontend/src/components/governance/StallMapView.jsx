@@ -1,18 +1,20 @@
 import { useMemo, useState } from "react";
+import { enrichStallsWithPositions } from "../../utils/stallDataMapper";
 
 const PRIMARY_MAP_IMAGE_URL = "/maps/sliit-campus-map.png";
 
 const StallMapView = ({ stalls = [], eventName = "", loading = false }) => {
   const [selectedStall, setSelectedStall] = useState(null);
+  const enrichedStalls = useMemo(() => enrichStallsWithPositions(stalls), [stalls]);
 
   const summary = useMemo(() => {
-    const reserved = stalls.filter((stall) => stall.status === "RESERVED").length;
+    const reserved = enrichedStalls.filter((stall) => stall.status === "RESERVED").length;
     return {
-      total: stalls.length,
+      total: enrichedStalls.length,
       reserved,
-      available: stalls.length - reserved,
+      available: enrichedStalls.length - reserved,
     };
-  }, [stalls]);
+  }, [enrichedStalls]);
 
   if (loading) {
     return (
@@ -64,7 +66,7 @@ const StallMapView = ({ stalls = [], eventName = "", loading = false }) => {
             className="h-full w-full object-cover opacity-85"
           />
 
-          {stalls.map((stall) => {
+          {enrichedStalls.map((stall) => {
             const isReserved = stall.status === "RESERVED";
             return (
               <button
@@ -112,7 +114,7 @@ const StallMapView = ({ stalls = [], eventName = "", loading = false }) => {
 
               <div className="mt-3 space-y-1 text-sm" style={{ color: "var(--text-main)" }}>
                 <p>Vendor: {selectedStall.vendor?.name || "-"}</p>
-                <p>Service Category: {selectedStall.serviceCategory || selectedStall.vendor?.serviceCategory || "-"}</p>
+                <p>Service Category: {selectedStall.category || selectedStall.serviceCategory || selectedStall.vendor?.serviceCategory || "-"}</p>
                 <p>Event: {selectedStall.event?.title || eventName || "-"}</p>
                 <p>
                   Status: {selectedStall.status === "RESERVED" ? "Reserved" : "Free"}

@@ -40,7 +40,8 @@ router.get("/published", async (req, res) => {
       return res.status(400).json({ success: false, message: organizerFilterResult.error });
     }
 
-    const events = await prisma.event.findMany({
+    // First try to get PUBLISHED events
+    let events = await prisma.event.findMany({
       where: {
         status: "PUBLISHED",
         date: { gte: new Date() },
@@ -58,12 +59,35 @@ router.get("/published", async (req, res) => {
         _count: {
           select: { registrations: true }
         },
-        status: true,
-        organizer: true,
-        organizerType: true,
-        organizerId: true,
       },
-    });
+    }).catch(() => []);
+
+    // If no published events found, get all future events (for backward compatibility with existing data)
+    if (events.length === 0) {
+      events = await prisma.event.findMany({
+        where: {
+          date: { gte: new Date() },
+          ...organizerFilterResult.filter,
+        },
+        orderBy: { date: "asc" },
+        take: 20, // Limit to prevent too many results
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          date: true,
+          category: true,
+          location: true,
+          image: true,
+          _count: {
+            select: { registrations: true }
+          },
+        },
+      }).catch((err) => {
+        console.error("Error getting fallback events:", err);
+        return [];
+      });
+    }
 
     const mappedEvents = events.map(ev => ({
       ...ev,
@@ -72,6 +96,7 @@ router.get("/published", async (req, res) => {
     }));
     res.json({ success: true, events: mappedEvents });
   } catch (error) {
+    console.error("Error fetching published events:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

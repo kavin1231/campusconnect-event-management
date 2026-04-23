@@ -277,6 +277,7 @@ class MerchandiseController {
 
       const createOrderWithItems = async (tx, includePaymentSlip) => {
         const data = {
+          buyerId: req.user?.id || null,
           buyerName,
           buyerEmail: buyerEmail || null,
           buyerPhone: buyerPhone || null,
@@ -377,7 +378,7 @@ class MerchandiseController {
       }
 
       if (req.user?.role === "STUDENT" || req.user?.role === "CLUB_PRESIDENT") {
-        where.buyerEmail = req.user?.email || "";
+        where.buyerId = req.user?.id || null;
       }
       if (search) {
         where.OR = [
@@ -416,7 +417,7 @@ class MerchandiseController {
 
       if (status) where.status = status;
       if (req.user?.role === "STUDENT" || req.user?.role === "CLUB_PRESIDENT") {
-        where.buyerEmail = req.user?.email || "";
+        where.buyerId = req.user?.id || null;
       }
       if (search) {
         where.OR = [

@@ -135,6 +135,18 @@ export const authAPI = {
     });
     return response.json();
   },
+
+  getUserById: async (id, type) => {
+    const response = await fetchWithAuth(`/auth/users/${id}?type=${type}`);
+    return response.json();
+  },
+
+  deleteUser: async (id, type) => {
+    const response = await fetchWithAuth(`/auth/users/${id}?type=${type}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
 };
 
 // ============================================

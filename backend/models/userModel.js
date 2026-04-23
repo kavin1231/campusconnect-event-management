@@ -11,6 +11,8 @@ class UserModel {
         email: true,
         password: true,
         role: true,
+        clubOrFacultyName: true,
+        clubOrFacultyType: true,
         createdAt: true,
       },
     });
@@ -26,6 +28,8 @@ class UserModel {
         email: true,
         password: true,
         role: true,
+        clubOrFacultyName: true,
+        clubOrFacultyType: true,
         createdAt: true,
       },
     });
@@ -62,6 +66,8 @@ class UserModel {
         name: true,
         email: true,
         role: true,
+        clubOrFacultyName: true,
+        clubOrFacultyType: true,
         createdAt: true,
       },
     });

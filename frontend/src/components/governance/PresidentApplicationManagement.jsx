@@ -4,6 +4,7 @@ import Sidebar from "../common/Sidebar";
 import { governanceAPI } from "../../services/api";
 import "./PresidentApplicationManagement.css";
 import { ORGANIZING_BODIES } from "../../constants/staticData";
+import { Eye, EyeOff } from "lucide-react";
 
 const MOCK_APPLICATIONS = [
   {
@@ -42,6 +43,7 @@ export default function PresidentApplicationManagement() {
     clubName: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
@@ -156,6 +158,7 @@ export default function PresidentApplicationManagement() {
       if (response.success) {
         setShowCreateModal(false);
         setCreateForm({ name: "", email: "", clubName: "", password: "" });
+        setShowPassword(false);
         alert("✅ President created successfully!");
         fetchApplications(); // If we want to refresh (though this doesn't create an application)
       }
@@ -556,14 +559,36 @@ export default function PresidentApplicationManagement() {
                 </div>
                 <div className="pres-form-group">
                   <label>Temporary Password</label>
-                  <input
-                    type="password"
-                    value={createForm.password}
-                    onChange={(e) =>
-                      setCreateForm({ ...createForm, password: e.target.value })
-                    }
-                    required
-                  />
+                  <div className="password-input-wrapper" style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={createForm.password}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, password: e.target.value })
+                      }
+                      required
+                      style={{ width: '100%', paddingRight: '40px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="toggle-password"
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        padding: '5px'
+                      }}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="pres-modal-actions">

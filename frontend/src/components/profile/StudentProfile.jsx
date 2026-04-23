@@ -7,6 +7,7 @@ import './StudentProfile.css';
 import '../dashboard/StudentDashboard.css';
 
 import { FACULTIES } from '../../constants/staticData';
+import { Eye, EyeOff } from 'lucide-react';
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -30,6 +31,9 @@ const StudentProfile = () => {
   });
   const [passSaving, setPassSaving] = useState(false);
   const [passError, setPassError] = useState('');
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({ name: '', department: '', year: '' });
@@ -426,33 +430,63 @@ const StudentProfile = () => {
           {passError && <div className="sp-toast sp-toast-error" style={{ marginBottom: '16px' }}>{passError}</div>}
           <div className="sp-form-group" style={{ marginBottom: '20px' }}>
             <label>Current Password</label>
-            <input 
-              type="password" 
-              name="currentPassword" 
-              value={passwordData.currentPassword} 
-              onChange={handlePassChange} 
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input 
+                type={showCurrentPass ? "text" : "password"} 
+                name="currentPassword" 
+                value={passwordData.currentPassword} 
+                onChange={handlePassChange} 
+                placeholder="••••••••"
+                className="w-full"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPass(!showCurrentPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"
+              >
+                {showCurrentPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <div className="sp-form-group" style={{ marginBottom: '20px' }}>
             <label>New Password</label>
-            <input 
-              type="password" 
-              name="newPassword" 
-              value={passwordData.newPassword} 
-              onChange={handlePassChange} 
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input 
+                type={showNewPass ? "text" : "password"} 
+                name="newPassword" 
+                value={passwordData.newPassword} 
+                onChange={handlePassChange} 
+                placeholder="••••••••"
+                className="w-full"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPass(!showNewPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"
+              >
+                {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <div className="sp-form-group">
             <label>Confirm New Password</label>
-            <input 
-              type="password" 
-              name="confirmPassword" 
-              value={passwordData.confirmPassword} 
-              onChange={handlePassChange} 
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input 
+                type={showConfirmPass ? "text" : "password"} 
+                name="confirmPassword" 
+                value={passwordData.confirmPassword} 
+                onChange={handlePassChange} 
+                placeholder="••••••••"
+                className="w-full"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPass(!showConfirmPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"
+              >
+                {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
         </div>
       </Modal>

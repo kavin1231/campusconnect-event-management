@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C, FONT } from "../constants/colors";
 import { useTheme } from "../context/ThemeContext";
 import { Icon } from "../components/common/Icon";
 import Sidebar from "../components/common/Sidebar";
-import { MONTH_NAMES, WEEK_DAYS, EVENTS_BY_DAY, CONFLICTS, CUR_YEAR, CUR_MONTH, TODAY, VENUE_DATA } from "../constants/staticData";
+import { MONTH_NAMES, WEEK_DAYS, CONFLICTS, CUR_YEAR, CUR_MONTH, TODAY, VENUE_DATA } from "../constants/staticData";
 import { getEventTypeColor } from "../utils/helpers";
 import { Btn } from "../components/common/Primitives";
 
@@ -14,6 +14,31 @@ export function CalendarPage({ onBack }) {
   const [selectedEvent, setSel] = useState(null);
   const [selectedDay, setDay] = useState(null);
   const [venueFilter, setVF] = useState(null);
+  const [eventsByDay, setEventsByDay] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch calendar events from API
+  useEffect(() => {
+    const fetchCalendarEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`http://localhost:5000/api/events/calendar/view`);
+        if (!response.ok) throw new Error("Failed to fetch events");
+        const data = await response.json();
+        if (data.success) {
+          setEventsByDay(data.eventsByDay || {});
+        }
+      } catch (err) {
+        console.error("Error fetching calendar events:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCalendarEvents();
+  }, []);
 
   const palette = isDarkMode
     ? {
@@ -103,7 +128,7 @@ export function CalendarPage({ onBack }) {
           </button>
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: "11px", color: palette.textDim, fontFamily: FONT }}>
-            {Object.values(EVENTS_BY_DAY).flat().length} events · <span style={{ color: C.secondary, fontWeight: "700" }}>{CONFLICTS.length} conflicts</span>
+            {Object.values(eventsByDay).flat().length} events · <span style={{ color: C.secondary, fontWeight: "700" }}>{CONFLICTS.length} conflicts</span>
           </span>
         </div>
 
@@ -120,7 +145,9 @@ export function CalendarPage({ onBack }) {
             <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: "4px", marginBottom: "4px" }}>
               {Array.from({ length: 7 }).map((_, di) => {
                 const day = week[di];
-                const raw = day ? EVENTS_BY_DAY[day] || [] : [];
+                // Construct full date key in YYYY-MM-DD format to look up events from the specific month/year
+                const fullDateKey = day ? `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}` : null;
+                const raw = fullDateKey ? eventsByDay[fullDateKey] || [] : [];
                 const evts = venueFilter ? raw.filter((e) => e.venue === venueFilter) : raw;
                 const hasCon = evts.some((e) => e.conflict);
                 const isToday = day === todayD;

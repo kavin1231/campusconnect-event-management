@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import ChatBot from "../common/ChatBot";
-import { dashboardAPI } from "../../services/api";
+import { dashboardAPI, merchandiseAPI, resolveImageUrl } from "../../services/api";
 import "./Landing.css";
 import LogoutConfirmationModal from "../common/LogoutConfirmationModal";
 import ThemeToggle from "../common/ThemeToggle";
@@ -49,9 +49,6 @@ const Footer = ({ user }) => (
             </li>
             <li>
               <a href="#explore">Explore Events</a>
-            </li>
-            <li>
-              <a href="#clubs">Clubs</a>
             </li>
             {(!user || (user && user.role && user.role.toUpperCase() !== "STUDENT")) && (
               <li>
@@ -110,15 +107,28 @@ const Footer = ({ user }) => (
 );
 
 const Landing = () => {
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [featuredEvent, setFeaturedEvent] = useState(null);
+  const [merchandise, setMerchandise] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [merchLoading, setMerchLoading] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [registrationLoading, setRegistrationLoading] = useState({});
   const profileRef = useRef(null);
+
+  const summarizeDescription = (value) => {
+    const normalized = String(value || "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!normalized) return "Event details will be announced soon.";
+    if (normalized.length <= 220) return normalized;
+    return `${normalized.slice(0, 220)}...`;
+  };
 
   // ── Register for event ──────────────────────────────────────
   const handleRegisterEvent = async (e, eventId) => {
@@ -134,7 +144,6 @@ const Landing = () => {
     try {
       const response = await dashboardAPI.registerEvent(eventId);
       if (response.success) {
-        // Refresh events to show updated registration status
         await fetchEvents();
       }
     } catch (error) {
@@ -144,20 +153,51 @@ const Landing = () => {
     }
   };
 
-  // ── Fetch events ────────────────────────────────────────────
-  const resolveImageUrl = (url) => {
-    if (!url || typeof url !== 'string') return "https://picsum.photos/800/600?grayscale";
-    if (url.startsWith("http") || url.startsWith("blob:")) return url;
-    return `http://localhost:5000${url.startsWith('/') ? '' : '/'}${url}`;
+  const handleUnregisterEvent = async (e, eventId) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isLoggedIn) return;
+
+    setRegistrationLoading((prev) => ({ ...prev, [eventId]: true }));
+    try {
+      const response = await dashboardAPI.unregisterEvent(eventId);
+      if (response.success) {
+        await fetchEvents();
+      }
+    } catch (error) {
+      console.error("Unregistration failed:", error);
+    } finally {
+      setRegistrationLoading((prev) => ({ ...prev, [eventId]: false }));
+    }
   };
+
+  // ── Fetch events ────────────────────────────────────────────
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "http://localhost:5000/api/events/published",
-      );
-      const data = await response.json();
+      let data;
+      let currentUser = null;
+      
+      const userDataStr = localStorage.getItem("user");
+      if (userDataStr) {
+        try {
+          currentUser = JSON.parse(userDataStr);
+        } catch {
+          currentUser = null;
+        }
+      }
+
+      // Students can use the dashboard feed for registration state.
+      // Other roles should always use the public published feed.
+      if (localStorage.getItem("token") && String(currentUser?.role || "").toUpperCase() === "STUDENT") {
+        data = await dashboardAPI.getEvents({ filter: 'upcoming' });
+      } else {
+        const response = await fetch(`${dashboardAPI.getEvents.API_BASE_URL || "http://localhost:5000/api"}/events/published`);
+        data = await response.json();
+      }
+
       if (data.success) {
         const mapped = (data.events || []).map((event) => ({
           ...event,
@@ -175,6 +215,37 @@ const Landing = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchMerchandise = async () => {
+    try {
+      setMerchLoading(true);
+      const response = await merchandiseAPI.getProducts({ active: true });
+      if (response?.success) {
+        const mapped = (response.products || []).slice(0, 6).map((product) => ({
+          ...product,
+          image: resolveImageUrl(product.imageUrl),
+        }));
+        setMerchandise(mapped);
+      }
+    } catch (error) {
+      console.error("Error fetching merchandise:", error);
+    } finally {
+      setMerchLoading(false);
+    }
+  };
+
+  const handlePurchaseMerch = (e, product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isLoggedIn) {
+      window.location.href = "/login";
+      return;
+    }
+
+    // Navigate to purchase page with product data
+    navigate("/merchandise/purchase", { state: { product } });
   };
 
   useEffect(() => {
@@ -203,6 +274,7 @@ const Landing = () => {
 
     // Fetch events from API
     fetchEvents();
+    fetchMerchandise();
   }, []);
 
   // Close dropdown when clicking outside
@@ -263,10 +335,22 @@ const Landing = () => {
             <Link to="/dashboard" className="nav-link">
               Dashboard
             </Link>
-
-            <a href="#clubs" className="nav-link">
+            <Link to="/clubs" className="nav-link">
               Clubs
-            </a>
+            </Link>
+            <Link to="/faculty" className="nav-link">
+              Faculty
+            </Link>
+            {(user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase())) && (
+              <Link to="/logistics" className="nav-link">
+                Logistics
+              </Link>
+            )}
+            {(user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase())) && (
+              <Link to="/create-events" className="nav-link">
+                Create Events
+              </Link>
+            )}
           </div>
         </div>
         <div className="nav-right">
@@ -586,17 +670,22 @@ const Landing = () => {
                 </span>
               </h1>
               <p className="hero-desc">
-                {featuredEvent.description}
+                {summarizeDescription(featuredEvent.description)}
               </p>
               <div className="hero-actions">
-                <button
-                  className="btn-primary"
-                  onClick={(e) => handleRegisterEvent(e, featuredEvent.id)}
-                  disabled={registrationLoading[featuredEvent.id]}
-                >
-                  {registrationLoading[featuredEvent.id]
-                    ? "Processing..."
-                    : "Register Now"}
+                  <button
+                    className={`btn-primary ${featuredEvent.isRegistered ? "btn-joined" : ""}`}
+                    onClick={(e) => featuredEvent.isRegistered 
+                      ? handleUnregisterEvent(e, featuredEvent.id)
+                      : handleRegisterEvent(e, featuredEvent.id)
+                    }
+                    disabled={registrationLoading[featuredEvent.id]}
+                  >
+                    {registrationLoading[featuredEvent.id]
+                      ? "Processing..."
+                      : featuredEvent.isRegistered 
+                        ? "Joined • Cancel" 
+                        : "Register Now"}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -612,7 +701,12 @@ const Landing = () => {
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 </button>
-                <button className="btn-secondary">Learn More</button>
+                <button 
+                  onClick={() => navigate(`/event/${featuredEvent.id}`)} 
+                  className="btn-secondary"
+                >
+                  Learn More
+                </button>
               </div>
             </div>
           </section>
@@ -647,11 +741,11 @@ const Landing = () => {
               {events.map((event, index) => {
                 const formatted = formatDate(event.date);
                 return (
-                  <Link
+                  <div
                     key={event.id}
-                    to={`/event/${event.id}`}
                     className="event-card-link"
-                    style={{ animationDelay: `${index * 0.1}s` }}
+                    style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                    onClick={() => navigate(`/event/${event.id}`)}
                   >
                     <div className="event-card">
                       <div className="card-image-wrap">
@@ -714,16 +808,21 @@ const Landing = () => {
                         </div>
                         <div className="card-footer">
                           <button
-                            onClick={(e) => handleRegisterEvent(e, event.id)}
+                            onClick={(e) => event.isRegistered 
+                              ? handleUnregisterEvent(e, event.id)
+                              : handleRegisterEvent(e, event.id)
+                            }
                             disabled={registrationLoading[event.id]}
-                            className="btn-register"
+                            className={`btn-register ${event.isRegistered ? "btn-joined" : ""}`}
                           >
                             <span>
                               {registrationLoading[event.id]
                                 ? "Processing..."
-                                : "Register Now"}
+                                : event.isRegistered 
+                                  ? "Joined ✓" 
+                                  : "Register Now"}
                             </span>
-                            {!registrationLoading[event.id] && (
+                            {!registrationLoading[event.id] && !event.isRegistered && (
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -743,7 +842,7 @@ const Landing = () => {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
@@ -767,6 +866,102 @@ const Landing = () => {
               </svg>
             </button>
           </div>
+        </section>
+
+        <section className="events-section" id="merch">
+          <div className="section-header">
+            <div className="section-title-wrap">
+              <h2>Campus Merchandise</h2>
+              <p>Browse and purchase available merch drops</p>
+            </div>
+            <Link to="/dashboard" className="view-all">
+              View All <span>&gt;</span>
+            </Link>
+          </div>
+
+          {merchLoading ? (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Loading merchandise...</p>
+            </div>
+          ) : merchandise.length === 0 ? (
+            <div className="empty-state">
+              <p>No merchandise available right now</p>
+            </div>
+          ) : (
+            <div className="events-grid">
+              {merchandise.map((product, index) => {
+                const stock = Number(product.inventory || 0);
+                const stockLabel = stock <= 0 ? "Out of Stock" : stock < 10 ? "Low Stock" : "In Stock";
+                return (
+                  <div
+                    key={product.id}
+                    className="event-card-link"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="event-card">
+                      <div className="card-image-wrap">
+                        <div className="card-image">
+                          <img
+                            src={product.image || "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=1200"}
+                            alt={product.name}
+                            className="card-bg-img"
+                          />
+                          <div className="image-overlay"></div>
+                        </div>
+                        <div className="date-badge merch-stock-badge">
+                          <span className="month">{stockLabel}</span>
+                        </div>
+                        <div className="category-badge merch-price-badge">
+                          <span>${Number(product.price || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div className="card-body">
+                        <h3 className="card-title">{product.name}</h3>
+                        <div className="card-meta">
+                          <div className="meta-item">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M6 2l1.5 6h11L20 2"></path>
+                              <path d="M4 8h16l-1.5 8h-13z"></path>
+                              <circle cx="9" cy="20" r="1"></circle>
+                              <circle cx="15" cy="20" r="1"></circle>
+                            </svg>
+                            <span>{stock} available</span>
+                          </div>
+                          <div className="meta-item">
+                            <span>{product.description || "Limited campus merchandise item."}</span>
+                          </div>
+                        </div>
+                        <div className="card-footer">
+                          <button
+                            onClick={(e) => handlePurchaseMerch(e, product)}
+                            disabled={stock <= 0}
+                            className="btn-register"
+                          >
+                            <span>
+                              {stock <= 0
+                                ? "Unavailable"
+                                : "Buy Now"}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
 

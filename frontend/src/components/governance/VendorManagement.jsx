@@ -23,6 +23,7 @@ const emptyForm = {
   name: "",
   companyName: "",
   serviceCategory: "",
+  vendorFee: "",
   contactName: "",
   contactPhone: "",
   contactEmail: "",
@@ -32,10 +33,64 @@ const emptyForm = {
   stallId: "",
 };
 
+const MOCK_VENDORS = [
+  {
+    id: 1,
+    name: "Ceylon Bites",
+    companyName: "Ceylon Foods Pvt Ltd",
+    serviceCategory: "Food & Beverage",
+    vendorFee: 120000,
+    contactName: "Nimal Perera",
+    contactPhone: "+94 77 123 4567",
+    contactEmail: "nimal@ceylonbites.lk",
+    address: "Colombo 07",
+    status: "ACTIVE",
+    eventStallAllocations: [{ id: 11, event: { id: 1, title: "Tech Expo 2026" } }],
+  },
+  {
+    id: 2,
+    name: "Pixel Print",
+    companyName: "Pixel Print Studio",
+    serviceCategory: "Art & Crafts",
+    vendorFee: 85000,
+    contactName: "Suresh Silva",
+    contactPhone: "+94 70 222 7788",
+    contactEmail: "hello@pixelprint.lk",
+    address: "Kandy",
+    status: "ACTIVE",
+    eventStallAllocations: [{ id: 12, event: { id: 2, title: "Campus Carnival" } }],
+  },
+  {
+    id: 3,
+    name: "Byte Mart",
+    companyName: "Byte Mart Solutions",
+    serviceCategory: "Technology",
+    vendorFee: 70000,
+    contactName: "Ayesha Khan",
+    contactPhone: "+94 71 889 3322",
+    contactEmail: "sales@bytemart.lk",
+    address: "Nugegoda",
+    status: "INACTIVE",
+    eventStallAllocations: [],
+  },
+];
+
+const MOCK_EVENTS = [
+  { id: 1, title: "Tech Expo 2026" },
+  { id: 2, title: "Campus Carnival" },
+  { id: 3, title: "Arts Week Showcase" },
+];
+
+const MOCK_STALLS = [
+  { id: 11, stallNumber: 1, status: "RESERVED", vendor: { name: "Ceylon Bites" }, serviceCategory: "Food & Beverage" },
+  { id: 12, stallNumber: 2, status: "RESERVED", vendor: { name: "Pixel Print" }, serviceCategory: "Art & Crafts" },
+  { id: 13, stallNumber: 3, status: "AVAILABLE", vendor: null, serviceCategory: "Technology" },
+];
+
 const VendorManagement = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [vendors, setVendors] = useState([]);
+  const [vendors, setVendors] = useState(MOCK_VENDORS);
   const [loading, setLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,8 +101,8 @@ const VendorManagement = () => {
   const [toast, setToast] = useState(null);
   const [formValues, setFormValues] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
-  const [events, setEvents] = useState([]);
-  const [availableStalls, setAvailableStalls] = useState([]);
+  const [events, setEvents] = useState(MOCK_EVENTS);
+  const [availableStalls, setAvailableStalls] = useState(MOCK_STALLS);
   const [stallLoading, setStallLoading] = useState(false);
 
   useEffect(() => {
@@ -101,12 +156,14 @@ const VendorManagement = () => {
       });
 
       if (data.success) {
-        setVendors(data.vendors || []);
+        setVendors(data.vendors?.length ? data.vendors : MOCK_VENDORS);
       } else {
+        setVendors(MOCK_VENDORS);
         showToast(data.message || "Unable to load vendors", "error");
       }
     } catch (error) {
       console.error("Failed to load vendors:", error);
+      setVendors(MOCK_VENDORS);
       showToast(error.message || "Unable to load vendors", "error");
     } finally {
       setLoading(false);
@@ -117,10 +174,20 @@ const VendorManagement = () => {
     try {
       const data = await governanceAPI.listEvents();
       if (data.success) {
-        setEvents(data.events || []);
+        const normalizedEvents = (data.events || [])
+          .map((event) => ({
+            id: event.id ?? event.eventId,
+            title: event.title || event.eventName,
+          }))
+          .filter((event) => event.id && event.title);
+
+        setEvents(normalizedEvents.length ? normalizedEvents : MOCK_EVENTS);
+      } else {
+        setEvents(MOCK_EVENTS);
       }
     } catch (error) {
       console.error("Failed to load events:", error);
+      setEvents(MOCK_EVENTS);
     }
   };
 
@@ -129,13 +196,13 @@ const VendorManagement = () => {
       setStallLoading(true);
       const data = await governanceAPI.getAvailableStallsByEvent(eventId, vendorId);
       if (data.success) {
-        setAvailableStalls(data.stalls || []);
+        setAvailableStalls(data.stalls?.length ? data.stalls : MOCK_STALLS);
       } else {
-        setAvailableStalls([]);
+        setAvailableStalls(MOCK_STALLS);
       }
     } catch (error) {
       console.error("Failed to load available stalls:", error);
-      setAvailableStalls([]);
+      setAvailableStalls(MOCK_STALLS);
     } finally {
       setStallLoading(false);
     }
@@ -177,6 +244,10 @@ const VendorManagement = () => {
       contactName: vendor.contactName || "",
       contactPhone: vendor.contactPhone || "",
       contactEmail: vendor.contactEmail || "",
+      vendorFee:
+        vendor.vendorFee !== undefined && vendor.vendorFee !== null
+          ? String(vendor.vendorFee)
+          : "",
       address: vendor.address || "",
       status: (vendor.status || "ACTIVE").toUpperCase(),
       eventId: vendor.eventStallAllocations?.[0]?.event?.id
@@ -217,6 +288,11 @@ const VendorManagement = () => {
       nextErrors.contactPhone = "Enter a valid phone number";
     }
 
+    const fee = Number(formValues.vendorFee);
+    if (Number.isNaN(fee) || fee < 0) {
+      nextErrors.vendorFee = "Vendor fee must be a non-negative number";
+    }
+
     if (formValues.eventId && formValues.stallId) {
       const selected = availableStalls.find(
         (stall) => String(stall.id) === String(formValues.stallId),
@@ -232,7 +308,18 @@ const VendorManagement = () => {
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target;
-    setFormValues((current) => ({ ...current, [name]: value }));
+    setFormValues((current) => {
+      if (name === "eventId") {
+        return {
+          ...current,
+          eventId: value,
+          // Prevent stale selection from previous event and force fresh stall choices.
+          stallId: "",
+        };
+      }
+
+      return { ...current, [name]: value };
+    });
     setFormErrors((current) => ({ ...current, [name]: undefined }));
   };
 
@@ -248,6 +335,7 @@ const VendorManagement = () => {
       const payload = {
         ...formValues,
         status: formValues.status.toUpperCase(),
+        vendorFee: Number(formValues.vendorFee || 0),
         eventId: formValues.eventId ? Number(formValues.eventId) : undefined,
         stallId: formValues.stallId ? Number(formValues.stallId) : undefined,
       };

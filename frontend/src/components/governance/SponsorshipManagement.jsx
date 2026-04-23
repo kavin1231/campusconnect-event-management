@@ -21,6 +21,54 @@ const emptyForm = {
   status: "ACTIVE",
 };
 
+const MOCK_EVENTS = [
+  { id: 1, title: "Tech Expo 2026" },
+  { id: 2, title: "Campus Carnival" },
+  { id: 3, title: "Arts Week Showcase" },
+];
+
+const MOCK_SPONSORSHIPS = [
+  {
+    id: 1,
+    sponsorName: "Alpha Systems",
+    companyName: "Alpha Systems Pvt Ltd",
+    contactPerson: "Kavindi Perera",
+    contactPhone: "+94 77 555 1122",
+    sponsorEmail: "kavindi@alpha.lk",
+    eventId: 1,
+    event: { title: "Tech Expo 2026" },
+    sponsorshipAmount: 250000,
+    sponsorshipType: "Gold Package",
+    paymentStatus: "PAID",
+    notes: "Main sponsor for tech booths",
+    status: "ACTIVE",
+    sponsorTier: "GOLD",
+  },
+  {
+    id: 2,
+    sponsorName: "Nova Prints",
+    companyName: "Nova Print House",
+    contactPerson: "Shenali Fernando",
+    contactPhone: "+94 71 444 8899",
+    sponsorEmail: "hello@novaprints.lk",
+    eventId: 2,
+    event: { title: "Campus Carnival" },
+    sponsorshipAmount: 90000,
+    sponsorshipType: "Silver Package",
+    paymentStatus: "PARTIAL",
+    notes: "Printing partner",
+    status: "ACTIVE",
+    sponsorTier: "SILVER",
+  },
+];
+
+const MOCK_SUMMARY = {
+  totalSponsors: MOCK_SPONSORSHIPS.length,
+  totalAmount: MOCK_SPONSORSHIPS.reduce((sum, item) => sum + Number(item.sponsorshipAmount || 0), 0),
+  paidSponsors: MOCK_SPONSORSHIPS.filter((item) => item.paymentStatus === "PAID").length,
+  activeSponsors: MOCK_SPONSORSHIPS.filter((item) => item.status === "ACTIVE").length,
+};
+
 const getTierByAmount = (amount) => {
   const numeric = Number(amount || 0);
   if (numeric >= 300000) return "PLATINUM";
@@ -38,9 +86,9 @@ const formatCurrency = (value) => {
 };
 
 const SponsorshipManagement = () => {
-  const [items, setItems] = useState([]);
-  const [summary, setSummary] = useState({ totalSponsors: 0, totalAmount: 0, paidSponsors: 0, activeSponsors: 0 });
-  const [events, setEvents] = useState([]);
+  const [items, setItems] = useState(MOCK_SPONSORSHIPS);
+  const [summary, setSummary] = useState(MOCK_SUMMARY);
+  const [events, setEvents] = useState(MOCK_EVENTS);
   const [searchTerm, setSearchTerm] = useState("");
   const [eventFilter, setEventFilter] = useState("ALL");
   const [tierFilter, setTierFilter] = useState("ALL");
@@ -74,10 +122,13 @@ const SponsorshipManagement = () => {
     try {
       const response = await governanceAPI.listEvents();
       if (response.success) {
-        setEvents(response.events || []);
+        setEvents(response.events?.length ? response.events : MOCK_EVENTS);
+      } else {
+        setEvents(MOCK_EVENTS);
       }
     } catch (error) {
       console.error("Load events error:", error);
+      setEvents(MOCK_EVENTS);
     }
   };
 
@@ -93,13 +144,27 @@ const SponsorshipManagement = () => {
       });
 
       if (response.success) {
-        setItems(response.sponsorships || []);
+        setItems(response.sponsorships?.length ? response.sponsorships : MOCK_SPONSORSHIPS);
         setSummary(response.summary || { totalSponsors: 0, totalAmount: 0, paidSponsors: 0, activeSponsors: 0 });
       } else {
+        setItems(MOCK_SPONSORSHIPS);
+        setSummary({
+          totalSponsors: MOCK_SPONSORSHIPS.length,
+          totalAmount: MOCK_SPONSORSHIPS.reduce((sum, item) => sum + Number(item.sponsorshipAmount || 0), 0),
+          paidSponsors: MOCK_SPONSORSHIPS.filter((item) => item.paymentStatus === "PAID").length,
+          activeSponsors: MOCK_SPONSORSHIPS.filter((item) => item.status === "ACTIVE").length,
+        });
         setToast({ type: "error", message: response.message || "Failed to load sponsorships" });
       }
     } catch (error) {
       console.error("Load sponsorships error:", error);
+      setItems(MOCK_SPONSORSHIPS);
+      setSummary({
+        totalSponsors: MOCK_SPONSORSHIPS.length,
+        totalAmount: MOCK_SPONSORSHIPS.reduce((sum, item) => sum + Number(item.sponsorshipAmount || 0), 0),
+        paidSponsors: MOCK_SPONSORSHIPS.filter((item) => item.paymentStatus === "PAID").length,
+        activeSponsors: MOCK_SPONSORSHIPS.filter((item) => item.status === "ACTIVE").length,
+      });
       setToast({ type: "error", message: "Failed to load sponsorships" });
     } finally {
       setLoading(false);

@@ -109,6 +109,18 @@ const VendorForm = ({
                   ]}
                 />
                 <Field
+                  label="Vendor Fee (LKR)"
+                  required
+                  name="vendorFee"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={values.vendorFee}
+                  onChange={onChange}
+                  error={errors.vendorFee}
+                  placeholder="50000"
+                />
+                <Field
                   label="Contact Person"
                   required
                   name="contactName"
@@ -153,15 +165,17 @@ const VendorForm = ({
                   value={values.stallId || ""}
                   onChange={onChange}
                   error={errors.stallId}
-                  disabled={!values.eventId || stallLoading}
+                  disabled={stallLoading}
                   options={[
                     {
                       value: "",
-                      label: stallLoading
-                        ? "Loading available stalls..."
-                        : values.eventId
-                          ? "No stall (unassigned)"
-                          : "Select event first",
+                      label: !values.eventId
+                        ? "Select event first"
+                        : stallLoading
+                          ? "Loading available stalls..."
+                          : stalls.length
+                            ? "No stall (unassigned)"
+                            : "No available stalls for selected event",
                     },
                     ...stalls.map((stall) => ({
                       value: String(stall.id),

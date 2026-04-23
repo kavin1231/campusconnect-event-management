@@ -9,6 +9,100 @@ const parseTimeToMinutes = (value) => {
   return hours * 60 + minutes;
 };
 
+const sanitizeEventDescription = (value) => {
+  const raw = String(value || "");
+  const cleaned = raw
+    .replace(/\r/g, "")
+    .split("\n")
+    .filter(
+      (line) =>
+        !/(Failed to load resource|ERR_CONNECTION_REFUSED|Internal Server Error|No routes matched location|\[vite\]|localhost:\d+\/api\/)/i.test(
+          line,
+        ),
+    )
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) {
+    return "Event details will be announced soon.";
+  }
+
+  return cleaned.slice(0, 500);
+};
+
+const normalizeOrganizerId = (value) => {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+};
+
+const FACULTY_ORGANIZERS = [
+  "Faculty of Computing",
+  "Faculty of Engineering",
+  "Faculty of Business",
+  "Faculty of Humanities & Sciences",
+  "Faculty of Graduate Studies",
+  "School of Architecture",
+  "SLIIT Academy",
+  "Faculty of Hospitality & Culinary",
+];
+
+const CLUB_ORGANIZERS = [
+  "SLIIT FOSS Community",
+  "SLIIT Robotics Club",
+  "SLIIT Mozi Club",
+  "Rotaract Club of SLIIT",
+  "SLIIT Leo Club",
+  "SLIIT IEEE Student Branch",
+  "SLIIT Gavel Club",
+  "SLIIT AIESEC",
+  "SLIIT Sports Council",
+  "SLIIT Arts Society",
+  "SLIIT Music Club",
+  "SLIIT Drama Society",
+  "SLIIT Photography Club",
+  "SLIIT Nature Club",
+  "SLIIT Media Unit",
+  "SLIIT Gaming Community",
+  "Software Engineering Community (SEC)",
+  "Interactive Media Association (IMA)",
+  "Cyber Security Community (CSC)",
+  "Data Science Community (DSC)",
+];
+
+const KNOWN_ORGANIZERS = [...FACULTY_ORGANIZERS, ...CLUB_ORGANIZERS];
+
+const findKnownOrganizer = (value) => {
+  const normalized = String(value || "").trim();
+  if (!normalized) return null;
+
+  const exact = KNOWN_ORGANIZERS.find((name) => name === normalized);
+  if (exact) return exact;
+
+  const lower = normalized.toLowerCase();
+  return KNOWN_ORGANIZERS.find((name) => name.toLowerCase() === lower) || null;
+};
+
+const resolveOrganizerFromSelection = (organizingBody) => {
+  const matched = findKnownOrganizer(organizingBody);
+  if (!matched) {
+    return { organizerType: null, organizerId: null, organizerName: null };
+  }
+
+  const organizerType = FACULTY_ORGANIZERS.includes(matched)
+    ? "FACULTY"
+    : "CLUB";
+
+  return {
+    organizerType,
+    organizerId: normalizeOrganizerId(matched),
+    organizerName: matched,
+  };
+};
+
 const assertSubmitter = (request, userId) => {
   if (!userId || request.submittedBy !== userId) {
     return {
@@ -23,6 +117,14 @@ const publishEvent = async (eventRequestId) => {
   return prisma.$transaction(async (tx) => {
     const request = await tx.eventRequest.findUnique({
       where: { id: parseInt(eventRequestId) },
+      include: {
+        submitter: {
+          select: {
+            clubOrFacultyType: true,
+            clubOrFacultyName: true,
+          },
+        },
+      },
     });
 
     if (!request) {
@@ -48,6 +150,41 @@ const publishEvent = async (eventRequestId) => {
       return { error: "NOT_APPROVED" };
     }
 
+    const safeDescription = sanitizeEventDescription(
+      request.purposeDescription || request.description,
+    );
+
+    let organizer = resolveOrganizerFromSelection(request.organizingBody);
+
+    // Fallback for legacy requests that were created without organizingBody.
+    if (!organizer.organizerType || !organizer.organizerId) {
+      const fallbackType = ["CLUB", "FACULTY"].includes(
+        String(request.submitter?.clubOrFacultyType || "").toUpperCase(),
+      )
+        ? String(request.submitter?.clubOrFacultyType || "").toUpperCase()
+        : null;
+
+      const fallbackId = normalizeOrganizerId(request.submitter?.clubOrFacultyName);
+
+      organizer = {
+        organizerType: fallbackType,
+        organizerId: fallbackId || null,
+        organizerName: request.submitter?.clubOrFacultyName || null,
+      };
+    }
+
+    const organizerType = organizer.organizerType;
+    const organizerId = organizer.organizerId;
+
+    // Validate that organizer metadata is available
+    if (!organizerType || !organizerId) {
+      return {
+        error: "MISSING_ORGANIZER",
+        message:
+          "Organizer mapping failed. Please select a valid faculty/club in Event Organizer Dashboard before publishing.",
+      };
+    }
+
     const existing = await tx.event.findFirst({
       where: {
         submittedBy: request.submittedBy,
@@ -57,10 +194,28 @@ const publishEvent = async (eventRequestId) => {
     });
 
     if (existing) {
+      const updateData = {};
+
       if (request.bannerUrl && existing.image !== request.bannerUrl) {
+        updateData.image = request.bannerUrl;
+      }
+
+      if (existing.description !== safeDescription) {
+        updateData.description = safeDescription;
+      }
+
+      if (organizerType && existing.organizerType !== organizerType) {
+        updateData.organizerType = organizerType;
+      }
+
+      if (organizerId && existing.organizerId !== organizerId) {
+        updateData.organizerId = organizerId;
+      }
+
+      if (Object.keys(updateData).length > 0) {
         await tx.event.update({
           where: { id: existing.id },
-          data: { image: request.bannerUrl },
+          data: updateData,
         });
       }
 
@@ -78,7 +233,7 @@ const publishEvent = async (eventRequestId) => {
     const createdEvent = await tx.event.create({
       data: {
         title: request.title,
-        description: request.purposeDescription || "",
+        description: safeDescription,
         date: request.eventDate,
         category: request.purposeTag || "General",
         location: request.venue || "TBD",
@@ -95,6 +250,9 @@ const publishEvent = async (eventRequestId) => {
         submittedDate: request.submittedAt,
         approvedBy: request.reviewedBy,
         approvedAt: request.reviewedAt,
+        organizer: organizer.organizerName || request.organizingBody || null,
+        organizerType,
+        organizerId: organizerId || null,
       },
     });
 
@@ -158,10 +316,26 @@ export const createEventRequest = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!title || !eventType || !eventDate || !startTime || !endTime || !venue) {
+    if (
+      !title ||
+      !eventType ||
+      !eventDate ||
+      !startTime ||
+      !endTime ||
+      !venue ||
+      !organizingBody
+    ) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
+    }
+
+    const matchedOrganizer = findKnownOrganizer(organizingBody);
+    if (!matchedOrganizer) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid organizing body: ${organizingBody}`,
+      });
     }
 
     const normalizedPurposeTag = purposeTag || "General";
@@ -198,7 +372,7 @@ export const createEventRequest = async (req, res) => {
         setupTime: normalizedSetupTime,
         teardownTime: normalizedTeardownTime,
         audience: normalizedAudience,
-        organizingBody,
+        organizingBody: matchedOrganizer,
         contactName,
         contactId: normalizedContactId,
         contactPhone: normalizedContactPhone,
@@ -511,6 +685,13 @@ export const publishEventRequest = async (req, res) => {
       });
     }
 
+    if (result?.error === "MISSING_ORGANIZER") {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
+    }
+
     res.json({
       success: true,
       message: result?.message || "Event published successfully",
@@ -518,7 +699,10 @@ export const publishEventRequest = async (req, res) => {
     });
   } catch (error) {
     console.error("Error publishing event request:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({
+      success: false,
+      message: error?.message || "Internal server error",
+    });
   }
 };
 
@@ -546,7 +730,7 @@ export const updateEventSetup = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 
@@ -602,7 +786,7 @@ export const updateEventBanner = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 
@@ -653,7 +837,7 @@ export const replaceEventTickets = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 
@@ -707,10 +891,10 @@ export const replaceEventMerchandise = async (req, res) => {
         .json({ success: false, message: auth.error.message });
     }
 
-    if (request.status !== "APPROVED") {
+    if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved requests",
+        message: "Event setup is only available for approved or published requests",
       });
     }
 

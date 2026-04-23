@@ -575,6 +575,7 @@ class PresidentController {
         name,
         companyName,
         serviceCategory,
+        vendorFee,
         contactName,
         contactPhone,
         contactEmail,
@@ -593,12 +594,21 @@ class PresidentController {
         });
       }
 
+      const parsedVendorFee = Number(vendorFee ?? 0);
+      if (!Number.isFinite(parsedVendorFee) || parsedVendorFee < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "vendorFee must be a non-negative number",
+        });
+      }
+
       const vendor = await prisma.$transaction(async (tx) => {
         const created = await tx.vendorPartner.create({
           data: {
             name,
             companyName,
             serviceCategory,
+            vendorFee: parsedVendorFee,
             contactName,
             contactPhone,
             contactEmail: contactEmail || null,
@@ -654,6 +664,7 @@ class PresidentController {
         name,
         companyName,
         serviceCategory,
+        vendorFee,
         contactName,
         contactPhone,
         contactEmail,
@@ -664,6 +675,16 @@ class PresidentController {
         stallId,
         stallNumber,
       } = req.body;
+
+      if (vendorFee !== undefined) {
+        const parsedVendorFee = Number(vendorFee);
+        if (!Number.isFinite(parsedVendorFee) || parsedVendorFee < 0) {
+          return res.status(400).json({
+            success: false,
+            message: "vendorFee must be a non-negative number",
+          });
+        }
+      }
 
       const vendor = await prisma.$transaction(async (tx) => {
         const updated = await tx.vendorPartner.update({
@@ -677,6 +698,7 @@ class PresidentController {
             ...(name !== undefined ? { name } : {}),
             ...(companyName !== undefined ? { companyName } : {}),
             ...(serviceCategory !== undefined ? { serviceCategory } : {}),
+            ...(vendorFee !== undefined ? { vendorFee: Number(vendorFee) } : {}),
             ...(contactName !== undefined ? { contactName } : {}),
             ...(contactPhone !== undefined ? { contactPhone } : {}),
             ...(contactEmail !== undefined ? { contactEmail } : {}),

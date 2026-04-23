@@ -8,14 +8,44 @@ import {
   getStudentReview,
 } from "../controllers/reviewController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import OperationsController from "../controllers/operationsController.js";
 
 const router = express.Router();
+
+const parseOrganizerFilter = (query) => {
+  const organizerTypeRaw = String(query.organizerType || "").trim();
+  const organizerIdRaw = String(query.organizerId || "").trim();
+
+  const filter = {};
+  if (organizerTypeRaw) {
+    const organizerType = organizerTypeRaw.toUpperCase();
+    if (!["CLUB", "FACULTY"].includes(organizerType)) {
+      return { error: "organizerType must be CLUB or FACULTY" };
+    }
+    filter.organizerType = organizerType;
+  }
+
+  if (organizerIdRaw) {
+    filter.organizerId = organizerIdRaw;
+  }
+
+  return { filter };
+};
 
 // Get published events (public)
 router.get("/published", async (req, res) => {
   try {
+    const organizerFilterResult = parseOrganizerFilter(req.query);
+    if (organizerFilterResult.error) {
+      return res.status(400).json({ success: false, message: organizerFilterResult.error });
+    }
+
     const events = await prisma.event.findMany({
-      where: { status: "PUBLISHED" },
+      where: {
+        status: "PUBLISHED",
+        date: { gte: new Date() },
+        ...organizerFilterResult.filter,
+      },
       orderBy: { date: "asc" },
       select: {
         id: true,
@@ -25,12 +55,62 @@ router.get("/published", async (req, res) => {
         category: true,
         location: true,
         image: true,
-        registeredCount: true,
+        _count: {
+          select: { registrations: true }
+        },
         status: true,
+        organizer: true,
+        organizerType: true,
+        organizerId: true,
       },
     });
 
-    res.json({ success: true, events });
+    const mappedEvents = events.map(ev => ({
+      ...ev,
+      registeredCount: ev._count.registrations,
+      _count: undefined
+    }));
+    res.json({ success: true, events: mappedEvents });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Get events for calendar view (organized by full date)
+router.get("/calendar/view", async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: { status: "APPROVED" },
+      orderBy: { date: "asc" },
+    });
+
+    // Transform and organize events by full date (YYYY-MM-DD)
+    const eventsByDay = {};
+    
+    events.forEach((event) => {
+      // Format date as YYYY-MM-DD to ensure events only show on their specific date/month
+      const eventDate = new Date(event.date);
+      const fullDateKey = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}-${String(eventDate.getDate()).padStart(2, "0")}`;
+      
+      if (!eventsByDay[fullDateKey]) {
+        eventsByDay[fullDateKey] = [];
+      }
+
+      eventsByDay[fullDateKey].push({
+        id: event.id,
+        title: event.title,
+        type: event.category, // Map category to type for frontend
+        venue: event.location, // Map location to venue for frontend
+        org: "Event Organizer", // Default org; can be enhanced later with org names
+        conflict: false, // Default; can be enhanced with conflict detection logic
+        date: event.date,
+        image: event.image,
+        description: event.description,
+        registeredCount: event.registeredCount,
+      });
+    });
+
+    res.json({ success: true, eventsByDay });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -40,7 +120,15 @@ router.get("/published", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const { status } = req.query;
-    const filter = status ? { status: status.toUpperCase() } : {};
+    const organizerFilterResult = parseOrganizerFilter(req.query);
+    if (organizerFilterResult.error) {
+      return res.status(400).json({ success: false, message: organizerFilterResult.error });
+    }
+
+    const filter = {
+      ...(status ? { status: String(status).toUpperCase() } : {}),
+      ...organizerFilterResult.filter,
+    };
 
     const events = await prisma.event.findMany({
       where: filter,
@@ -160,6 +248,9 @@ router.get("/:eventId", async (req, res) => {
             studentId: true,
           },
         },
+        _count: {
+          select: { registrations: true }
+        },
       },
     });
 
@@ -194,6 +285,8 @@ router.get("/:eventId", async (req, res) => {
       success: true,
       data: {
         ...event,
+        registeredCount: event._count.registrations,
+        _count: undefined,
         averageRating: parseFloat(avgRating),
         totalReviews: reviews.length,
       },
@@ -202,6 +295,11 @@ router.get("/:eventId", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// ==================== STALL ALLOCATION ROUTES ====================
+
+// Get stalls for an event (public)
+router.get("/:eventId/stalls", OperationsController.listEventStalls);
 
 // ==================== REVIEWS ROUTES ====================
 

@@ -24,6 +24,7 @@
 }
 
 .sd-menu-btn,
+.sd-collapse-btn,
 .sd-notify-btn,
 .sd-user-trigger,
 .sd-side-logout-btn {
@@ -36,6 +37,7 @@
 }
 
 .sd-menu-btn,
+.sd-collapse-btn,
 .sd-notify-btn {
   width: 38px;
   height: 38px;
@@ -45,6 +47,7 @@
 }
 
 .sd-menu-btn:hover,
+.sd-collapse-btn:hover,
 .sd-notify-btn:hover,
 .sd-side-logout-btn:hover {
   border-color: rgba(99, 102, 241, 0.5);
@@ -162,6 +165,33 @@
   height: calc(100vh - 72px);
   flex-shrink: 0;
   z-index: 1200;
+}
+
+.sd-sidebar.sd-collapsed {
+  width: 88px;
+}
+
+.sd-sidebar.sd-collapsed .sd-logo-wrap {
+  justify-content: center;
+}
+
+.sd-sidebar.sd-collapsed .sd-logo-wrap > div,
+.sd-sidebar.sd-collapsed .sd-menu-label,
+.sd-sidebar.sd-collapsed .sd-side-link-label,
+.sd-sidebar.sd-collapsed .sd-menu-item-right,
+.sd-sidebar.sd-collapsed .sd-submenu,
+.sd-sidebar.sd-collapsed .sd-side-user {
+  display: none;
+}
+
+.sd-sidebar.sd-collapsed .sd-side-link,
+.sd-sidebar.sd-collapsed .sd-menu-item,
+.sd-sidebar.sd-collapsed .sd-menu-item-trigger {
+  justify-content: center;
+}
+
+.sd-sidebar.sd-collapsed .sd-side-footer {
+  justify-content: center;
 }
 
 .sd-sidebar + * {
@@ -433,6 +463,10 @@
     display: none;
   }
 
+  .sd-collapse-btn {
+    display: none;
+  }
+
   .sd-sidebar {
     position: fixed;
     top: 72px;
@@ -441,6 +475,10 @@
     transform: translateX(-100%);
     transition: transform 0.28s ease;
     z-index: 1280;
+  }
+
+  .sd-sidebar.sd-collapsed {
+    width: 280px;
   }
 
   .sd-sidebar.sd-mobile-open {

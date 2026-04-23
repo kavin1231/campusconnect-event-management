@@ -45,7 +45,9 @@ class DashboardController {
       const events = await prisma.event.findMany({
         where: {
           status: "PUBLISHED",
-          ...(category ? { category } : {}),
+          ...(category 
+            ? { category: { contains: category, mode: "insensitive" } } 
+            : {}),
           ...(search
             ? { title: { contains: search, mode: "insensitive" } }
             : {}),

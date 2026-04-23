@@ -25,6 +25,9 @@ const CATEGORIES = [
   "Music",
   "Cultural",
   "Academic",
+  "Workshops",
+  "Gaming",
+  "Entertainment",
   "Other",
 ];
 
@@ -360,6 +363,9 @@ const StudentDashboard = () => {
       Music: "#ec4899",
       Cultural: "#8b5cf6",
       Academic: "#3b82f6",
+      Workshops: "#f97316",
+      Gaming: "#06b6d4",
+      Entertainment: "#f43f5e",
       Other: "#64748b",
     };
     return map[cat] || "#64748b";

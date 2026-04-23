@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Landing from "./components/home/Landing";
@@ -15,6 +16,9 @@ import MerchandiseOrdersPage from "./components/dashboard/MerchandiseOrdersPage"
 import CreateEventsApp from "./components/CreateEvents";
 import EventRequestFormPage from "./pages/EventRequestFormPage";
 import MyEventRequestsPage from "./pages/MyEventRequestsPage";
+import FacultyPage from "./pages/FacultyPage";
+import SettingsPage from "./pages/SettingsPage";
+import MerchandisePurchasePage from "./pages/MerchandisePurchasePage";
 import { CalendarPage } from "./pages/CalendarPage";
 import StudyMaterials from "./components/study/StudyMaterials";
 import StudySupportAdmin from "./components/admin/StudySupportAdmin";
@@ -32,6 +36,8 @@ import {
   EventApproval,
   PresidentApplicationManagement,
   PresidentRegistrationForm,
+  PresidentFinanceDashboard,
+  FinanceEntryManagement,
   StudentNotifications,
   VendorManagement as GovernanceVendorManagement,
   StallAllocation,
@@ -59,7 +65,38 @@ import {
   AnalyticsReports,
   AnalyticsActivity,
 } from "./components/analytics";
+import { ClubsModule } from "./pages/ClubsModule";
 import "./App.css";
+
+function LogisticsEntry() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userDataStr = localStorage.getItem("user");
+
+    if (!token || !userDataStr) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userDataStr);
+      const role = user?.role?.toUpperCase();
+
+      if (role === "SYSTEM_ADMIN" || role === "CLUB_PRESIDENT") {
+        navigate("/logistics/admin", { replace: true });
+        return;
+      }
+
+      navigate("/logistics/browse", { replace: true });
+    } catch {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
+  return null;
+}
 
 function App() {
   return (
@@ -67,6 +104,16 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/event/:eventId" element={<EventDetail />} />
+        <Route path="/faculty" element={<FacultyPage />} />
+        <Route
+          path="/merchandise/purchase"
+          element={
+            <ProtectedRoute
+              element={MerchandisePurchasePage}
+              allowedRoles={["STUDENT", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
@@ -76,6 +123,20 @@ function App() {
           element={
             <ProtectedRoute
               element={StudentProfile}
+              allowedRoles={[
+                "STUDENT",
+                "SYSTEM_ADMIN",
+                "EVENT_ORGANIZER",
+                "CLUB_PRESIDENT",
+              ]}
+            />
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute
+              element={SettingsPage}
               allowedRoles={[
                 "STUDENT",
                 "SYSTEM_ADMIN",
@@ -323,15 +384,39 @@ function App() {
           }
         />
         <Route
+          path="/governance/finance"
+          element={
+            <ProtectedRoute
+              element={PresidentFinanceDashboard}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/governance/finance/entries"
+          element={
+            <ProtectedRoute
+              element={FinanceEntryManagement}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
           path="/governance/club-onboarding"
           element={
-            <ProtectedRoute element={ClubOnboarding} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={ClubOnboarding}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
           }
         />
         <Route
           path="/governance/event-approval"
           element={
-            <ProtectedRoute element={EventApproval} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={EventApproval}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
+            />
           }
         />
         <Route
@@ -427,6 +512,10 @@ function App() {
         />
 
         <Route
+          path="/logistics"
+          element={<LogisticsEntry />}
+        />
+        <Route
           path="/logistics/admin"
           element={
             <ProtectedRoute
@@ -520,6 +609,10 @@ function App() {
               allowedRoles={["SYSTEM_ADMIN"]}
             />
           }
+        />
+        <Route
+          path="/clubs"
+          element={<ClubsModule />}
         />
       </Routes>
     </div>

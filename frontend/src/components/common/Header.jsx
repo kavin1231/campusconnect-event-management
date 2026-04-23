@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Header.css";
 import ThemeToggle from "./ThemeToggle";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
@@ -8,6 +8,7 @@ export default function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [user, setUser] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const profileRef = useRef(null);
 
@@ -45,6 +46,14 @@ export default function Header() {
     navigate("/login");
   };
 
+  const isActiveRoute = (to) => {
+    if (to === "/") {
+      return location.pathname === "/";
+    }
+
+    return location.pathname === to || location.pathname.startsWith(`${to}/`);
+  };
+
   return (
     <nav className="navbar">
       <div className="nav-left">
@@ -57,16 +66,28 @@ export default function Header() {
           <span>NEXORA</span>
         </div>
         <div className="nav-links">
-          <Link to="/" className="nav-link">
+          <Link to="/" className={`nav-link ${isActiveRoute("/") ? "active" : ""}`}>
             Explore
           </Link>
-          <Link to="/dashboard" className="nav-link active">
+          <Link to="/dashboard" className={`nav-link ${isActiveRoute("/dashboard") ? "active" : ""}`}>
             Dashboard
           </Link>
-
-          <a href="/#clubs" className="nav-link">
+          <Link to="/clubs" className={`nav-link ${isActiveRoute("/clubs") ? "active" : ""}`}>
             Clubs
-          </a>
+          </Link>
+          <Link to="/faculty" className={`nav-link ${isActiveRoute("/faculty") ? "active" : ""}`}>
+            Faculty
+          </Link>
+          {user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase()) && (
+            <Link to="/logistics" className={`nav-link ${isActiveRoute("/logistics") ? "active" : ""}`}>
+              Logistics
+            </Link>
+          )}
+          {user && user.role && !["STUDENT", "CLUB_PRESIDENT"].includes(user.role.toUpperCase()) && (
+            <Link to="/create-events" className={`nav-link ${isActiveRoute("/create-events") ? "active" : ""}`}>
+              Create Events
+            </Link>
+          )}
         </div>
       </div>
 

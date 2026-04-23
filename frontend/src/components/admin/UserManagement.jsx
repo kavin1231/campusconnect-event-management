@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../common/Sidebar";
 import { authAPI } from "../../services/api";
+import Modal from "../ui/Modal";
+import { Eye, Trash2, Search, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -8,6 +10,13 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("students"); // "students" or "management"
+  
+  // New states for actions
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -27,6 +36,40 @@ const UserManagement = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleView = (user) => {
+    setSelectedUser(user);
+    setIsViewModalOpen(true);
+  };
+
+  const handleDeleteClick = (user) => {
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      setActionLoading(true);
+      const type = selectedUser.studentId ? "student" : "staff";
+      const data = await authAPI.deleteUser(selectedUser.id, type);
+      
+      if (data.success) {
+        setSuccessMessage("User deleted successfully");
+        setIsDeleteModalOpen(false);
+        fetchUsers();
+        setTimeout(() => setSuccessMessage(""), 3000);
+      } else {
+        alert(data.message || "Failed to delete user");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while deleting user");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -83,7 +126,7 @@ const UserManagement = () => {
           </div>
           
           <div className="relative w-72">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400">search</span>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
               placeholder={`Search ${activeTab}...`} 
@@ -120,6 +163,7 @@ const UserManagement = () => {
                       </>
                     )}
                     <th className="px-6 py-4">Joined At</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-border">
@@ -152,6 +196,24 @@ const UserManagement = () => {
                         <td className="px-6 py-4 text-xs text-slate-500">
                           {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
                         </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button 
+                              onClick={() => handleView(user)}
+                              className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
+                              title="View Details"
+                            >
+                              <Eye size={18} />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteClick(user)}
+                              className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+                              title="Delete User"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -167,6 +229,119 @@ const UserManagement = () => {
           )}
         </main>
       </div>
+
+      {/* View User Modal */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        title="User Details"
+      >
+        {selectedUser && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-neutral-dark/50 rounded-xl border border-neutral-border">
+              <div className="size-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-black overflow-hidden">
+                {selectedUser.profileImage ? (
+                  <img src={selectedUser.profileImage} alt={selectedUser.name} className="size-full object-cover" />
+                ) : (
+                  (selectedUser.name || "U").charAt(0).toUpperCase()
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-white">{selectedUser.name || "Unknown"}</h3>
+                <div className="mt-1">{getRoleBadge(selectedUser.role || (selectedUser.studentId ? "STUDENT" : ""))}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-neutral-dark/30 rounded-xl border border-neutral-border">
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Email Address</p>
+                <p className="text-sm text-slate-200">{selectedUser.email}</p>
+              </div>
+              <div className="p-4 bg-neutral-dark/30 rounded-xl border border-neutral-border">
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Joined Date</p>
+                <p className="text-sm text-slate-200">{selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleString() : "N/A"}</p>
+              </div>
+              {selectedUser.studentId && (
+                <>
+                  <div className="p-4 bg-neutral-dark/30 rounded-xl border border-neutral-border">
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Student ID</p>
+                    <p className="text-sm text-slate-200 font-mono">{selectedUser.studentId}</p>
+                  </div>
+                  <div className="p-4 bg-neutral-dark/30 rounded-xl border border-neutral-border">
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Department</p>
+                    <p className="text-sm text-slate-200">{selectedUser.department || "N/A"}</p>
+                  </div>
+                </>
+              )}
+               {!selectedUser.studentId && selectedUser.clubOrFacultyName && (
+                <div className="p-4 bg-neutral-dark/30 rounded-xl border border-neutral-border col-span-2">
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Organization</p>
+                  <p className="text-sm text-slate-200">{selectedUser.clubOrFacultyName} ({selectedUser.clubOrFacultyType || "Staff"})</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4">
+              <button 
+                onClick={() => setIsViewModalOpen(false)}
+                className="px-6 py-2 bg-neutral-border text-white rounded-xl text-sm font-bold hover:bg-neutral-border/80 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Confirm Deletion"
+      >
+        <div className="space-y-6">
+          <div className="flex flex-col items-center text-center p-6 bg-red-500/5 rounded-2xl border border-red-500/20">
+            <AlertTriangle className="text-red-500 mb-4 animate-pulse" size={48} />
+            <h3 className="text-xl font-black text-white mb-2">Are you sure?</h3>
+            <p className="text-slate-400">
+              You are about to permanently delete <span className="text-white font-bold">{selectedUser?.name}</span>. 
+              This action cannot be undone and may affect related data.
+            </p>
+          </div>
+
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="flex-1 py-3 bg-neutral-dark border border-neutral-border text-slate-300 rounded-xl font-bold hover:bg-neutral-dark/50 transition"
+              disabled={actionLoading}
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={confirmDelete}
+              className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+              disabled={actionLoading}
+            >
+              {actionLoading ? (
+                <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <Trash2 size={18} />
+                  Confirm Delete
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Success Notification */}
+      {successMessage && (
+        <div className="fixed bottom-8 right-8 bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-emerald-500/20 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 z-50">
+          <CheckCircle2 size={20} />
+          <p className="font-bold">{successMessage}</p>
+        </div>
+      )}
     </div>
   );
 };

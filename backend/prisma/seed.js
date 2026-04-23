@@ -173,6 +173,11 @@ async function main() {
       where: { id: 101 },
       update: {
         image: "https://picsum.photos/seed/welcome2026/800/600",
+        organizer: "Campus Events",
+        organizerType: "FACULTY",
+        organizerId: "faculty-of-computing",
+        category: "Entertainment",
+        location: "Main Auditorium",
       },
       create: {
         id: 101,
@@ -181,6 +186,9 @@ async function main() {
         date: new Date(Date.now() + 86400000 * 7), // 7 days from now
         category: "Entertainment",
         location: "Main Auditorium",
+        organizer: "Campus Events",
+        organizerType: "FACULTY",
+        organizerId: "faculty-of-computing",
         image: "https://picsum.photos/seed/welcome2026/800/600",
         status: "PUBLISHED",
       },

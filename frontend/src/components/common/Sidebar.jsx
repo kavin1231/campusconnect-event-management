@@ -15,6 +15,9 @@ import {
   Link2,
   LogOut,
   Menu,
+  PieChart,
+  PanelLeftClose,
+  PanelLeftOpen,
   Package,
   Plus,
   Search,
@@ -43,6 +46,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   const role = user?.role;
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const profileRef = useRef(null);
@@ -121,6 +125,36 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           path: "/governance/event-approval",
           icon: "📅",
           badge: "12",
+        },
+        {
+          id: "vendor-management",
+          label: "Vendor Management",
+          path: "/governance/vendors",
+          icon: "🏪",
+        },
+        {
+          id: "sponsorship-management",
+          label: "Sponsorship Management",
+          path: "/governance/sponsorships",
+          icon: "🤝",
+        },
+        {
+          id: "stall-allocation",
+          label: "Stall Allocation",
+          path: "/governance/stalls",
+          icon: "📍",
+        },
+        {
+          id: "president-finance-dashboard",
+          label: "Finance Dashboard",
+          path: "/governance/finance",
+          icon: "💹",
+        },
+        {
+          id: "finance-entry-management",
+          label: "Finance Entries",
+          path: "/governance/finance/entries",
+          icon: "🧾",
         },
       ],
     },
@@ -324,12 +358,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       icon: "⚖️",
       subItems: [
         {
-          id: "hub-dashboard",
-          label: "Hub Dashboard",
-          path: "/governance",
-          icon: "📊",
-        },
-        {
           id: "vendor-management",
           label: "Vendor Management",
           path: "/governance/vendors",
@@ -347,6 +375,18 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           path: "/governance/stalls",
           icon: "📍",
         },
+        {
+          id: "president-finance-dashboard",
+          label: "Finance Dashboard",
+          path: "/governance/finance",
+          icon: "💹",
+        },
+        {
+          id: "finance-entry-management",
+          label: "Finance Entries",
+          path: "/governance/finance/entries",
+          icon: "🧾",
+        },
       ],
     },
   ];
@@ -356,7 +396,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
     { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
     {
       id: "explore-sports",
-      label: "Extracurricular activities",
+      label: "Social links",
       path: "/dashboard",
       icon: "🏆",
       query: "?filter=extracurricular",
@@ -367,6 +407,13 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       path: "/dashboard",
       icon: "📖",
       query: "?filter=study",
+    },
+    {
+      id: "merchandise",
+      label: "Merchandise",
+      path: "/dashboard",
+      icon: "🛍️",
+      query: "?filter=orders",
     },
     { id: "profile", label: "My Profile", path: "/profile", icon: "👤" },
   ];
@@ -440,6 +487,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "my-events": <CalendarDays className={iconClass} />,
       "create-events": <Plus className={iconClass} />,
       "merch-orders": <ShoppingBag className={iconClass} />,
+      merchandise: <ShoppingBag className={iconClass} />,
       "my-requests": <FileText className={iconClass} />,
       "venues-mgmt": <MapPin className={iconClass} />,
       "staffing-mgmt": <Users className={iconClass} />,
@@ -464,6 +512,8 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       "vendor-management": <ShoppingBag className={iconClass} />,
       "sponsorship-management": <Award className={iconClass} />,
       "stall-allocation": <MapPin className={iconClass} />,
+      "president-finance-dashboard": <PieChart className={iconClass} />,
+      "finance-entry-management": <FileText className={iconClass} />,
       "president-management": <UserRound className={iconClass} />,
       "logistics-hub": <Boxes className={iconClass} />,
       "asset-management": <Package className={iconClass} />,
@@ -506,6 +556,14 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       {isAdmin && (
         <header className="sd-topbar">
           <div className="sd-topbar-left">
+            <button
+              onClick={() => setCollapsed((prev) => !prev)}
+              className="sd-collapse-btn"
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              type="button"
+            >
+              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            </button>
             <button
               onClick={() => setMobileOpen((prev) => !prev)}
               className="sd-menu-btn"
@@ -596,7 +654,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
       )}
 
       <aside
-        className={`sd-sidebar ${mobileOpen ? "sd-mobile-open" : ""} ${!isAdmin ? "sd-student-theme" : ""}`}
+        className={`sd-sidebar ${mobileOpen ? "sd-mobile-open" : ""} ${collapsed ? "sd-collapsed" : ""} ${!isAdmin ? "sd-student-theme" : ""}`}
       >
         {isAdmin && (
           <div className="sd-side-header">
@@ -627,6 +685,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                           }}
                           className="sd-menu-item-left sd-menu-item-trigger"
                           type="button"
+                          title={section.label}
                         >
                           <span className="sd-menu-icon">
                             {getNavIcon(section.id, true)}
@@ -676,11 +735,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                     <Link
                       to={section.path}
                       className={`sd-side-link ${isActive(section.path) ? "sd-side-active" : ""}`}
+                      title={section.label}
                     >
                       <span className="sd-side-link-icon">
                         {getNavIcon(section.id, true)}
                       </span>
-                      <span>{section.label}</span>
+                      <span className="sd-side-link-label">{section.label}</span>
                     </Link>
                   )}
                 </div>
@@ -693,11 +753,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                   key={item.id}
                   to={item.query ? `${item.path}${item.query}` : item.path}
                   className={`sd-side-link ${isActive(item.path, item.query) ? "sd-side-active" : ""}`}
+                  title={item.label}
                 >
                   <span className="sd-side-link-icon">
                     {getNavIcon(item.id)}
                   </span>
-                  <span>{item.label}</span>
+                  <span className="sd-side-link-label">{item.label}</span>
                 </Link>
               ))}
             </>

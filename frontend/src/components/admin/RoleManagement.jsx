@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
 import { authAPI } from "../../services/api";
-import { ShieldCheck, UserRound, Users, ShieldAlert, Key, Search, Plus, X, Building2, School } from "lucide-react";
+import { ShieldCheck, UserRound, Users, ShieldAlert, Key, Search, Plus, X, Building2, School, EyeOff, Eye } from "lucide-react";
 import { CLUBS, FACULTIES } from "../../constants/staticData";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -45,6 +45,7 @@ const RoleManagement = () => {
     email: "",
     password: ""
   });
+  const [showPasswordToggle, setShowPasswordToggle] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -416,15 +417,25 @@ const RoleManagement = () => {
                           <div className="space-y-4">
                             <label className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Initial Credentials</label>
                             <div>
+                            <div className="relative">
                               <input 
-                                type="password"
+                                type={showPasswordToggle ? "text" : "password"}
                                 placeholder="Setup Initial Password"
-                                className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-primary transition"
+                                className="w-full bg-neutral-dark border border-neutral-border rounded-2xl py-3 pl-4 pr-12 text-white focus:outline-none focus:border-primary transition"
                                 value={staffData.password}
                                 onChange={(e) => setStaffData({...staffData, password: e.target.value})}
                                 required
                               />
-                              <p className="text-[10px] text-slate-500 mt-2 italic px-2"> Users should be advised to change their password upon first login.</p>
+                              <button
+                                type="button"
+                                onClick={() => setShowPasswordToggle(!showPasswordToggle)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"
+                                title={showPasswordToggle ? "Hide password" : "Show password"}
+                              >
+                                {showPasswordToggle ? <EyeOff size={18} /> : <Eye size={18} />}
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-slate-500 mt-2 italic px-2"> Users should be advised to change their password upon first login.</p>
                             </div>
                           </div>
                         </>
@@ -503,7 +514,7 @@ const RoleManagement = () => {
                             <td className="px-6 py-5 text-right">
                               <button 
                                 onClick={() => handleRevoke(user.id, user.name)}
-                                className="text-slate-500 hover:text-red-400 p-2 transition opacity-0 group-hover:opacity-100"
+                                className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                                 title="Revoke Role"
                               >
                                 <X size={16} />

@@ -1,10 +1,11 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import StudentModel from '../models/studentModel.js';
-import UserModel from '../models/userModel.js';
-import prisma from '../prisma/client.js';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import StudentModel from "../models/studentModel.js";
+import UserModel from "../models/userModel.js";
+import prisma from "../prisma/client.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 class AuthController {
   // Register new student
@@ -16,7 +17,7 @@ class AuthController {
       if (!name || !email || !password || !studentId || !department || !year) {
         return res.status(400).json({
           success: false,
-          message: 'All fields are required'
+          message: "All fields are required",
         });
       }
 
@@ -25,7 +26,7 @@ class AuthController {
       if (!emailRegex.test(email)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid email format'
+          message: "Invalid email format",
         });
       }
 
@@ -36,7 +37,7 @@ class AuthController {
       if (userEmailExists || studentEmailExists) {
         return res.status(409).json({
           success: false,
-          message: 'Email already registered'
+          message: "Email already registered",
         });
       }
 
@@ -45,7 +46,7 @@ class AuthController {
       if (studentIdExists) {
         return res.status(409).json({
           success: false,
-          message: 'Student ID already registered'
+          message: "Student ID already registered",
         });
       }
 
@@ -60,7 +61,7 @@ class AuthController {
         password: hashedPassword,
         studentId,
         department,
-        year: parseInt(year)
+        year: parseInt(year),
       });
 
       // Generate JWT token including role
@@ -68,31 +69,30 @@ class AuthController {
         {
           id: student.id,
           email: student.email,
-          role: 'STUDENT'
+          role: "STUDENT",
         },
         JWT_SECRET,
-        { expiresIn: '7d' }
+        { expiresIn: "7d" },
       );
 
       res.status(201).json({
         success: true,
-        message: 'Student registered successfully',
+        message: "Student registered successfully",
         token,
         user: {
           id: student.id,
           name: student.name,
           email: student.email,
           studentId: student.studentId,
-          role: 'STUDENT'
-        }
+          role: "STUDENT",
+        },
       });
-
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error("Registration error:", error);
       res.status(500).json({
         success: false,
-        message: 'Server error during registration',
-        error: error.message
+        message: "Server error during registration",
+        error: error.message,
       });
     }
   }
@@ -105,7 +105,7 @@ class AuthController {
       if (!email || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Email and password are required'
+          message: "Email and password are required",
         });
       }
 
@@ -122,14 +122,14 @@ class AuthController {
         const student = await StudentModel.findByEmail(email);
         if (student) {
           userData = student;
-          role = 'STUDENT';
+          role = "STUDENT";
         }
       }
 
       if (!userData) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid email or password'
+          message: "Invalid email or password",
         });
       }
 
@@ -138,14 +138,14 @@ class AuthController {
       if (!isValidPassword) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid email or password'
+          message: "Invalid email or password",
         });
       }
 
       // For CLUB_PRESIDENT, we must ensure the token payload uses their Student.id
       // so student-facing dashboards work correctly.
       let operationalId = userData.id;
-      if (role === 'CLUB_PRESIDENT') {
+      if (role === "CLUB_PRESIDENT") {
         const student = await StudentModel.findByEmail(email);
         if (student) {
           operationalId = student.id;
@@ -157,28 +157,28 @@ class AuthController {
         {
           id: operationalId,
           email: userData.email,
-          role: role
+          role: role,
         },
         JWT_SECRET,
-        { expiresIn: '7d' }
+        { expiresIn: "7d" },
       );
 
       // Fetch additional student metadata for hybrid accounts
       let studentMetadata = {};
-      if (role === 'CLUB_PRESIDENT' || role === 'STUDENT') {
+      if (role === "CLUB_PRESIDENT" || role === "STUDENT") {
         const student = await StudentModel.findByEmail(email);
         if (student) {
           studentMetadata = {
             studentId: student.studentId,
             department: student.department,
-            year: student.year
+            year: student.year,
           };
         }
       }
 
       res.status(200).json({
         success: true,
-        message: 'Login successful',
+        message: "Login successful",
         token,
         user: {
           id: operationalId,
@@ -186,17 +186,16 @@ class AuthController {
           email: userData.email,
           role: role,
           entityName: userData.clubOrFacultyName || undefined,
-          ...studentMetadata
-        }
+          ...studentMetadata,
+        },
       });
-
     } catch (error) {
-      console.error('Login error full:', error);
+      console.error("Login error full:", error);
       res.status(500).json({
         success: false,
-        message: 'Server error during login',
+        message: "Server error during login",
         error: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       });
     }
   }
@@ -210,26 +209,40 @@ class AuthController {
       // Try to find both Student and User records
       const [studentEntry, userEntry] = await Promise.all([
         StudentModel.findByEmail(email),
-        UserModel.findByEmail(email)
+        UserModel.findByEmail(email),
       ]);
 
       if (!studentEntry && !userEntry) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
 
       // Merge data for hybrid accounts (e.g. Club President)
-      const isPresident = userEntry && userEntry.role === 'CLUB_PRESIDENT';
-      const role = userEntry ? userEntry.role : 'STUDENT';
+      const isPresident = userEntry && userEntry.role === "CLUB_PRESIDENT";
+      const role = userEntry ? userEntry.role : "STUDENT";
       const entityName = userEntry ? userEntry.clubOrFacultyName : undefined;
 
       const profileData = {
-        id: studentEntry ? studentEntry.id : (userEntry ? userEntry.id : null),
-        name: userEntry ? userEntry.name : (studentEntry ? studentEntry.name : ''),
+        id: studentEntry ? studentEntry.id : userEntry ? userEntry.id : null,
+        name: userEntry
+          ? userEntry.name
+          : studentEntry
+            ? studentEntry.name
+            : "",
         email: email,
         role: role,
         entityName: entityName,
-        profileImage: userEntry ? userEntry.profileImage : (studentEntry ? studentEntry.profileImage : null),
-        createdAt: userEntry ? userEntry.createdAt : (studentEntry ? studentEntry.createdAt : null),
+        profileImage: userEntry
+          ? userEntry.profileImage
+          : studentEntry
+            ? studentEntry.profileImage
+            : null,
+        createdAt: userEntry
+          ? userEntry.createdAt
+          : studentEntry
+            ? studentEntry.createdAt
+            : null,
         // Student specific fields
         studentId: studentEntry ? studentEntry.studentId : undefined,
         department: studentEntry ? studentEntry.department : undefined,
@@ -238,11 +251,17 @@ class AuthController {
 
       return res.status(200).json({
         success: true,
-        profile: profileData
+        profile: profileData,
       });
     } catch (error) {
-      console.error('Get profile error:', error);
-      res.status(500).json({ success: false, message: 'Server error', error: error.message });
+      console.error("Get profile error:", error);
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Server error",
+          error: error.message,
+        });
     }
   }
 
@@ -252,37 +271,48 @@ class AuthController {
       const userId = req.user.id;
       const role = req.user.role;
 
-      if (role !== 'STUDENT' && role !== 'CLUB_PRESIDENT') {
-        return res.status(403).json({ success: false, message: 'Only students and presidents can update student profiles.' });
+      if (role !== "STUDENT" && role !== "CLUB_PRESIDENT") {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message:
+              "Only students and presidents can update student profiles.",
+          });
       }
 
       const { name, department, year, profileImage } = req.body;
 
       if (!name || !department || !year) {
-        return res.status(400).json({ success: false, message: 'Name, department, and year are required.' });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Name, department, and year are required.",
+          });
       }
 
       const updated = await StudentModel.update(parseInt(userId), {
         name,
         department,
         year: parseInt(year),
-        profileImage
+        profileImage,
       });
 
       // Also update User table if they are a Club President to keep data in sync
-      if (role === 'CLUB_PRESIDENT') {
+      if (role === "CLUB_PRESIDENT") {
         const userEntry = await UserModel.findByEmail(updated.email);
         if (userEntry) {
           await UserModel.update(userEntry.id, {
             name,
-            profileImage
+            profileImage,
           });
         }
       }
 
       res.status(200).json({
         success: true,
-        message: 'Profile updated successfully',
+        message: "Profile updated successfully",
         profile: {
           id: updated.id,
           name: updated.name,
@@ -292,12 +322,18 @@ class AuthController {
           year: updated.year,
           profileImage: updated.profileImage,
           createdAt: updated.createdAt,
-          role: role // Return actual role
-        }
+          role: role, // Return actual role
+        },
       });
     } catch (error) {
-      console.error('Update profile error details:', error);
-      res.status(500).json({ success: false, message: 'Server error', error: error.message });
+      console.error("Update profile error details:", error);
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Server error",
+          error: error.message,
+        });
     }
   }
 
@@ -309,13 +345,18 @@ class AuthController {
       const { currentPassword, newPassword } = req.body;
 
       if (!currentPassword || !newPassword) {
-        return res.status(400).json({ success: false, message: 'Current and new passwords are required' });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Current and new passwords are required",
+          });
       }
 
       let userData = null;
       let Model = null;
 
-      if (role === 'STUDENT') {
+      if (role === "STUDENT") {
         userData = await StudentModel.findById(userId);
         Model = StudentModel;
       } else {
@@ -324,13 +365,20 @@ class AuthController {
       }
 
       if (!userData) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
 
       // Verify current password
-      const isValidPassword = await bcrypt.compare(currentPassword, userData.password);
+      const isValidPassword = await bcrypt.compare(
+        currentPassword,
+        userData.password,
+      );
       if (!isValidPassword) {
-        return res.status(401).json({ success: false, message: 'Incorrect current password' });
+        return res
+          .status(401)
+          .json({ success: false, message: "Incorrect current password" });
       }
 
       // Hash new password
@@ -341,23 +389,30 @@ class AuthController {
       await Model.update(userId, { password: hashedPassword });
 
       // If they are a student AND a club president, we must sync the password in the OTHER table
-      if (role === 'CLUB_PRESIDENT') {
+      if (role === "CLUB_PRESIDENT") {
         const student = await StudentModel.findByEmail(userData.email);
         if (student) {
           await StudentModel.update(student.id, { password: hashedPassword });
         }
-      } else if (role === 'STUDENT') {
+      } else if (role === "STUDENT") {
         const user = await UserModel.findByEmail(userData.email);
-        if (user && user.role === 'CLUB_PRESIDENT') {
+        if (user && user.role === "CLUB_PRESIDENT") {
           await UserModel.update(user.id, { password: hashedPassword });
         }
       }
 
-      res.status(200).json({ success: true, message: 'Password changed successfully' });
-
+      res
+        .status(200)
+        .json({ success: true, message: "Password changed successfully" });
     } catch (error) {
-      console.error('Change password error:', error);
-      res.status(500).json({ success: false, message: 'Server error during password change', error: error.message });
+      console.error("Change password error:", error);
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Server error during password change",
+          error: error.message,
+        });
     }
   }
 
@@ -367,14 +422,14 @@ class AuthController {
       const students = await StudentModel.findAll();
       res.status(200).json({
         success: true,
-        students
+        students,
       });
     } catch (error) {
-      console.error('Get all students error:', error);
+      console.error("Get all students error:", error);
       res.status(500).json({
         success: false,
-        message: 'Server error fetching students',
-        error: error.message
+        message: "Server error fetching students",
+        error: error.message,
       });
     }
   }
@@ -384,23 +439,23 @@ class AuthController {
     try {
       const staff = await UserModel.findAll();
       const students = await StudentModel.findAll();
-      
+
       // Combine them
       const allUsers = [
-        ...staff.map(u => ({ ...u })),
-        ...students.map(s => ({ ...s, role: 'STUDENT' }))
+        ...staff.map((u) => ({ ...u })),
+        ...students.map((s) => ({ ...s, role: "STUDENT" })),
       ];
 
       res.status(200).json({
         success: true,
-        users: allUsers
+        users: allUsers,
       });
     } catch (error) {
-      console.error('Get all users error:', error);
+      console.error("Get all users error:", error);
       res.status(500).json({
         success: false,
-        message: 'Server error fetching all users',
-        error: error.message
+        message: "Server error fetching all users",
+        error: error.message,
       });
     }
   }
@@ -408,41 +463,44 @@ class AuthController {
   // Assign a student to a role (e.g. Club President)
   static async assignRole(req, res) {
     try {
-      const { studentId, role, clubOrFacultyName, clubOrFacultyType } = req.body;
+      const { studentId, role, clubOrFacultyName, clubOrFacultyType } =
+        req.body;
 
       if (!studentId || !role) {
         return res.status(400).json({
           success: false,
-          message: 'Student ID and role are required'
+          message: "Student ID and role are required",
         });
       }
 
       // 1. Find the student
       const student = await prisma.student.findUnique({
-        where: { id: parseInt(studentId) }
+        where: { id: parseInt(studentId) },
       });
 
       if (!student) {
         return res.status(404).json({
           success: false,
-          message: 'Student not found'
+          message: "Student not found",
         });
       }
 
       // 1.1 Prevent Event Organizers from becoming Presidents
-      if (role === 'CLUB_PRESIDENT') {
-        const existingUser = await prisma.user.findUnique({ where: { email: student.email } });
-        if (existingUser && existingUser.role === 'EVENT_ORGANIZER') {
+      if (role === "CLUB_PRESIDENT") {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: student.email },
+        });
+        if (existingUser && existingUser.role === "EVENT_ORGANIZER") {
           return res.status(400).json({
             success: false,
-            message: 'Event Organizers cannot be assigned as Club Presidents.'
+            message: "Event Organizers cannot be assigned as Club Presidents.",
           });
         }
       }
 
       // 2. Check if user record already exists for this email
       let user = await prisma.user.findUnique({
-        where: { email: student.email }
+        where: { email: student.email },
       });
 
       if (user) {
@@ -452,8 +510,8 @@ class AuthController {
           data: {
             role,
             clubOrFacultyName,
-            clubOrFacultyType
-          }
+            clubOrFacultyType,
+          },
         });
       } else {
         // Create new user record from student data
@@ -465,23 +523,22 @@ class AuthController {
             role,
             clubOrFacultyName,
             clubOrFacultyType,
-            profileImage: student.profileImage
-          }
+            profileImage: student.profileImage,
+          },
         });
       }
 
       res.status(200).json({
         success: true,
         message: `Successfully assigned ${student.name} as ${role} for ${clubOrFacultyName}`,
-        user
+        user,
       });
-
     } catch (error) {
-      console.error('Assign role error:', error);
+      console.error("Assign role error:", error);
       res.status(500).json({
         success: false,
-        message: 'Server error during role assignment',
-        error: error.message
+        message: "Server error during role assignment",
+        error: error.message,
       });
     }
   }
@@ -491,38 +548,46 @@ class AuthController {
     const { userId } = req.body;
     try {
       if (!userId) {
-        return res.status(400).json({ success: false, message: 'User ID is required' });
+        return res
+          .status(400)
+          .json({ success: false, message: "User ID is required" });
       }
 
-      const user = await prisma.user.findUnique({ where: { id: parseInt(userId) } });
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(userId) },
+      });
       if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
 
-      if (user.role === 'SYSTEM_ADMIN') {
-        return res.status(400).json({ success: false, message: 'Cannot revoke System Admin role' });
+      if (user.role === "SYSTEM_ADMIN") {
+        return res
+          .status(400)
+          .json({ success: false, message: "Cannot revoke System Admin role" });
       }
 
       // Update user role to STUDENT and clear organizational data
       await prisma.user.update({
         where: { id: parseInt(userId) },
         data: {
-          role: 'STUDENT',
+          role: "STUDENT",
           clubOrFacultyName: null,
-          clubOrFacultyType: null
-        }
+          clubOrFacultyType: null,
+        },
       });
 
       res.status(200).json({
         success: true,
-        message: `Successfully revoked ${user.role} role from ${user.name}`
+        message: `Successfully revoked ${user.role} role from ${user.name}`,
       });
     } catch (error) {
-      console.error('Revoke role error:', error);
+      console.error("Revoke role error:", error);
       res.status(500).json({
         success: false,
-        message: 'Server error during role revocation',
-        error: error.message
+        message: "Server error during role revocation",
+        error: error.message,
       });
     }
   }
@@ -535,7 +600,7 @@ class AuthController {
       if (!name || !email || !password || !role) {
         return res.status(400).json({
           success: false,
-          message: 'All fields are required'
+          message: "All fields are required",
         });
       }
 
@@ -546,7 +611,7 @@ class AuthController {
       if (emailExists || studentEmailExists) {
         return res.status(409).json({
           success: false,
-          message: 'Email already registered'
+          message: "Email already registered",
         });
       }
 
@@ -559,29 +624,132 @@ class AuthController {
         name,
         email,
         password: hashedPassword,
-        role
+        role,
       });
 
       res.status(201).json({
         success: true,
-        message: 'Staff user created successfully',
+        message: "Staff user created successfully",
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
-      console.error('Create user error:', error);
+      console.error("Create user error:", error);
       res.status(500).json({
         success: false,
-        message: 'Server error during user creation',
-        error: error.message
+        message: "Server error during user creation",
+        error: error.message,
+      });
+    }
+  }
+
+  // Get user by ID (Admin only)
+  static async getUserById(req, res) {
+    try {
+      const { id } = req.params;
+      const { type } = req.query; // 'student' or 'staff'
+
+      let userData = null;
+      if (type === "student") {
+        userData = await StudentModel.findById(parseInt(id));
+      } else {
+        userData = await UserModel.findById(parseInt(id));
+      }
+
+      if (!userData) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        user: userData,
+      });
+    } catch (error) {
+      console.error("Get user by ID error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error fetching user",
+        error: error.message,
+      });
+    }
+  }
+
+  // Delete user (Admin only)
+  static async deleteUser(req, res) {
+    try {
+      const { id } = req.params;
+      const { type } = req.query; // 'student' or 'staff'
+
+      if (!id || !type) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID and type are required",
+        });
+      }
+
+      const userId = parseInt(id);
+
+      if (type === "student") {
+        const student = await StudentModel.findById(userId);
+        if (!student) {
+          return res.status(404).json({
+            success: false,
+            message: "Student not found",
+          });
+        }
+
+        // If they are also in User table (e.g. Club President), delete that record too
+        const user = await UserModel.findByEmail(student.email);
+        if (user) {
+          if (user.role === "SYSTEM_ADMIN") {
+            return res.status(400).json({
+              success: false,
+              message: "Cannot delete a student who is a System Admin",
+            });
+          }
+          await UserModel.delete(user.id);
+        }
+
+        await StudentModel.delete(userId);
+      } else {
+        const user = await UserModel.findById(userId);
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            message: "Staff user not found",
+          });
+        }
+
+        if (user.role === "SYSTEM_ADMIN") {
+          return res.status(400).json({
+            success: false,
+            message: "Cannot delete System Admin",
+          });
+        }
+
+        await UserModel.delete(userId);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error deleting user",
+        error: error.message,
       });
     }
   }
 }
-
 
 export default AuthController;

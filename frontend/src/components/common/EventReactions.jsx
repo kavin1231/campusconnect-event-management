@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Trash2, Pencil } from 'lucide-react';
+import { resolveImageUrl } from '../../services/api';
 import './EventReactions.css';
 
 const EventReactions = ({ eventId, isLoggedIn, studentId, onlyShowReactions = false, onlyShowComments = false }) => {
@@ -261,7 +262,7 @@ const EventReactions = ({ eventId, isLoggedIn, studentId, onlyShowReactions = fa
                                     <div className="erc-header">
                                         <div className="erc-author-info">
                                             <img
-                                                src={reaction.student.profileImage || '/default-avatar.png'}
+                                                src={resolveImageUrl(reaction.student.profileImage) || '/default-avatar.png'}
                                                 alt={reaction.student.name}
                                                 className="erc-avatar"
                                             />

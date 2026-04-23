@@ -159,6 +159,8 @@ export default function EventSetupPage() {
   const [bannerMessage, setBannerMessage] = useState(null);
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [publishMessage, setPublishMessage] = useState(null);
+  const isSetupEditable = !!eventRequest && ["APPROVED", "PUBLISHED"].includes(eventRequest.status);
+  const setupLockedMessage = 'Event setup is only available after approval.';
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -270,6 +272,12 @@ export default function EventSetupPage() {
 
   const handleSaveDetails = async (silent = false) => {
     if (savingDetails) return false;
+    if (!isSetupEditable) {
+      if (!silent) {
+        setDetailsMessage({ type: 'error', text: setupLockedMessage });
+      }
+      return false;
+    }
     try {
       setSavingDetails(true);
       if (!silent) setDetailsMessage(null);
@@ -302,6 +310,12 @@ export default function EventSetupPage() {
 
   const handleSaveTickets = async (silent = false) => {
     if (savingTickets) return false;
+    if (!isSetupEditable) {
+      if (!silent) {
+        setTicketsMessage({ type: 'error', text: setupLockedMessage });
+      }
+      return false;
+    }
     try {
       setSavingTickets(true);
       if (!silent) setTicketsMessage(null);
@@ -335,6 +349,12 @@ export default function EventSetupPage() {
 
   const handleSaveMerch = async (silent = false) => {
     if (savingMerch) return false;
+    if (!isSetupEditable) {
+      if (!silent) {
+        setMerchMessage({ type: 'error', text: setupLockedMessage });
+      }
+      return false;
+    }
     try {
       setSavingMerch(true);
       if (!silent) setMerchMessage(null);
@@ -377,7 +397,7 @@ export default function EventSetupPage() {
   const updateMerch = (itemId, field, val) => setMerch((m) => m.map((x) => (x.id === itemId ? { ...x, [field]: val } : x)));
 
   const handlePublish = async () => {
-    if (!allDone || publishing) return;
+    if (!allDone || publishing || !isSetupEditable) return;
     try {
       setPublishing(true);
       setPublishMessage(null);
@@ -479,7 +499,7 @@ export default function EventSetupPage() {
                   <div style={{ height: '100%', width: `${(doneCount / checks.length) * 100}%`, background: allDone ? '#4ade80' : C.secondary, borderRadius: '100px' }} />
                 </div>
               </div>
-              <button onClick={handlePublish} disabled={!allDone || publishing} style={{ padding: '10px 18px', background: allDone ? C.secondary : 'rgba(255,255,255,.18)', color: allDone ? C.white : 'rgba(255,255,255,.6)', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: '700', cursor: allDone && !publishing ? 'pointer' : 'not-allowed', boxShadow: allDone ? '0 6px 18px rgba(255,113,0,.4)' : 'none', minWidth: '120px' }}>
+              <button onClick={handlePublish} disabled={!allDone || publishing || !isSetupEditable} style={{ padding: '10px 18px', background: allDone && isSetupEditable ? C.secondary : 'rgba(255,255,255,.18)', color: allDone && isSetupEditable ? C.white : 'rgba(255,255,255,.6)', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: '700', cursor: allDone && !publishing && isSetupEditable ? 'pointer' : 'not-allowed', boxShadow: allDone && isSetupEditable ? '0 6px 18px rgba(255,113,0,.4)' : 'none', minWidth: '120px' }}>
                 {publishing ? 'Publishing...' : 'Publish'}
               </button>
             </div>
@@ -500,7 +520,7 @@ export default function EventSetupPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <Card palette={palette} isDarkMode={isDarkMode}>
                   <SectionHead label="Event Details" palette={palette}>
-                    <button onClick={() => handleSaveDetails()} disabled={savingDetails} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: savingDetails ? palette.border : C.primary, color: savingDetails ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: savingDetails ? 'not-allowed' : 'pointer' }}>
+                    <button onClick={() => handleSaveDetails()} disabled={savingDetails || !isSetupEditable} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: savingDetails || !isSetupEditable ? palette.border : C.primary, color: savingDetails || !isSetupEditable ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: savingDetails || !isSetupEditable ? 'not-allowed' : 'pointer' }}>
                       <Icon.Save size={12} /> {savingDetails ? 'Saving...' : 'Save Details'}
                     </button>
                   </SectionHead>
@@ -536,7 +556,7 @@ export default function EventSetupPage() {
                   <SectionHead label="Event Banner" palette={palette}>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={handleBannerPick} style={{ padding: '7px 14px', background: C.primary, color: C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>Choose File</button>
-                      <button onClick={handleUploadBanner} disabled={!bannerFile || uploadingBanner} style={{ padding: '7px 14px', background: !bannerFile || uploadingBanner ? palette.border : C.secondary, color: !bannerFile || uploadingBanner ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: !bannerFile || uploadingBanner ? 'not-allowed' : 'pointer' }}>{uploadingBanner ? 'Uploading...' : 'Upload'}</button>
+                      <button onClick={handleUploadBanner} disabled={!bannerFile || uploadingBanner || !isSetupEditable} style={{ padding: '7px 14px', background: !bannerFile || uploadingBanner || !isSetupEditable ? palette.border : C.secondary, color: !bannerFile || uploadingBanner || !isSetupEditable ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: !bannerFile || uploadingBanner || !isSetupEditable ? 'not-allowed' : 'pointer' }}>{uploadingBanner ? 'Uploading...' : 'Upload'}</button>
                     </div>
                   </SectionHead>
                   {bannerMessage && (
@@ -586,7 +606,7 @@ export default function EventSetupPage() {
                     <button onClick={addTicket} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: isDarkMode ? 'rgba(96,165,250,.16)' : C.primaryLight, color: palette.text, border: `1px solid ${isDarkMode ? 'rgba(96,165,250,.35)' : `${C.primary}30`}`, borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
                       <Icon.Plus size={12} /> Add Ticket
                     </button>
-                    <button onClick={() => handleSaveTickets()} disabled={savingTickets} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: savingTickets ? palette.border : C.primary, color: savingTickets ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: savingTickets ? 'not-allowed' : 'pointer' }}>
+                    <button onClick={() => handleSaveTickets()} disabled={savingTickets || !isSetupEditable} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: savingTickets || !isSetupEditable ? palette.border : C.primary, color: savingTickets || !isSetupEditable ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: savingTickets || !isSetupEditable ? 'not-allowed' : 'pointer' }}>
                       <Icon.Save size={12} /> {savingTickets ? 'Saving...' : 'Save Tickets'}
                     </button>
                   </div>
@@ -626,7 +646,7 @@ export default function EventSetupPage() {
                     <button onClick={addMerch} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: isDarkMode ? 'rgba(96,165,250,.16)' : C.primaryLight, color: palette.text, border: `1px solid ${isDarkMode ? 'rgba(96,165,250,.35)' : `${C.primary}30`}`, borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
                       <Icon.Plus size={12} /> Add Item
                     </button>
-                    <button onClick={() => handleSaveMerch()} disabled={savingMerch} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: savingMerch ? palette.border : C.primary, color: savingMerch ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: savingMerch ? 'not-allowed' : 'pointer' }}>
+                    <button onClick={() => handleSaveMerch()} disabled={savingMerch || !isSetupEditable} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: savingMerch || !isSetupEditable ? palette.border : C.primary, color: savingMerch || !isSetupEditable ? palette.textDim : C.white, border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: '700', cursor: savingMerch || !isSetupEditable ? 'not-allowed' : 'pointer' }}>
                       <Icon.Save size={12} /> {savingMerch ? 'Saving...' : 'Save Merch'}
                     </button>
                   </div>
@@ -722,15 +742,15 @@ export default function EventSetupPage() {
                     </div>
                   </Card>
                 )}
-                <Card style={{ background: allDone ? `linear-gradient(135deg, ${C.primary} 0%, #0a4f96 100%)` : palette.surfaceAlt, border: allDone ? 'none' : `1px solid ${palette.border}` }} palette={palette} isDarkMode={isDarkMode}>
+                <Card style={{ background: allDone && isSetupEditable ? `linear-gradient(135deg, ${C.primary} 0%, #0a4f96 100%)` : palette.surfaceAlt, border: allDone && isSetupEditable ? 'none' : `1px solid ${palette.border}` }} palette={palette} isDarkMode={isDarkMode}>
                   <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                    <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: allDone ? 'rgba(255,255,255,.15)' : palette.border, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', color: allDone ? C.white : palette.textDim }}>
+                    <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: allDone && isSetupEditable ? 'rgba(255,255,255,.15)' : palette.border, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', color: allDone && isSetupEditable ? C.white : palette.textDim }}>
                       <Icon.CheckCircle size={24} />
                     </div>
-                    <p style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: '800', color: allDone ? C.white : palette.text }}>{allDone ? 'Ready to Publish!' : 'Setup Incomplete'}</p>
-                    <p style={{ margin: '0 0 20px', fontSize: '12px', color: allDone ? 'rgba(255,255,255,.65)' : palette.textMuted, lineHeight: 1.6 }}>{allDone ? 'All requirements met. Click publish to make your event live for students.' : `Complete ${checks.length - doneCount} remaining item${checks.length - doneCount !== 1 ? 's' : ''} to enable publishing.`}</p>
-                    <button onClick={handlePublish} disabled={!allDone || publishing || publishSuccess} style={{ width: '100%', padding: '13px', background: allDone && !publishSuccess ? C.secondary : palette.border, color: allDone && !publishSuccess ? C.white : palette.textDim, border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '800', cursor: allDone && !publishing && !publishSuccess ? 'pointer' : 'not-allowed', boxShadow: allDone && !publishSuccess ? '0 6px 20px rgba(255,113,0,.4)' : 'none', letterSpacing: '0.02em' }}>
-                      {publishSuccess ? 'Published' : publishing ? 'Publishing...' : allDone ? 'Publish Event' : `Complete Setup (${doneCount}/${checks.length})`}
+                    <p style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: '800', color: allDone && isSetupEditable ? C.white : palette.text }}>{allDone && isSetupEditable ? 'Ready to Publish!' : 'Setup Incomplete'}</p>
+                    <p style={{ margin: '0 0 20px', fontSize: '12px', color: allDone && isSetupEditable ? 'rgba(255,255,255,.65)' : palette.textMuted, lineHeight: 1.6 }}>{allDone && isSetupEditable ? 'All requirements met. Click publish to make your event live for students.' : !isSetupEditable ? setupLockedMessage : `Complete ${checks.length - doneCount} remaining item${checks.length - doneCount !== 1 ? 's' : ''} to enable publishing.`}</p>
+                    <button onClick={handlePublish} disabled={!allDone || publishing || publishSuccess || !isSetupEditable} style={{ width: '100%', padding: '13px', background: allDone && !publishSuccess && isSetupEditable ? C.secondary : palette.border, color: allDone && !publishSuccess && isSetupEditable ? C.white : palette.textDim, border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '800', cursor: allDone && !publishing && !publishSuccess && isSetupEditable ? 'pointer' : 'not-allowed', boxShadow: allDone && !publishSuccess && isSetupEditable ? '0 6px 20px rgba(255,113,0,.4)' : 'none', letterSpacing: '0.02em' }}>
+                      {publishSuccess ? 'Published' : publishing ? 'Publishing...' : !isSetupEditable ? 'Setup Locked' : allDone ? 'Publish Event' : `Complete Setup (${doneCount}/${checks.length})`}
                     </button>
                   </div>
                 </Card>

@@ -758,6 +758,21 @@ body {
     letter-spacing: 0.5px;
 }
 
+.merch-stock-badge {
+    padding: 8px 10px;
+}
+
+.merch-stock-badge .month {
+    margin-top: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.4px;
+}
+
+.merch-price-badge {
+    color: var(--secondary-color, #f59e0b);
+    font-size: 0.85rem;
+}
+
 .card-body {
     padding: 24px;
     display: flex;
@@ -864,6 +879,31 @@ body {
 
 .btn-register:hover svg {
     transform: translateX(2px);
+}
+
+.btn-register.btn-joined {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+}
+
+.btn-register.btn-joined:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.btn-primary.btn-joined {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.btn-primary.btn-joined:hover {
+    background: rgba(239, 68, 68, 0.8);
+    border-color: #ef4444;
 }
 
 .load-more-container {

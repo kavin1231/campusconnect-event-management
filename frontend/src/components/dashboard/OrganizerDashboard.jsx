@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import { useTheme } from "../../context/ThemeContext";
-import { logisticsAPI, eventsAPI } from "../../services/api";
+import { logisticsAPI, eventsAPI, resolveImageUrl } from "../../services/api";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -457,7 +457,7 @@ const OrganizerDashboard = () => {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700/30 flex-shrink-0">
                             <img
-                              src={ev.image}
+                              src={resolveImageUrl(ev.image)}
                               alt={ev.title}
                               className="w-full h-full object-cover"
                               onError={(e) => {

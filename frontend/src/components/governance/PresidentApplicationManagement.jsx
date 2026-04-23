@@ -4,11 +4,34 @@ import Sidebar from "../common/Sidebar";
 import { governanceAPI } from "../../services/api";
 import "./PresidentApplicationManagement.css";
 import { ORGANIZING_BODIES } from "../../constants/staticData";
+import { Eye, EyeOff } from "lucide-react";
+
+const MOCK_APPLICATIONS = [
+  {
+    id: 1,
+    presidentName: "Kasun Perera",
+    status: "PENDING",
+    clubOrFacultyType: "CLUB",
+    clubOrFacultyName: "Tech Club",
+    student: { name: "Kasun Perera", studentId: "STU-2024-001" },
+    appliedAt: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    presidentName: "Anushka Silva",
+    status: "APPROVED",
+    clubOrFacultyType: "CLUB",
+    clubOrFacultyName: "Arts & Culture Club",
+    student: { name: "Anushka Silva", studentId: "STU-2024-014" },
+    appliedAt: new Date().toISOString(),
+    approvedRejectAt: new Date().toISOString(),
+  },
+];
 
 export default function PresidentApplicationManagement() {
   const navigate = useNavigate();
-  const [applications, setApplications] = useState([]);
-  const [selectedApp, setSelectedApp] = useState(null);
+  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
+  const [selectedApp, setSelectedApp] = useState(MOCK_APPLICATIONS[0]);
   const [filterStatus, setFilterStatus] = useState("PENDING");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -20,6 +43,7 @@ export default function PresidentApplicationManagement() {
     clubName: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
@@ -56,10 +80,16 @@ export default function PresidentApplicationManagement() {
     try {
       const data = await governanceAPI.getPresidentApplications();
       if (data.success) {
-        setApplications(data.applications || []);
+        setApplications(data.applications?.length ? data.applications : MOCK_APPLICATIONS);
+        setSelectedApp((current) => current || (data.applications?.length ? data.applications[0] : MOCK_APPLICATIONS[0]));
+      } else {
+        setApplications(MOCK_APPLICATIONS);
+        setSelectedApp((current) => current || MOCK_APPLICATIONS[0]);
       }
     } catch (error) {
       console.error("Failed to fetch applications:", error);
+      setApplications(MOCK_APPLICATIONS);
+      setSelectedApp((current) => current || MOCK_APPLICATIONS[0]);
       setMessage("Failed to fetch applications");
       setMessageType("error");
     }
@@ -128,6 +158,7 @@ export default function PresidentApplicationManagement() {
       if (response.success) {
         setShowCreateModal(false);
         setCreateForm({ name: "", email: "", clubName: "", password: "" });
+        setShowPassword(false);
         alert("✅ President created successfully!");
         fetchApplications(); // If we want to refresh (though this doesn't create an application)
       }
@@ -528,14 +559,36 @@ export default function PresidentApplicationManagement() {
                 </div>
                 <div className="pres-form-group">
                   <label>Temporary Password</label>
-                  <input
-                    type="password"
-                    value={createForm.password}
-                    onChange={(e) =>
-                      setCreateForm({ ...createForm, password: e.target.value })
-                    }
-                    required
-                  />
+                  <div className="password-input-wrapper" style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={createForm.password}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, password: e.target.value })
+                      }
+                      required
+                      style={{ width: '100%', paddingRight: '40px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="toggle-password"
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        padding: '5px'
+                      }}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="pres-modal-actions">

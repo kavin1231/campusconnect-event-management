@@ -7,6 +7,16 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 /**
+ * Helper to resolve image URLs from relative paths
+ */
+export const resolveImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return "https://picsum.photos/800/600?grayscale";
+  if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
+  const base = API_BASE_URL.replace(/\/api\/?$/, '');
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+/**
  * Fetch wrapper with token authentication
  */
 const fetchWithAuth = async (endpoint, options = {}) => {
@@ -122,6 +132,18 @@ export const authAPI = {
     const response = await fetchWithAuth("/auth/create-user", {
       method: "POST",
       body: JSON.stringify(userData),
+    });
+    return response.json();
+  },
+
+  getUserById: async (id, type) => {
+    const response = await fetchWithAuth(`/auth/users/${id}?type=${type}`);
+    return response.json();
+  },
+
+  deleteUser: async (id, type) => {
+    const response = await fetchWithAuth(`/auth/users/${id}?type=${type}`, {
+      method: "DELETE",
     });
     return response.json();
   },
@@ -510,6 +532,52 @@ export const governanceAPI = {
     });
     return response.json();
   },
+
+  getFinanceDashboard: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.eventId && params.eventId !== "ALL") {
+      query.set("eventId", params.eventId);
+    }
+
+    const response = await fetchWithAuth(
+      `/president/finance/dashboard${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  listFinanceRecords: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.type && params.type !== "ALL") query.set("type", params.type);
+    if (params.search) query.set("search", params.search);
+
+    const response = await fetchWithAuth(
+      `/president/finance/records${query.toString() ? `?${query.toString()}` : ""}`,
+    );
+    return response.json();
+  },
+
+  createFinanceRecord: async (payload) => {
+    const response = await fetchWithAuth("/president/finance/records", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  updateFinanceRecord: async (id, payload) => {
+    const response = await fetchWithAuth(`/president/finance/records/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
+  },
+
+  deleteFinanceRecord: async (id) => {
+    const response = await fetchWithAuth(`/president/finance/records/${id}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
 };
 
 // ============================================
@@ -535,6 +603,34 @@ export const eventsAPI = {
       `/events${query ? `?${query}` : ""}`,
     );
     return response.json();
+  },
+
+  getEventStalls: async (eventId) => {
+    try {
+      const response = await fetchWithAuth(`/events/${eventId}/stalls`);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          stalls: [],
+          message: data.message || "Failed to load stall allocation data",
+        };
+      }
+
+      return {
+        success: true,
+        stalls: data.stalls || [],
+        message: data.message,
+      };
+    } catch (error) {
+      console.error("Error fetching event stalls:", error);
+      return {
+        success: false,
+        stalls: [],
+        message: "Failed to load stall allocation data",
+      };
+    }
   },
 };
 
@@ -811,6 +907,18 @@ export const merchandiseAPI = {
     return response.json();
   },
 
+  uploadProductImage: async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetchWithAuthRaw("/merchandise/products/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    return response.json();
+  },
+
   updateProduct: async (id, productData) => {
     const response = await fetchWithAuth(`/merchandise/products/${id}`, {
       method: "PATCH",
@@ -822,6 +930,51 @@ export const merchandiseAPI = {
   deleteProduct: async (id) => {
     const response = await fetchWithAuth(`/merchandise/products/${id}`, {
       method: "DELETE",
+    });
+    return response.json();
+  },
+
+  createOrder: async (orderData) => {
+    const response = await fetchWithAuth("/merchandise/orders", {
+      method: "POST",
+      body: JSON.stringify(orderData),
+    });
+    return response.json();
+  },
+
+  getOrders: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(
+      `/merchandise/orders${query ? `?${query}` : ""}`,
+    );
+    return response.json();
+  },
+
+  getOrderById: async (id) => {
+    const response = await fetchWithAuth(`/merchandise/orders/${id}`);
+    return response.json();
+  },
+
+  updateOrder: async (id, orderData) => {
+    const response = await fetchWithAuth(`/merchandise/orders/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(orderData),
+    });
+    return response.json();
+  },
+
+  getOrdersByProduct: async (productId, params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(
+      `/merchandise/products/${productId}/orders${query ? `?${query}` : ""}`,
+    );
+    return response.json();
+  },
+
+  distributeProductOrders: async (productId, payload) => {
+    const response = await fetchWithAuth(`/merchandise/products/${productId}/distribute`, {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
     return response.json();
   },

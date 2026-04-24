@@ -184,6 +184,79 @@ const ReportFilter = ({ label, value, icon }) => (
   </div>
 );
 
+const formatDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toISOString().split("T")[0];
+};
+
+const formatDuration = (startValue, endValue) => {
+  if (!startValue || !endValue) return "-";
+  const start = new Date(startValue);
+  const end = new Date(endValue);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "-";
+
+  const diffHours = Math.max(0, Math.round((end - start) / 3600000));
+  if (diffHours >= 24 && diffHours % 24 === 0) {
+    const days = diffHours / 24;
+    return `${days} day${days === 1 ? "" : "s"}`;
+  }
+  return `${diffHours}h`;
+};
+
+const normalizeStatus = (status) =>
+  String(status || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+
+const hasRealCondition = (condition) => {
+  const value = String(condition || "").trim();
+  return value && value !== "-";
+};
+
+const deriveCondition = (status) => {
+  const normalized = normalizeStatus(status);
+  if (normalized === "returned") return "Good";
+  if (normalized === "checked_out") return "In Use";
+  if (normalized === "overdue") return "Overdue Return";
+  if (normalized === "pending") return "Pending Approval";
+  if (normalized === "approved") return "Approved";
+  if (normalized === "rejected") return "Rejected";
+  return "In Review";
+};
+
+const normalizeRow = (row, index) => {
+  const requestDate = row.startDate || row.neededDate || row.requestDate;
+  const dueDate = row.endDate || row.returnDate || row.dueDate;
+  const durationHours =
+    requestDate && dueDate
+      ? Math.max(
+          0,
+          Math.round((new Date(dueDate) - new Date(requestDate)) / 3600000),
+        )
+      : (row.duration_hours ?? 0);
+
+  return {
+    id: row.id ?? index + 1,
+    asset: row.asset || row.assetDetails?.name || "-",
+    requestedBy:
+      row.ownerDetails?.name ||
+      row.owner ||
+      row.requestedBy ||
+      "Main Organizer",
+    requestDate: formatDate(requestDate),
+    dueDate: formatDate(dueDate),
+    duration: formatDuration(requestDate, dueDate),
+    duration_hours: durationHours,
+    status: normalizeStatus(row.status || "pending"),
+    condition: hasRealCondition(row.condition)
+      ? row.condition
+      : deriveCondition(row.status),
+  };
+};
+
 const StatusBadge = ({ status }) => {
   const statusMap = {
     returned: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
@@ -211,20 +284,23 @@ const AnalyticsReports = () => {
       try {
         const response = await logisticsAPI.listRequests();
         const requests = response?.requests || [];
+        const normalizedRequests = requests.slice(0, 20).map(normalizeRow);
 
         // Use API data if available, fallback to hardcoded
-        if (requests && requests.length > 0) {
-          setRows(requests.slice(0, 20));
-          setFilteredRows(requests.slice(0, 20));
+        if (normalizedRequests.length > 0) {
+          setRows(normalizedRequests);
+          setFilteredRows(normalizedRequests);
         } else {
-          setRows(hardcodedReports);
-          setFilteredRows(hardcodedReports);
+          const fallbackRows = hardcodedReports.map(normalizeRow);
+          setRows(fallbackRows);
+          setFilteredRows(fallbackRows);
         }
       } catch (error) {
         console.error("Failed to load analytics reports:", error);
         // Fallback to hardcoded data
-        setRows(hardcodedReports);
-        setFilteredRows(hardcodedReports);
+        const fallbackRows = hardcodedReports.map(normalizeRow);
+        setRows(fallbackRows);
+        setFilteredRows(fallbackRows);
       }
     };
 
@@ -246,9 +322,11 @@ const AnalyticsReports = () => {
   const checkedOutCount = rows.filter((r) => r.status === "checked_out").length;
   const pendingCount = rows.filter((r) => r.status === "pending").length;
   const overdueCount = rows.filter((r) => r.status === "overdue").length;
-  const avgDuration = Math.round(
-    rows.reduce((sum, r) => sum + (r.duration_hours || 0), 0) / rows.length,
-  );
+  const avgDuration = rows.length
+    ? Math.round(
+        rows.reduce((sum, r) => sum + (r.duration_hours || 0), 0) / rows.length,
+      )
+    : 0;
 
   return (
     <div className="flex min-h-screen bg-[#0B0F19] text-[#E5E7EB]">
@@ -440,7 +518,6 @@ const AnalyticsReports = () => {
               <thead className="bg-slate-900/70 sticky top-0 text-slate-400 uppercase text-xs tracking-wider">
                 <tr>
                   <th className="px-5 py-4 font-semibold">Asset</th>
-                  <th className="px-5 py-4 font-semibold">Requester (Club)</th>
                   <th className="px-5 py-4 font-semibold">Requested By</th>
                   <th className="px-5 py-4 font-semibold">Request Date</th>
                   <th className="px-5 py-4 font-semibold">Due Date</th>
@@ -454,7 +531,7 @@ const AnalyticsReports = () => {
                   <tr>
                     <td
                       className="px-5 py-6 text-slate-400 text-center"
-                      colSpan={8}
+                      colSpan={7}
                     >
                       No requests found for this status.
                     </td>
@@ -470,9 +547,6 @@ const AnalyticsReports = () => {
                     >
                       <td className="px-5 py-4 text-slate-100 font-semibold">
                         📦 {row.asset}
-                      </td>
-                      <td className="px-5 py-4 text-slate-300">
-                        <span className="text-sm">{row.club}</span>
                       </td>
                       <td className="px-5 py-4 text-slate-300">
                         <span className="text-sm">{row.requestedBy}</span>

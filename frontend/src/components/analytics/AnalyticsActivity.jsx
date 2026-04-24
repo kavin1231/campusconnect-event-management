@@ -3,6 +3,44 @@ import { motion } from "framer-motion";
 import Sidebar from "../common/Sidebar";
 import { analyticsAPI } from "../../services/api";
 
+const normalizeLabel = (value) => String(value || "").trim();
+
+const isUnknownLabel = (value) => {
+  const label = normalizeLabel(value).toLowerCase();
+  return (
+    !label ||
+    label === "unknown" ||
+    label === "unknown user" ||
+    label === "unknown club"
+  );
+};
+
+const sanitizeUserLabel = (value) =>
+  isUnknownLabel(value) ? "Main Organizer" : normalizeLabel(value);
+
+const sanitizeClubLabel = (value) =>
+  isUnknownLabel(value) ? "" : normalizeLabel(value);
+
+const sanitizeRecentActivities = (activities = []) =>
+  activities.map((item) => ({
+    ...item,
+    user: sanitizeUserLabel(item.user),
+    club: sanitizeClubLabel(item.club),
+  }));
+
+const sanitizeTopUsers = (users = []) =>
+  users.map((user) => ({
+    ...user,
+    name: sanitizeUserLabel(user.name),
+    club: sanitizeClubLabel(user.club),
+  }));
+
+const sanitizeClubActivity = (clubs = []) =>
+  clubs.map((club) => ({
+    ...club,
+    club: sanitizeClubLabel(club.club) || "General",
+  }));
+
 // Hardcoded comprehensive activity data
 const hardcodedActivityData = {
   statusMetrics: {
@@ -217,11 +255,17 @@ const AnalyticsActivity = () => {
 
           setActivity(statusMetrics || hardcodedActivityData.statusMetrics);
           setRecentActivities(
-            activities || hardcodedActivityData.recentActivities,
+            sanitizeRecentActivities(
+              activities || hardcodedActivityData.recentActivities,
+            ),
           );
-          setTopUsers(users || hardcodedActivityData.topUsers);
+          setTopUsers(
+            sanitizeTopUsers(users || hardcodedActivityData.topUsers),
+          );
           setActivityTrend(trend || hardcodedActivityData.activityTrend);
-          setClubActivity(clubs || hardcodedActivityData.clubActivity);
+          setClubActivity(
+            sanitizeClubActivity(clubs || hardcodedActivityData.clubActivity),
+          );
           setEngagement(eng || hardcodedActivityData.engagementMetrics);
         }
       } catch (error) {
@@ -412,9 +456,11 @@ const AnalyticsActivity = () => {
                         </span>
                       </p>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded">
-                          {activity.club}
-                        </span>
+                        {activity.club && (
+                          <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded">
+                            {activity.club}
+                          </span>
+                        )}
                         <span className="text-xs text-slate-500">
                           {activity.time}
                         </span>
@@ -451,7 +497,11 @@ const AnalyticsActivity = () => {
                           <p className="text-sm font-semibold text-slate-100">
                             {user.name}
                           </p>
-                          <p className="text-xs text-slate-500">{user.club}</p>
+                          {user.club && (
+                            <p className="text-xs text-slate-500">
+                              {user.club}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <span className="text-sm font-bold text-indigo-300">

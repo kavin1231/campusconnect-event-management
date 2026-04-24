@@ -65,6 +65,8 @@ model User {
   studyMaterials         StudyMaterial[]        @relation("StudyMaterialCreator")
   studySessions          StudySession[]         @relation("StudySessionCreator")
   notifications          UserNotification[]
+  delegates              EventDelegate[]        @relation("EventDelegates")
+  delegateActions        EventDelegateHistory[] @relation("DelegateActionPerformedBy")
 
   @@map("User")
 }
@@ -146,6 +148,10 @@ model EventRequest {
   updatedAt            DateTime           @updatedAt
   reviewer             User?              @relation("EventRequestReviewer", fields: [reviewedBy], references: [id])
   submitter            User               @relation("EventRequestSubmitter", fields: [submittedBy], references: [id])
+  delegates            EventDelegate[]
+  delegateHistory      EventDelegateHistory[]
+  merchandiseProducts  MerchandiseProduct[]
+  merchandiseOrders    MerchandiseOrder[]
 
   @@index([status])
   @@index([submittedAt])
@@ -341,6 +347,8 @@ model MerchandiseProduct {
   status      MerchandiseProductStatus @default(IN_STOCK)
   inventory   Int                      @default(0)
   isActive    Boolean                  @default(true)
+  eventRequestId Int?
+  eventRequest   EventRequest?         @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
   orderItems  MerchandiseOrderItem[]
@@ -357,6 +365,8 @@ model MerchandiseOrder {
   totalAmount     Float                  @default(0)
   notes           String?
   paymentSlipUrl  String?
+  eventRequestId  Int?
+  eventRequest    EventRequest?        @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
   items           MerchandiseOrderItem[]
@@ -576,8 +586,16 @@ enum Role {
   STUDENT
   SYSTEM_ADMIN
   CLUB_PRESIDENT
-  EVENT_ORGANIZER
   OPERATIONS_MANAGER
+  EVENT_ORGANIZER
+  TECHNICAL_STAFF
+}
+
+enum DelegateRole {
+  CO_ORGANIZER
+  MANAGER
+  LOGISTICS
+  FINANCES
 }
 
 enum AssetStatus {
@@ -602,6 +620,47 @@ enum ApplicationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model EventDelegate {
+  id                 Int           @id @default(autoincrement())
+  eventRequestId     Int
+  eventRequest       EventRequest  @relation(fields: [eventRequestId], references: [id], onDelete: Cascade)
+  
+  delegateUserId     Int
+  delegateUser       User          @relation("EventDelegates", fields: [delegateUserId], references: [id], onDelete: Cascade)
+  
+  role               DelegateRole  @default(MANAGER)
+  permissions        String?       // JSON string of granular permissions
+  
+  delegatedAt        DateTime      @default(now())
+  removedAt          DateTime?
+  isActive           Boolean       @default(true)
+  
+  @@unique([eventRequestId, delegateUserId])
+  @@index([eventRequestId])
+  @@index([delegateUserId])
+  @@map("EventDelegate")
+}
+
+model EventDelegateHistory {
+  id                 Int           @id @default(autoincrement())
+  eventRequestId     Int
+  eventRequest       EventRequest  @relation(fields: [eventRequestId], references: [id], onDelete: Cascade)
+  
+  actionType         String        // ADDED, REMOVED, ROLE_CHANGED, PERMISSIONS_CHANGED
+  delegateUserId     Int
+  delegateName       String
+  role               DelegateRole?
+  performedBy        Int
+  performedByUser    User          @relation("DelegateActionPerformedBy", fields: [performedBy], references: [id], onDelete: SetNull)
+  
+  reason             String?
+  createdAt          DateTime      @default(now())
+  
+  @@index([eventRequestId])
+  @@index([createdAt])
+  @@map("EventDelegateHistory")
 }
 
 enum MerchandiseProductStatus {

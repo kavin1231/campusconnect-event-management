@@ -342,48 +342,65 @@ model MerchandiseProduct {
   id          Int                      @id @default(autoincrement())
   name        String
   description String?
-  price       Float
+  price       Float                    @default(0)
   imageUrl    String?
   status      MerchandiseProductStatus @default(IN_STOCK)
   inventory   Int                      @default(0)
   isActive    Boolean                  @default(true)
+  
   eventRequestId Int?
   eventRequest   EventRequest?         @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
+  
+  orderItems  MerchandiseOrderItem[]
+  
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
-  orderItems  MerchandiseOrderItem[]
 
+  @@index([status])
   @@map("MerchandiseProduct")
 }
 
 model MerchandiseOrder {
   id              Int                    @id @default(autoincrement())
+  buyerId         Int?
   buyerName       String
   buyerEmail      String?
   buyerPhone      String?
-  status          MerchandiseOrderStatus @default(PENDING)
+  studentNumber   String?
   totalAmount     Float                  @default(0)
+  status          MerchandiseOrderStatus @default(PENDING)
   notes           String?
   paymentSlipUrl  String?
+  
   eventRequestId  Int?
-  eventRequest    EventRequest?        @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
+  eventRequest    EventRequest?          @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
+  
+  items           MerchandiseOrderItem[]
+  
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
-  items           MerchandiseOrderItem[]
 
+  @@index([status])
+  @@index([buyerId])
   @@map("MerchandiseOrder")
 }
 
 model MerchandiseOrderItem {
   id        Int                @id @default(autoincrement())
   orderId   Int
-  productId Int
-  quantity  Int                @default(1)
-  unitPrice Float
-  size      String?
   order     MerchandiseOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   MerchandiseProduct @relation(fields: [productId], references: [id])
+  
+  productId Int
+  product   MerchandiseProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  quantity  Int                @default(1)
+  unitPrice Float              @default(0)
+  size      String?
+  
+  createdAt DateTime           @default(now())
 
+  @@index([orderId])
+  @@index([productId])
   @@map("MerchandiseOrderItem")
 }
 

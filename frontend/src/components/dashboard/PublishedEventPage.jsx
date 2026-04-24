@@ -185,11 +185,26 @@ export default function PublishedEventPage() {
   const category = eventRequest?.purposeTag || 'General';
   const description = eventRequest?.purposeDescription || 'No description provided.';
   const capacity = Number(eventRequest?.expectedAttendance) || 0;
-  const registered = 0;
-  const orders = 0;
-  const revenue = 0;
-  const tickets = eventRequest?.tickets || [];
-  const merch = eventRequest?.merchandise || [];
+  
+  // Calculate real metrics from associated data
+  const registered = eventRequest?.event?.registrations?.length || 0;
+  const orders = eventRequest?.merchandiseOrders?.length || 0;
+  const revenue = (eventRequest?.merchandiseOrders || []).reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0);
+  
+  // Enrich tickets and merch with real "sold" counts
+  const tickets = (eventRequest?.tickets || []).map(t => {
+    // For now, if no specific ticket type tracking in registrations, we show total registered for the first ticket type if it's general
+    return { ...t, sold: t.name.toLowerCase().includes('general') ? registered : 0 };
+  });
+  
+  const merch = (eventRequest?.merchandise || []).map(m => {
+    const soldCount = (eventRequest?.merchandiseOrders || []).reduce((sum, order) => {
+      const item = (order.items || []).find(i => i.product?.name === m.name);
+      return sum + (item ? Number(item.quantity) : 0);
+    }, 0);
+    return { ...m, sold: soldCount };
+  });
+
   const registrationPct = capacity > 0 ? Math.round((registered / capacity) * 100) : 0;
   const bannerPreview = resolveImageUrl(eventRequest?.bannerUrl || '');
 
@@ -402,15 +417,57 @@ export default function PublishedEventPage() {
         )}
 
         {activeTab === 'orders' && (
-          <Card pad="0" palette={palette} isDarkMode={isDarkMode}>
-            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${palette.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: palette.text, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recent Orders</h3>
-              <span style={{ fontSize: '12px', color: palette.textMuted }}>0 orders</span>
-            </div>
-            <div style={{ padding: '24px', textAlign: 'center', color: palette.textDim }}>
-              <p style={{ margin: 0, fontSize: '13px' }}>No orders available yet.</p>
-            </div>
-          </Card>
+          <div style={{ display: 'grid', gap: '20px' }}>
+            <Card pad="0" palette={palette} isDarkMode={isDarkMode}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${palette.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: palette.text, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Registered Students</h3>
+                <span style={{ fontSize: '12px', color: palette.textMuted }}>{registered} students</span>
+              </div>
+              {registered === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: palette.textDim }}>
+                  <p style={{ margin: 0, fontSize: '13px' }}>No registrations yet.</p>
+                </div>
+              ) : (
+                <div style={{ padding: '12px 0' }}>
+                  {(eventRequest?.event?.registrations || []).map((reg, idx) => (
+                    <div key={reg.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 20px', borderBottom: idx < registered - 1 ? `1px solid ${palette.border}` : 'none' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: C.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.primary, fontSize: '12px', fontWeight: '700' }}>
+                        {reg.student?.name?.charAt(0) || 'S'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: palette.text }}>{reg.student?.name || 'Unknown Student'}</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: palette.textMuted }}>Registered on {formatDate(reg.registeredAt)}</p>
+                      </div>
+                      <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '100px', background: isDarkMode ? 'rgba(74,222,128,.16)' : C.successLight, color: C.success, fontWeight: '700' }}>CONFIRMED</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {orders > 0 && (
+              <Card pad="0" palette={palette} isDarkMode={isDarkMode}>
+                <div style={{ padding: '16px 20px', borderBottom: `1px solid ${palette.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: palette.text, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Merchandise Orders</h3>
+                  <span style={{ fontSize: '12px', color: palette.textMuted }}>{orders} orders</span>
+                </div>
+                <div style={{ padding: '12px 0' }}>
+                  {(eventRequest?.merchandiseOrders || []).map((order, idx) => (
+                    <div key={order.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 20px', borderBottom: idx < orders - 1 ? `1px solid ${palette.border}` : 'none' }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: palette.text }}>{order.buyerName}</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: palette.textMuted }}>{order.items?.map(i => `${i.quantity}x ${i.product?.name}`).join(', ')}</p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: palette.text }}>LKR {order.totalAmount?.toLocaleString()}</p>
+                        <span style={{ fontSize: '10px', fontWeight: '700', color: order.status === 'COLLECTED' ? C.success : C.warning }}>{order.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
         )}
 
         {activeTab === 'analytics' && (

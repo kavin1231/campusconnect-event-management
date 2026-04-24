@@ -530,6 +530,26 @@ export const getEventRequest = async (req, res) => {
         reviewer: {
           select: { id: true, name: true },
         },
+        // Include the actual published event and its registrations
+        event: {
+          include: {
+            registrations: {
+              include: {
+                student: true
+              }
+            }
+          }
+        },
+        // Include merchandise orders to track crowd revenue/orders
+        merchandiseOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        }
       },
     });
 

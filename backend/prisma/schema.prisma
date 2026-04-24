@@ -296,6 +296,7 @@ model AssetBooking {
   approvedReturnUser  User?              @relation(name: "ReturnApprovedBy", fields: [approvedReturnBy], references: [id], onDelete: SetNull)
   
   penalty             Float?             @default(0)
+  damageReport        DamageReport?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 

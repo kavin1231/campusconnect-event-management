@@ -64,7 +64,7 @@ router.put(
 router.patch(
   "/:id/status",
   verifyToken,
-  requireRole("SYSTEM_ADMIN"),
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
   eventRequestController.updateEventRequestStatus,
 );
 

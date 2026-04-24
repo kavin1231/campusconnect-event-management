@@ -286,12 +286,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           icon: "📍",
         },
         {
-          id: "my-requests",
-          label: "My Requests",
-          path: "/logistics/request",
-          icon: "📄",
-        },
-        {
           id: "staffing-mgmt",
           label: "Staffing",
           path: "/operations",

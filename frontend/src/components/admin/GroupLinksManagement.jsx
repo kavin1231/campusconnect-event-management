@@ -300,7 +300,7 @@ const GroupLinksManagement = () => {
                   </div>
                   
                   <h3 className="text-lg font-bold text-white mb-1">{link.name}</h3>
-                  <p className="text-xs text-slate-400 mb-4">{link.platform} ÔÇó {link.category}</p>
+                  <p className="text-xs text-slate-400 mb-4">{link.platform} • {link.category}</p>
                   
                   <div className="mt-auto pt-4 border-t border-white/5 space-y-2">
                     <div className="flex items-center justify-between text-xs">

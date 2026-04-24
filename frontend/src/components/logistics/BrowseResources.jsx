@@ -1,4 +1,4 @@
-﻿import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
@@ -701,7 +701,7 @@ const ResourceCard = memo(({ asset, onRequest }) => {
 
         {asset.images && asset.images.length > 0 && (
           <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur">
-            ≡ƒô╕ {asset.images.length} photos
+            {asset.images.length} photos
           </div>
         )}
 
@@ -743,7 +743,7 @@ const ResourceCard = memo(({ asset, onRequest }) => {
           <div className="bg-gray-700 rounded-lg p-3">
             <p className="text-gray-400 text-xs mb-1">Category</p>
             <p className="text-white text-sm font-medium">
-              {asset.category || "ΓÇö"}
+              {asset.category || "-"}
             </p>
           </div>
         </div>

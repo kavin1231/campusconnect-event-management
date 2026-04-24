@@ -8,6 +8,7 @@ import '../dashboard/StudentDashboard.css';
 
 import { FACULTIES } from '../../constants/staticData';
 import { Eye, EyeOff } from 'lucide-react';
+import { resolveImageUrl } from '../../services/api';
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -270,7 +271,7 @@ const StudentProfile = () => {
               <div className="sp-avatar-container">
                 <div className="sp-avatar-large">
                   {profile?.profileImage ? (
-                    <img src={profile.profileImage} alt={profile.name} />
+                    <img src={resolveImageUrl(profile.profileImage)} alt={profile.name} />
                   ) : (
                     getInitials(profile?.name)
                   )}

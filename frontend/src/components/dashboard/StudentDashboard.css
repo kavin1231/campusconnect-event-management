@@ -1,6 +1,6 @@
-/* ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
-   Student Dashboard ÔÇô StudentDashboard.css
-   ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ */
+/* ==========================================================================
+   Student Dashboard – StudentDashboard.css
+   ========================================================================== */
 
 .sd-layout {
     display: flex;
@@ -9,7 +9,7 @@
     width: 100%;
 }
 
-/* ÔöÇÔöÇ Content Wrapper ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Content Wrapper --- */
 .sd-content-wrapper {
     flex: 1;
     display: flex;
@@ -19,7 +19,7 @@
     background: var(--bg-dark);
 }
 
-/* ÔöÇÔöÇ Dashboard Header ÔöÇÔöÇ */
+/* --- Dashboard Header --- */
 .sd-header {
     background: var(--bg-nav);
     padding: 40px 48px;
@@ -85,7 +85,7 @@
     text-transform: uppercase;
 }
 
-/* ÔöÇÔöÇ Toast ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Toast --- */
 .sd-toast {
     position: fixed;
     top: 20px;
@@ -126,7 +126,7 @@
     color: #991b1b;
 }
 
-/* ÔöÇÔöÇ Navbar ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Navbar --- */
 .sd-navbar {
     display: flex;
     justify-content: space-between;
@@ -381,7 +381,7 @@
     background: rgba(239, 68, 68, 0.08);
 }
 
-/* ÔöÇÔöÇ Main ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Main --- */
 .sd-main {
     max-width: 100%;
     width: 100%;
@@ -389,7 +389,7 @@
     padding: 32px 48px;
 }
 
-/* ÔöÇÔöÇ Welcome ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Welcome --- */
 .sd-welcome {
     display: flex;
     align-items: center;
@@ -434,7 +434,7 @@
     background: var(--bg-input);
 }
 
-/* ÔöÇÔöÇ President Workspace Card ÔöÇÔöÇ */
+/* --- President Workspace Card --- */
 .sd-president-workspace-card {
     background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
     border-radius: 20px;
@@ -536,7 +536,7 @@
     }
 }
 
-/* ÔöÇÔöÇ Stats row ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Stats row --- */
 .sd-stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -603,7 +603,7 @@
     white-space: nowrap;
 }
 
-/* ÔöÇÔöÇ Controls ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Controls --- */
 .sd-controls {
     display: flex;
     flex-direction: column;
@@ -677,7 +677,7 @@
     color: #fff;
 }
 
-/* ÔöÇÔöÇ Loading / Empty ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Loading / Empty --- */
 .sd-loading {
     display: flex;
     flex-direction: column;
@@ -730,14 +730,14 @@
     font-size: 0.875rem;
 }
 
-/* ÔöÇÔöÇ Events grid ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Events grid --- */
 .sd-events-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 }
 
-/* ÔöÇÔöÇ Event card ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Event card --- */
 .sd-event-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -1429,7 +1429,7 @@
     font-weight: 800;
 }
 
-/* ÔöÇÔöÇ Integrated StudyHub View Styles ÔöÇÔöÇ */
+/* --- Integrated StudyHub View Styles --- */
 .sd-study-integrated-view {
     padding: 24px 48px;
     animation: fadeIn 0.5s ease;
@@ -1741,7 +1741,7 @@
     .session-date { border-right: none; border-bottom: 1px solid #f1f5f9; padding: 0 0 12px; width: 100%; align-items: flex-start; }
 }
 
-/* ÔöÇÔöÇ Responsive ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
+/* --- Responsive --- */
 @media (max-width: 768px) {
     .sd-navbar {
         padding: 0 24px;
@@ -1752,7 +1752,7 @@
     }
 
     .sd-navbar::before {
-        content: '­ƒÜÇ NEXORA';
+        content: 'NEXORA';
         font-weight: 800;
         font-size: 1rem;
         color: var(--primary-accent);

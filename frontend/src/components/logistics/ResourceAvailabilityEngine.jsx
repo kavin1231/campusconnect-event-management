@@ -194,6 +194,107 @@ const ResourceAvailabilityEngine = () => {
                       ))
                     )}
                   </div>
+
+                  {/* BOOKING FORM */}
+                  <div className="mt-6 pt-6 border-t border-gray-700">
+                    <h3 className="text-sm font-bold text-white mb-3">
+                      New Booking
+                    </h3>
+                    <div className="space-y-3">
+                      <select
+                        value={newBooking.assetId || ""}
+                        onChange={(e) =>
+                          setNewBooking({
+                            ...newBooking,
+                            assetId: parseInt(e.target.value) || null,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
+                      >
+                        <option value="">Select Asset</option>
+                        {assets.map((asset) => (
+                          <option key={asset.id} value={asset.id}>
+                            {asset.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <input
+                        type="date"
+                        value={newBooking.startDate}
+                        onChange={(e) =>
+                          setNewBooking({
+                            ...newBooking,
+                            startDate: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
+                      />
+
+                      <input
+                        type="date"
+                        value={newBooking.endDate}
+                        onChange={(e) =>
+                          setNewBooking({
+                            ...newBooking,
+                            endDate: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:border-rose-500 outline-none transition"
+                      />
+
+                      <input
+                        type="text"
+                        placeholder="Club name"
+                        value={newBooking.club}
+                        onChange={(e) =>
+                          setNewBooking({ ...newBooking, club: e.target.value })
+                        }
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 text-sm focus:border-rose-500 outline-none transition"
+                      />
+
+                      {newBooking.startDate &&
+                        newBooking.endDate &&
+                        newBooking.assetId && (
+                          <div
+                            className={`p-3 rounded-lg text-sm font-medium ${
+                              isSlotAvailable
+                                ? "bg-green-500/20 text-green-400"
+                                : "bg-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {availabilityLoading ? (
+                              "🔄 Checking..."
+                            ) : isSlotAvailable ? (
+                              <>
+                                ✅ Slot Available
+                                {availabilityCheck?.availableQuantity &&
+                                  ` (${availabilityCheck.availableQuantity} units)`}
+                              </>
+                            ) : (
+                              <>
+                                ❌ Slot Booked
+                                {availabilityCheck?.bookedQuantity &&
+                                  ` (${availabilityCheck.bookedQuantity} units booked)`}
+                              </>
+                            )}
+                          </div>
+                        )}
+
+                      <button
+                        disabled={!isSlotAvailable || !newBooking.club}
+                        onClick={() =>
+                          showToast(
+                            "Booking creation UI is ready. Backend booking wiring can be connected next.",
+                            "info",
+                          )
+                        }
+                        className="w-full py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-700 disabled:opacity-50 text-white rounded-lg font-medium transition"
+                      >
+                        Create Booking
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

@@ -233,10 +233,10 @@ class AuthController {
         email: email,
         role: role,
         entityName: entityName,
-        profileImage: userEntry
-          ? userEntry.profileImage
-          : studentEntry
-            ? studentEntry.profileImage
+        profileImage: (userEntry && userEntry.profileImage) 
+          ? userEntry.profileImage 
+          : (studentEntry && studentEntry.profileImage) 
+            ? studentEntry.profileImage 
             : null,
         createdAt: userEntry
           ? userEntry.createdAt
@@ -292,22 +292,42 @@ class AuthController {
           });
       }
 
-      const updated = await StudentModel.update(parseInt(userId), {
-        name,
-        department,
-        year: parseInt(year),
-        profileImage,
-      });
+      // Find the records to update by email to avoid ID mismatches for hybrid accounts
+      const userEmail = req.user.email;
+      const [studentEntry, userEntry] = await Promise.all([
+        StudentModel.findByEmail(userEmail),
+        UserModel.findByEmail(userEmail),
+      ]);
 
-      // Also update User table if they are a Club President to keep data in sync
-      if (role === "CLUB_PRESIDENT") {
-        const userEntry = await UserModel.findByEmail(updated.email);
-        if (userEntry) {
-          await UserModel.update(userEntry.id, {
-            name,
-            profileImage,
-          });
+      let updated = null;
+
+      // Update Student record if it exists
+      if (studentEntry) {
+        updated = await StudentModel.update(studentEntry.id, {
+          name,
+          department,
+          year: parseInt(year),
+          profileImage,
+        });
+      }
+
+      // Update User record if it exists (keep data in sync)
+      if (userEntry) {
+        await UserModel.update(userEntry.id, {
+          name,
+          profileImage,
+        });
+        
+        // If they updated from a User-only account, use this as 'updated' for response
+        if (!updated) {
+          updated = userEntry;
+          updated.name = name;
+          updated.profileImage = profileImage;
         }
+      }
+
+      if (!updated) {
+        return res.status(404).json({ success: false, message: "User not found" });
       }
 
       res.status(200).json({

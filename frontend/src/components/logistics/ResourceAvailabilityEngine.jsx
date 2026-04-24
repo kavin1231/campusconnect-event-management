@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
@@ -315,16 +315,16 @@ const ResourceAvailabilityEngine = () => {
                             }`}
                           >
                             {availabilityLoading ? (
-                              "≡ƒöä Checking..."
+                              "🔄 Checking..."
                             ) : isSlotAvailable ? (
                               <>
-                                Γ£ô Slot Available
+                                ✅ Slot Available
                                 {availabilityCheck?.availableQuantity &&
                                   ` (${availabilityCheck.availableQuantity} units)`}
                               </>
                             ) : (
                               <>
-                                Γ£ù Slot Booked
+                                ❌ Slot Booked
                                 {availabilityCheck?.bookedQuantity &&
                                   ` (${availabilityCheck.bookedQuantity} units booked)`}
                               </>
@@ -384,7 +384,7 @@ const ResourceAvailabilityEngine = () => {
                     {/* BOOKINGS LIST */}
                     <div className="mt-8">
                       <h3 className="text-lg font-bold text-white mb-4">
-                        ≡ƒôï Bookings
+                        📋 Bookings
                       </h3>
                       {getAssetBookings(selectedAsset.id).length === 0 ? (
                         <p className="text-gray-400">

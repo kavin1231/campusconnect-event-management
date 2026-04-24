@@ -7,6 +7,12 @@ import {
   sanitizeInput,
 } from "../utils/logisticsValidations.js";
 
+const normalizeBookingStatus = (status) =>
+  String(status || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "_");
+
 class LogisticsController {
   // ========== CLUB MANAGEMENT ==========
 
@@ -183,6 +189,30 @@ class LogisticsController {
 
       const total = await prisma.asset.count({ where });
 
+      const bookingsForAssets = await prisma.assetBooking.findMany({
+        where: {
+          assetId: { in: assets.map((asset) => asset.id) },
+        },
+        select: {
+          assetId: true,
+          status: true,
+          quantityRequested: true,
+        },
+      });
+
+      const bookedQuantityByAsset = bookingsForAssets.reduce(
+        (accumulator, booking) => {
+          const normalizedStatus = normalizeBookingStatus(booking.status);
+          if (!["APPROVED", "CHECKED_OUT"].includes(normalizedStatus)) {
+            return accumulator;
+          }
+          accumulator[booking.assetId] =
+            (accumulator[booking.assetId] || 0) + booking.quantityRequested;
+          return accumulator;
+        },
+        {},
+      );
+
       const formattedAssets = assets.map((asset) => ({
         id: asset.id,
         name: asset.name,
@@ -194,8 +224,14 @@ class LogisticsController {
         owner: asset.club,
         status: asset.status,
         quantity: asset.quantity,
-        available: asset.quantity,
-        availableQty: asset.quantity,
+        available: Math.max(
+          0,
+          asset.quantity - (bookedQuantityByAsset[asset.id] || 0),
+        ),
+        availableQty: Math.max(
+          0,
+          asset.quantity - (bookedQuantityByAsset[asset.id] || 0),
+        ),
         bookingCount: asset._count.bookings,
         createdAt: asset.createdAt,
       }));
@@ -317,6 +353,25 @@ class LogisticsController {
           .json({ success: false, message: "Asset not found" });
       }
 
+      const bookingsForAsset = await prisma.assetBooking.findMany({
+        where: {
+          assetId: asset.id,
+        },
+        select: {
+          status: true,
+          quantityRequested: true,
+        },
+      });
+
+      const bookedQuantity = bookingsForAsset.reduce((sum, booking) => {
+        const normalizedStatus = normalizeBookingStatus(booking.status);
+        if (!["APPROVED", "CHECKED_OUT"].includes(normalizedStatus)) {
+          return sum;
+        }
+        return sum + booking.quantityRequested;
+      }, 0);
+      const availableQuantity = Math.max(0, asset.quantity - bookedQuantity);
+
       const formattedAsset = {
         id: asset.id,
         name: asset.name,
@@ -328,8 +383,8 @@ class LogisticsController {
         owner: asset.club,
         status: asset.status,
         quantity: asset.quantity,
-        available: asset.quantity,
-        availableQty: asset.quantity,
+        available: availableQuantity,
+        availableQty: availableQuantity,
         bookingCount: asset._count.bookings,
         createdAt: asset.createdAt,
       };

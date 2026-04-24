@@ -3,6 +3,45 @@ import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
 import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
 
+const formatDate = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toISOString().split("T")[0];
+};
+
+const normalizeStatus = (status) =>
+  String(status || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+
+const normalizeCheckout = (checkout) => {
+  const status = normalizeStatus(checkout?.status || "checked_out");
+  const assetName =
+    checkout?.assetDetails?.name || checkout?.asset || "Resource Item";
+  const borrowerName =
+    checkout?.ownerDetails?.name ||
+    checkout?.owner ||
+    checkout?.requester?.name ||
+    checkout?.club?.name ||
+    checkout?.requestingClub?.name ||
+    "Main Event Organizer";
+
+  return {
+    ...checkout,
+    status,
+    asset: assetName,
+    borrowerName,
+    clubName: checkout?.requestingClub?.name || checkout?.club?.name || "",
+    checkedOutDate: formatDate(
+      checkout?.checkedOutDate || checkout?.approvedAt || checkout?.startDate,
+    ),
+    dueDate: formatDate(checkout?.dueDate || checkout?.endDate),
+    returnedDate: formatDate(checkout?.returnedDate || checkout?.returnedAt),
+  };
+};
+
 const CheckoutReturnTracking = () => {
   const [user, setUser] = useState(null);
   const [mode, setMode] = useState("active"); // active, history, overdue
@@ -45,9 +84,11 @@ const CheckoutReturnTracking = () => {
       const data = await logisticsAPI.listRequests();
       if (data.success) {
         setErrorMsg("");
-        setCheckouts(data.requests || []);
+        setCheckouts((data.requests || []).map(normalizeCheckout));
       } else {
-        setErrorMsg(data.message || "Unable to load checkout records right now.");
+        setErrorMsg(
+          data.message || "Unable to load checkout records right now.",
+        );
       }
     } catch (error) {
       console.error("Failed to fetch checkouts:", error);
@@ -57,7 +98,7 @@ const CheckoutReturnTracking = () => {
   };
 
   const filteredCheckouts = checkouts.filter((c) => {
-    const status = c.status ? c.status.toLowerCase() : "";
+    const status = normalizeStatus(c.status);
     if (mode === "active") {
       return (
         status === "checked_out" ||
@@ -79,6 +120,29 @@ const CheckoutReturnTracking = () => {
       return Math.max(0, diff);
     } catch (e) {
       return "—";
+    }
+  };
+
+  const handleReturn = async (requestId) => {
+    try {
+      setShowReturnModal(false);
+      setSelectedCheckout(null);
+      setLoading(true);
+
+      const result = await logisticsAPI.returnAsset(requestId, user?.id);
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to return asset.");
+      }
+
+      showToast("Asset marked as returned successfully.", "success");
+      setMode("history");
+      await fetchCheckouts();
+    } catch (error) {
+      console.error("Return asset failed:", error);
+      setErrorMsg(error.message || "Failed to return asset.");
+      showToast(error.message || "Failed to return asset.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -176,7 +240,9 @@ const CheckoutReturnTracking = () => {
               <div className="lg:col-span-2">
                 {loading ? (
                   <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                    <p className="text-gray-400 text-lg">Loading checkout items...</p>
+                    <p className="text-gray-400 text-lg">
+                      Loading checkout items...
+                    </p>
                   </div>
                 ) : filteredCheckouts.length === 0 ? (
                   <div className="bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
@@ -208,14 +274,14 @@ const CheckoutReturnTracking = () => {
                     <div className="space-y-4 mb-6">
                       <DetailField
                         label="Asset"
-                        value={selectedCheckout.asset?.name || "Unknown"}
+                        value={selectedCheckout.asset || "Resource Item"}
                       />
                       <DetailField
-                        label="Borrower Club"
+                        label="Borrowed By"
                         value={
-                          selectedCheckout.club?.name ||
-                          selectedCheckout.requestingClub?.name ||
-                          "Unknown"
+                          selectedCheckout.borrowerName ||
+                          selectedCheckout.clubName ||
+                          "Main Event Organizer"
                         }
                       />
                       <DetailField
@@ -331,11 +397,7 @@ const CheckoutReturnTracking = () => {
             <ReturnModal
               checkout={selectedCheckout}
               onClose={() => setShowReturnModal(false)}
-              onSubmit={() => {
-                showToast("Return processed successfully.", "success");
-                setShowReturnModal(false);
-                setSelectedCheckout(null);
-              }}
+              onSubmit={() => handleReturn(selectedCheckout.id)}
             />
           )}
         </div>
@@ -384,11 +446,13 @@ const CheckoutItem = ({ checkout, isSelected, onSelect, daysRemaining }) => {
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="text-lg font-bold text-white">
-            {checkout.asset?.name || "Unknown"}
+            {checkout.asset || "Resource Item"}
           </h3>
           <p className="text-gray-400 text-sm">
             Borrowed by:{" "}
-            {checkout.club?.name || checkout.requestingClub?.name || "Unknown"}
+            {checkout.borrowerName ||
+              checkout.clubName ||
+              "Main Event Organizer"}
           </p>
         </div>
         <span

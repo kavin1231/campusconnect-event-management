@@ -176,6 +176,12 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           path: "/logistics/assets",
           icon: "🛠️",
         },
+        {
+          id: "admin-availability-engine",
+          label: "Availability Engine",
+          path: "/logistics/availability",
+          icon: "⚙️",
+        },
       ],
     },
     {
@@ -280,12 +286,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           icon: "📍",
         },
         {
-          id: "my-requests",
-          label: "My Requests",
-          path: "/logistics/request",
-          icon: "📄",
-        },
-        {
           id: "staffing-mgmt",
           label: "Staffing",
           path: "/operations",
@@ -309,12 +309,6 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           label: "Checkout Tracking",
           path: "/logistics/checkout",
           icon: "🔧",
-        },
-        {
-          id: "availability-engine",
-          label: "Availability Engine",
-          path: "/logistics/availability",
-          icon: "⚙️",
         },
       ],
     },
@@ -562,7 +556,11 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               type="button"
             >
-              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+              {collapsed ? (
+                <PanelLeftOpen size={18} />
+              ) : (
+                <PanelLeftClose size={18} />
+              )}
             </button>
             <button
               onClick={() => setMobileOpen((prev) => !prev)}
@@ -740,7 +738,9 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
                       <span className="sd-side-link-icon">
                         {getNavIcon(section.id, true)}
                       </span>
-                      <span className="sd-side-link-label">{section.label}</span>
+                      <span className="sd-side-link-label">
+                        {section.label}
+                      </span>
                     </Link>
                   )}
                 </div>

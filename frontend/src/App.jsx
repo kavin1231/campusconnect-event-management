@@ -242,7 +242,9 @@ function App() {
           path="/create-event"
           element={
             <ProtectedRoute
-              element={() => <EventRequestFormPage onBack={() => window.history.back()} />}
+              element={() => (
+                <EventRequestFormPage onBack={() => window.history.back()} />
+              )}
               allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }
@@ -275,7 +277,9 @@ function App() {
           path="/calendar"
           element={
             <ProtectedRoute
-              element={() => <CalendarPage onBack={() => window.history.back()} />}
+              element={() => (
+                <CalendarPage onBack={() => window.history.back()} />
+              )}
               allowedRoles={[
                 "STUDENT",
                 "EVENT_ORGANIZER",
@@ -308,19 +312,28 @@ function App() {
         <Route
           path="/admin/sports"
           element={
-            <ProtectedRoute element={SportsManagement} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={SportsManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
           }
         />
         <Route
           path="/admin/students"
           element={
-            <ProtectedRoute element={StudentManagement} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={StudentManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
           }
         />
         <Route
           path="/admin/users"
           element={
-            <ProtectedRoute element={UserManagement} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={UserManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
           }
         />
         <Route
@@ -335,7 +348,10 @@ function App() {
         <Route
           path="/admin/roles"
           element={
-            <ProtectedRoute element={RoleManagement} allowedRoles={["SYSTEM_ADMIN"]} />
+            <ProtectedRoute
+              element={RoleManagement}
+              allowedRoles={["SYSTEM_ADMIN"]}
+            />
           }
         />
         <Route
@@ -521,10 +537,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/logistics"
-          element={<LogisticsEntry />}
-        />
+        <Route path="/logistics" element={<LogisticsEntry />} />
         <Route
           path="/logistics/admin"
           element={
@@ -566,7 +579,7 @@ function App() {
           element={
             <ProtectedRoute
               element={ResourceAvailabilityEngine}
-              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+              allowedRoles={["SYSTEM_ADMIN", "CLUB_PRESIDENT"]}
             />
           }
         />
@@ -620,10 +633,7 @@ function App() {
             />
           }
         />
-        <Route
-          path="/clubs"
-          element={<ClubsModule />}
-        />
+        <Route path="/clubs" element={<ClubsModule />} />
       </Routes>
     </div>
   );

@@ -103,6 +103,48 @@ const resolveOrganizerFromSelection = (organizingBody) => {
   };
 };
 
+const EVENT_REQUEST_SAFE_SELECT = {
+  id: true,
+  title: true,
+  eventType: true,
+  eventTypeOther: true,
+  purposeTag: true,
+  purposeDescription: true,
+  eventDate: true,
+  startTime: true,
+  endTime: true,
+  setupTime: true,
+  teardownTime: true,
+  audience: true,
+  organizingBody: true,
+  contactName: true,
+  contactId: true,
+  contactPhone: true,
+  contactEmail: true,
+  supervisorName: true,
+  supervisorDepartment: true,
+  supervisorPhone: true,
+  venue: true,
+  expectedAttendance: true,
+  seatingArrangement: true,
+  parkingRequired: true,
+  estimatedBudget: true,
+  budgetBreakdown: true,
+  sponsorshipDetails: true,
+  fundSource: true,
+  riskAssessment: true,
+  safetyMeasures: true,
+  emergencyPlan: true,
+  contingency: true,
+  status: true,
+  submittedBy: true,
+  submittedAt: true,
+  reviewedBy: true,
+  reviewedAt: true,
+  reviewNotes: true,
+  updatedAt: true,
+};
+
 const assertSubmitter = (request, userId) => {
   if (!userId || request.submittedBy !== userId) {
     return {
@@ -164,7 +206,9 @@ const publishEvent = async (eventRequestId) => {
         ? String(request.submitter?.clubOrFacultyType || "").toUpperCase()
         : null;
 
-      const fallbackId = normalizeOrganizerId(request.submitter?.clubOrFacultyName);
+      const fallbackId = normalizeOrganizerId(
+        request.submitter?.clubOrFacultyName,
+      );
 
       organizer = {
         organizerType: fallbackType,
@@ -374,15 +418,16 @@ export const createEventRequest = async (req, res) => {
     const normalizedSetupTime = setupTime || startTime || "00:00";
     const normalizedTeardownTime = teardownTime || endTime || "00:00";
     const normalizedAudience = audience || "All";
-    const normalizedContactId = contactId === null || contactId === undefined
-      ? null
-      : String(contactId);
-    const normalizedContactPhone = contactPhone === null || contactPhone === undefined
-      ? null
-      : String(contactPhone);
-    const normalizedSupervisorPhone = supervisorPhone === null || supervisorPhone === undefined
-      ? null
-      : String(supervisorPhone);
+    const normalizedContactId =
+      contactId === null || contactId === undefined ? null : String(contactId);
+    const normalizedContactPhone =
+      contactPhone === null || contactPhone === undefined
+        ? null
+        : String(contactPhone);
+    const normalizedSupervisorPhone =
+      supervisorPhone === null || supervisorPhone === undefined
+        ? null
+        : String(supervisorPhone);
     const parsedEventDate = new Date(eventDate);
     if (Number.isNaN(parsedEventDate.getTime())) {
       return res
@@ -452,7 +497,14 @@ export const createEventRequest = async (req, res) => {
 export const getEventRequests = async (req, res) => {
   try {
     const { status, userId } = req.query;
-    const isAdmin = req.user?.role === "SYSTEM_ADMIN";
+    const isAdmin = ["SYSTEM_ADMIN", "CLUB_PRESIDENT"].includes(req.user?.role);
+    const validStatuses = [
+      "PENDING",
+      "APPROVED",
+      "REJECTED",
+      "REVISION_REQUESTED",
+      "PUBLISHED",
+    ];
 
     let where = {};
 
@@ -461,7 +513,13 @@ export const getEventRequests = async (req, res) => {
         where.submittedBy = parseInt(userId);
       }
       if (status) {
-        where.status = status;
+        const normalizedStatus = String(status).trim().toUpperCase();
+        if (!validStatuses.includes(normalizedStatus)) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Invalid status" });
+        }
+        where.status = normalizedStatus;
       }
     } else {
       where.submittedBy = req.user?.id;
@@ -470,7 +528,8 @@ export const getEventRequests = async (req, res) => {
 
     const requests = await prisma.eventRequest.findMany({
       where,
-      include: {
+      select: {
+        ...EVENT_REQUEST_SAFE_SELECT,
         submitter: {
           select: { id: true, name: true, email: true },
         },
@@ -497,7 +556,8 @@ export const getMyEventRequestsAll = async (req, res) => {
 
     const requests = await prisma.eventRequest.findMany({
       where: { submittedBy: userId },
-      include: {
+      select: {
+        ...EVENT_REQUEST_SAFE_SELECT,
         submitter: {
           select: { id: true, name: true, email: true },
         },
@@ -519,11 +579,12 @@ export const getEventRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    const isAdmin = req.user?.role === "SYSTEM_ADMIN";
+    const isAdmin = ["SYSTEM_ADMIN", "CLUB_PRESIDENT"].includes(req.user?.role);
 
     const request = await prisma.eventRequest.findUnique({
       where: { id: parseInt(id) },
-      include: {
+      select: {
+        ...EVENT_REQUEST_SAFE_SELECT,
         submitter: {
           select: { id: true, name: true, email: true },
         },
@@ -578,7 +639,7 @@ export const updateEventRequestStatus = async (req, res) => {
     const userId = req.user?.id;
 
     // Only admins can update status
-    if (req.user?.role !== "SYSTEM_ADMIN") {
+    if (!["SYSTEM_ADMIN", "CLUB_PRESIDENT"].includes(req.user?.role)) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
@@ -588,7 +649,10 @@ export const updateEventRequestStatus = async (req, res) => {
       "REJECTED",
       "REVISION_REQUESTED",
     ];
-    if (!validStatuses.includes(status)) {
+    const normalizedStatus = String(status || "")
+      .trim()
+      .toUpperCase();
+    if (!validStatuses.includes(normalizedStatus)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid status" });
@@ -597,12 +661,13 @@ export const updateEventRequestStatus = async (req, res) => {
     const updatedRequest = await prisma.eventRequest.update({
       where: { id: parseInt(id) },
       data: {
-        status,
+        status: normalizedStatus,
         reviewNotes,
         reviewedBy: userId,
         reviewedAt: new Date(),
       },
-      include: {
+      select: {
+        ...EVENT_REQUEST_SAFE_SELECT,
         submitter: {
           select: { id: true, name: true, email: true },
         },
@@ -783,7 +848,8 @@ export const updateEventSetup = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved or published requests",
+        message:
+          "Event setup is only available for approved or published requests",
       });
     }
 
@@ -839,7 +905,8 @@ export const updateEventBanner = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved or published requests",
+        message:
+          "Event setup is only available for approved or published requests",
       });
     }
 
@@ -890,7 +957,8 @@ export const replaceEventTickets = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved or published requests",
+        message:
+          "Event setup is only available for approved or published requests",
       });
     }
 
@@ -947,7 +1015,8 @@ export const replaceEventMerchandise = async (req, res) => {
     if (request.status !== "APPROVED" && request.status !== "PUBLISHED") {
       return res.status(400).json({
         success: false,
-        message: "Event setup is only available for approved or published requests",
+        message:
+          "Event setup is only available for approved or published requests",
       });
     }
 

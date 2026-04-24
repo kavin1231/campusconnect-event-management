@@ -382,9 +382,6 @@ const AssetsTab = () => {
                     Asset Name
                   </th>
                   <th className="px-6 py-4 text-left text-gray-400 font-semibold">
-                    Owner Club
-                  </th>
-                  <th className="px-6 py-4 text-left text-gray-400 font-semibold">
                     Category
                   </th>
                   <th className="px-6 py-4 text-center text-gray-400 font-semibold">
@@ -406,9 +403,6 @@ const AssetsTab = () => {
                   >
                     <td className="px-6 py-4 text-white font-medium">
                       {asset.name || "Unnamed"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {asset.owner?.name || asset.club || "Unknown"}
                     </td>
                     <td className="px-6 py-4 text-gray-300">
                       {asset.category || "—"}
@@ -706,9 +700,6 @@ const RequestsTab = () => {
               <thead className="sticky top-0 z-10">
                 <tr className="bg-gray-900/95 border-b border-gray-700 backdrop-blur">
                   <th className="px-6 py-4 text-left text-gray-400 font-semibold">
-                    Club
-                  </th>
-                  <th className="px-6 py-4 text-left text-gray-400 font-semibold">
                     Asset
                   </th>
                   <th className="px-6 py-4 text-left text-gray-400 font-semibold">
@@ -728,9 +719,6 @@ const RequestsTab = () => {
                     key={req.id}
                     className="border-b border-gray-700 hover:bg-indigo-500/10 transition"
                   >
-                    <td className="px-6 py-4 text-white font-medium">
-                      {req.club || "Unknown"}
-                    </td>
                     <td className="px-6 py-4 text-gray-300">
                       {req.asset || "Unknown"}
                     </td>

@@ -10,10 +10,16 @@ const API_BASE_URL =
  * Helper to resolve image URLs from relative paths
  */
 export const resolveImageUrl = (url) => {
-  if (!url || typeof url !== 'string') return "https://picsum.photos/800/600?grayscale";
-  if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
-  const base = API_BASE_URL.replace(/\/api\/?$/, '');
-  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  if (!url || typeof url !== "string")
+    return "https://picsum.photos/800/600?grayscale";
+  if (
+    url.startsWith("http") ||
+    url.startsWith("blob:") ||
+    url.startsWith("data:")
+  )
+    return url;
+  const base = API_BASE_URL.replace(/\/api\/?$/, "");
+  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
 /**
@@ -229,6 +235,19 @@ export const logisticsAPI = {
 
   listRequests: async () => {
     const response = await fetchWithAuth("/logistics/requests");
+    return response.json();
+  },
+
+  checkAvailability: async (
+    assetId,
+    startDate,
+    endDate,
+    quantityNeeded = 1,
+  ) => {
+    const response = await fetchWithAuth("/logistics/availability/check", {
+      method: "POST",
+      body: JSON.stringify({ assetId, startDate, endDate, quantityNeeded }),
+    });
     return response.json();
   },
 
@@ -599,9 +618,7 @@ export const chatbotAPI = {
 export const eventsAPI = {
   listEvents: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const response = await fetchWithAuth(
-      `/events${query ? `?${query}` : ""}`,
-    );
+    const response = await fetchWithAuth(`/events${query ? `?${query}` : ""}`);
     return response.json();
   },
 
@@ -609,7 +626,7 @@ export const eventsAPI = {
     try {
       const response = await fetchWithAuth(`/events/${eventId}/stalls`);
       const data = await response.json();
-      
+
       if (!response.ok) {
         return {
           success: false,
@@ -965,10 +982,13 @@ export const merchandiseAPI = {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetchWithAuthRaw("/merchandise/products/upload-image", {
-      method: "POST",
-      body: formData,
-    });
+    const response = await fetchWithAuthRaw(
+      "/merchandise/products/upload-image",
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
     return response.json();
   },
@@ -1026,10 +1046,13 @@ export const merchandiseAPI = {
   },
 
   distributeProductOrders: async (productId, payload) => {
-    const response = await fetchWithAuth(`/merchandise/products/${productId}/distribute`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    const response = await fetchWithAuth(
+      `/merchandise/products/${productId}/distribute`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
     return response.json();
   },
 };

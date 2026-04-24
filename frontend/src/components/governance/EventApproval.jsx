@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../common/Sidebar";
-import { governanceAPI, eventRequestAPI } from "../../services/api";
+import { eventRequestAPI } from "../../services/api";
+
+const normalizeStatus = (value) => String(value || "").toUpperCase();
+const formatDate = (value) => {
+  if (!value) return "N/A";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "N/A";
+  return date.toLocaleDateString();
+};
 
 const EventApproval = () => {
   const [eventRequests, setEventRequests] = useState([]);
@@ -21,7 +29,11 @@ const EventApproval = () => {
         status: filterStatus,
       });
       if (data.success) {
-        setEventRequests(data.data || []);
+        const normalized = (data.data || []).map((item) => ({
+          ...item,
+          status: normalizeStatus(item.status),
+        }));
+        setEventRequests(normalized);
       } else {
         setError(data.message || "Failed to fetch event requests");
       }
@@ -62,6 +74,21 @@ const EventApproval = () => {
     }
   };
 
+  const openDetails = async (item) => {
+    setSelectedItem(item);
+    try {
+      const response = await eventRequestAPI.getEventRequestById(item.id);
+      if (response.success && response.data) {
+        setSelectedItem({
+          ...response.data,
+          status: normalizeStatus(response.data.status),
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch event request details:", error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
       <Sidebar isAdmin={true} />
@@ -98,8 +125,9 @@ const EventApproval = () => {
                       status.slice(1).toLowerCase()}{" "}
                     (
                     {
-                      eventRequests.filter((item) => item.status === status)
-                        .length
+                      eventRequests.filter(
+                        (item) => normalizeStatus(item.status) === status,
+                      ).length
                     }
                     )
                   </button>
@@ -133,7 +161,7 @@ const EventApproval = () => {
                   {eventRequests.map((item) => (
                     <div
                       key={item.id}
-                      onClick={() => setSelectedItem(item)}
+                      onClick={() => openDetails(item)}
                       className="p-4 bg-gray-800 border-2 border-gray-700 rounded-xl cursor-pointer hover:border-purple-500 hover:bg-gray-750 transition"
                     >
                       <div className="flex items-start justify-between mb-3">
@@ -171,7 +199,7 @@ const EventApproval = () => {
                       </div>
 
                       <p className="text-gray-400 text-xs">
-                        📅 {new Date(item.eventDate).toLocaleDateString()}
+                        📅 {formatDate(item.eventDate)}
                       </p>
                     </div>
                   ))}
@@ -214,13 +242,17 @@ const EventApproval = () => {
                       <p className="text-gray-400 text-sm font-medium mb-1">
                         Event Type
                       </p>
-                      <p className="text-white">{selectedItem.eventType}</p>
+                      <p className="text-white">
+                        {selectedItem.eventType || "N/A"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-400 text-sm font-medium mb-1">
                         Purpose
                       </p>
-                      <p className="text-white">{selectedItem.purposeTag}</p>
+                      <p className="text-white">
+                        {selectedItem.purposeTag || "N/A"}
+                      </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -229,7 +261,7 @@ const EventApproval = () => {
                         Event Date
                       </p>
                       <p className="text-white">
-                        {new Date(selectedItem.eventDate).toLocaleDateString()}
+                        {formatDate(selectedItem.eventDate)}
                       </p>
                     </div>
                     <div>
@@ -243,10 +275,50 @@ const EventApproval = () => {
                       </p>
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Venue
+                      </p>
+                      <p className="text-white">
+                        {selectedItem.venue || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Organizer
+                      </p>
+                      <p className="text-white">
+                        {selectedItem.organizingBody || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">
+                      Event Description
+                    </p>
+                    <p className="text-white text-sm leading-relaxed">
+                      {selectedItem.purposeDescription ||
+                        "No description provided."}
+                    </p>
+                  </div>
+
+                  {selectedItem.reviewNotes && (
+                    <div>
+                      <p className="text-gray-400 text-sm font-medium mb-1">
+                        Review Notes
+                      </p>
+                      <p className="text-white text-sm leading-relaxed">
+                        {selectedItem.reviewNotes}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* ACTION BUTTONS IN MODAL */}
-                {selectedItem.status === "PENDING" && (
+                {normalizeStatus(selectedItem.status) === "PENDING" && (
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => handleApprove(selectedItem.id)}
@@ -269,7 +341,7 @@ const EventApproval = () => {
                   </div>
                 )}
 
-                {selectedItem.status === "APPROVED" && (
+                {normalizeStatus(selectedItem.status) === "APPROVED" && (
                   <div className="p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-center">
                     <p className="text-emerald-300 font-semibold">
                       ✅ Already Approved
@@ -277,7 +349,7 @@ const EventApproval = () => {
                   </div>
                 )}
 
-                {selectedItem.status === "REJECTED" && (
+                {normalizeStatus(selectedItem.status) === "REJECTED" && (
                   <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-center">
                     <p className="text-red-300 font-semibold">
                       ❌ Already Rejected

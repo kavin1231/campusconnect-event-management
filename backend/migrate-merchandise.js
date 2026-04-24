@@ -3,7 +3,7 @@ import prisma from "./prisma/client.js";
 async function createTables() {
   try {
     console.log("Creating merchandise tables...");
-    
+
     // Create MerchandiseProduct table
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "MerchandiseProduct" (
@@ -15,6 +15,7 @@ async function createTables() {
         "status" VARCHAR(50),
         "inventory" INTEGER NOT NULL DEFAULT 0,
         "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "eventRequestId" INTEGER,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
@@ -32,6 +33,7 @@ async function createTables() {
         "status" VARCHAR(50),
         "notes" TEXT,
         "paymentSlipUrl" TEXT,
+        "eventRequestId" INTEGER,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
@@ -56,15 +58,15 @@ async function createTables() {
     await prisma.$executeRawUnsafe(`
       CREATE INDEX IF NOT EXISTS "MerchandiseProduct_status_idx" ON "MerchandiseProduct"("status")
     `);
-    
+
     await prisma.$executeRawUnsafe(`
       CREATE INDEX IF NOT EXISTS "MerchandiseOrder_status_idx" ON "MerchandiseOrder"("status")
     `);
-    
+
     await prisma.$executeRawUnsafe(`
       CREATE INDEX IF NOT EXISTS "MerchandiseOrderItem_orderId_idx" ON "MerchandiseOrderItem"("orderId")
     `);
-    
+
     await prisma.$executeRawUnsafe(`
       CREATE INDEX IF NOT EXISTS "MerchandiseOrderItem_productId_idx" ON "MerchandiseOrderItem"("productId")
     `);
@@ -78,6 +80,47 @@ async function createTables() {
     } catch (error) {
       if (!error.message.includes("already exists")) {
         console.log("✓ Column paymentSlipUrl already exists or skipped");
+      }
+    }
+
+    // Add schema-aligned eventRequestId columns for both merchandise tables
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "MerchandiseProduct" ADD COLUMN IF NOT EXISTS "eventRequestId" INTEGER
+    `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "MerchandiseOrder" ADD COLUMN IF NOT EXISTS "eventRequestId" INTEGER
+    `);
+
+    // Add optional foreign key constraints when the EventRequest table exists
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "MerchandiseProduct"
+        ADD CONSTRAINT "MerchandiseProduct_eventRequestId_fkey"
+        FOREIGN KEY ("eventRequestId") REFERENCES "EventRequest"("id")
+        ON DELETE SET NULL
+      `);
+    } catch (error) {
+      if (!String(error.message || "").includes("already exists")) {
+        console.log(
+          "✓ MerchandiseProduct eventRequestId FK skipped:",
+          error.message,
+        );
+      }
+    }
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "MerchandiseOrder"
+        ADD CONSTRAINT "MerchandiseOrder_eventRequestId_fkey"
+        FOREIGN KEY ("eventRequestId") REFERENCES "EventRequest"("id")
+        ON DELETE SET NULL
+      `);
+    } catch (error) {
+      if (!String(error.message || "").includes("already exists")) {
+        console.log(
+          "✓ MerchandiseOrder eventRequestId FK skipped:",
+          error.message,
+        );
       }
     }
 

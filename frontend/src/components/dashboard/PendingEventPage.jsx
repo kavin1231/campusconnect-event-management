@@ -179,9 +179,14 @@ export default function PendingEventPage() {
     <div style={{ flex: 1, overflowY: 'auto', padding: '32px 36px', display: 'flex', flexDirection: 'column', gap: '24px', background: palette.pageBg, fontFamily: FONT }}>
       <div style={{ background: `linear-gradient(135deg, ${C.warning} 0%, #d97706 100%)`, borderRadius: '18px', padding: '24px 28px', position: 'relative', overflow: 'hidden', color: C.white }}>
         <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '170px', height: '170px', borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
-        <button onClick={() => navigate('/my-events')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer', color: 'rgba(255,255,255,.85)', fontSize: '12px', fontWeight: '600', padding: '6px 12px', borderRadius: '8px', marginBottom: '14px' }}>
-          <Icon.ArrowLeft size={14} /> Back to My Events
-        </button>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+          <button onClick={() => navigate('/my-events')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer', color: 'rgba(255,255,255,.85)', fontSize: '12px', fontWeight: '600', padding: '6px 12px', borderRadius: '8px' }}>
+            <Icon.ArrowLeft size={14} /> Back to My Events
+          </button>
+          <button onClick={() => navigate(`/my-events/${eventRequest?.id || id}/delegates`)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer', color: 'rgba(255,255,255,.85)', fontSize: '12px', fontWeight: '600', padding: '6px 12px', borderRadius: '8px' }}>
+            <Icon.Users size={14} /> Delegates
+          </button>
+        </div>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
             <div style={{ width: '58px', height: '58px', borderRadius: '14px', background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

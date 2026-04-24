@@ -105,7 +105,7 @@ router.get("/published", async (req, res) => {
 router.get("/calendar/view", async (req, res) => {
   try {
     const events = await prisma.event.findMany({
-      where: { status: "APPROVED" },
+      where: { status: { in: ["APPROVED", "PUBLISHED"] } },
       orderBy: { date: "asc" },
     });
 

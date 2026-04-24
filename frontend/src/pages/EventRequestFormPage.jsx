@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/common/Sidebar";
 import { C, FONT } from "../constants/colors";
 import { Icon } from "../components/common/Icon";
@@ -9,9 +10,8 @@ import { getUser } from "../utils/auth";
 import { FeedbackToast } from "../components/common/FeedbackUI";
 import { eventRequestAPI } from "../services/api";
 
-function Step1({ d, set, onOpenCalendar, errors }) {
-  const conflicts = checkVenueConflict(d.venue, d.date);
-  const venueInfo = VENUE_DATA.find(v => v.name === d.venue);
+function Step1({ d, set, onOpenCalendar, errors, conflicts, isChecking, suggestion }) {
+  const venueInfo = VENUES_LIST.includes(d.venue) ? VENUE_DATA.find(v => v.name === d.venue) : null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <SecHead icon={<Icon.FileText />} title="Core Event Info" subtitle="Fast essentials for a quick approval review." />
@@ -62,33 +62,55 @@ function Step1({ d, set, onOpenCalendar, errors }) {
             </div>
           </div>
         )}
-        {conflicts && conflicts.length>0 ? (
-          <div style={{ marginTop:"12px", background:C.secLight, border:`1.5px solid rgba(255,113,0,.4)`, borderRadius:"10px", padding:"14px 16px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"10px" }}>
-              <span style={{ color:C.secondary, display:"flex" }}><Icon.AlertCircle /></span>
-              <span style={{ fontSize:"13px", fontWeight:"700", color:"#7A3300", fontFamily:FONT }}>Conflict Detected — {conflicts.length} event{conflicts.length>1?"s":""} already booked</span>
-            </div>
-            {conflicts.map((c, i) => (
-              <div key={i} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"8px 10px", background:"rgba(255,113,0,.08)", borderRadius:"6px", marginBottom:"6px" }}>
-                <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:C.secondary, flexShrink:0 }} />
-                <div><p style={{ margin:0, fontSize:"12px", fontWeight:"700", color:C.text, fontFamily:FONT }}>{c.title}</p><p style={{ margin:0, fontSize:"11px", color:C.textMuted, fontFamily:FONT }}>{c.org}</p></div>
+        <AnimatePresence mode="wait">
+          {isChecking ? (
+            <motion.div key="checking" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} style={{ marginTop:"12px", background:C.neutral, border:`1px solid ${C.border}`, borderRadius:"10px", padding:"14px 16px", display:"flex", alignItems:"center", gap:"12px" }}>
+              <div style={{ width:"14px", height:"14px", border:`2px solid ${C.primary}`, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }} />
+              <span style={{ fontSize:"13px", color:C.textMuted, fontFamily:FONT }}>Checking for conflicts...</span>
+            </motion.div>
+          ) : conflicts && conflicts.length > 0 ? (
+            <motion.div key="conflict" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 25 }} style={{ marginTop:"12px", background:`linear-gradient(135deg, ${C.secLight} 0%, #FFF5EB 100%)`, border:`1.5px solid rgba(255,113,0,.4)`, borderRadius:"10px", padding:"14px 16px", boxShadow: "0 4px 12px rgba(255,113,0,0.08)" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"12px" }}>
+                <span style={{ color:C.secondary, display:"flex" }}><Icon.AlertCircle /></span>
+                <span style={{ fontSize:"13px", fontWeight:"800", color:"#7A3300", fontFamily:FONT }}>Conflict Detected — {conflicts.length} event{conflicts.length>1?"s":""} clashing</span>
               </div>
-            ))}
-            <button onClick={onOpenCalendar} style={{ marginTop:"4px", width:"100%", padding:"8px", background:C.secondary, color:C.white, border:"none", borderRadius:"7px", fontSize:"12px", fontFamily:FONT, fontWeight:"700", cursor:"pointer" }}>
-              <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"7px"}}><Icon.Calendar /> View Full Calendar</span>
-            </button>
-          </div>
-        ) : (
-          <div style={{ marginTop:"12px", background:C.primaryLight, border:`1px solid ${C.border}`, borderRadius:"10px", padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:"16px" }}>
-            <div>
-              <p style={{ margin:0, fontSize:"13px", fontWeight:"700", color:C.primary, fontFamily:FONT }}>{d.venue&&d.date?"✓ No conflicts found on this date":"Check for Venue Conflicts"}</p>
-              <p style={{ margin:"3px 0 0", fontSize:"12px", color:C.textMuted, fontFamily:FONT }}>{d.venue&&d.date?`${d.venue} is available`:"Select a venue and date to check availability."}</p>
-            </div>
-            <button onClick={onOpenCalendar} style={{ flexShrink:0, padding:"10px 20px", background:C.primary, color:C.white, border:"none", borderRadius:"8px", fontSize:"12px", fontFamily:FONT, fontWeight:"700", cursor:"pointer", whiteSpace:"nowrap", boxShadow:"0 4px 12px rgba(5,54,104,.25)" }}>
-              <span style={{display:"flex",alignItems:"center",gap:"7px"}}><Icon.Calendar /> View Calendar</span>
-            </button>
-          </div>
-        )}
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {conflicts.map((c, i) => (
+                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.05 }} key={i} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"10px 12px", background:"rgba(255,113,0,.06)", borderRadius:"8px", border: "1px solid rgba(255,113,0,.1)" }}>
+                    <div style={{ width:"6px", height:"6px", borderRadius:"50%", background:C.secondary, flexShrink:0 }} />
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin:0, fontSize:"12px", fontWeight:"700", color:C.text, fontFamily:FONT }}>{c.title}</p>
+                      <p style={{ margin:"2px 0 0", fontSize:"11px", color:C.textMuted, fontFamily:FONT, fontWeight: "500" }}>{c.startTime} - {c.endTime}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              {suggestion && (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} style={{ marginTop: "16px", padding: "14px", background: "rgba(34,197,94,0.08)", borderRadius: "8px", border: "1px dashed rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "12px", color: "#166534", fontWeight: "800", fontFamily: FONT }}>💡 Smart Suggestion</p>
+                    <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#14532D", fontFamily: FONT }}>Next available slot begins at {suggestion}</p>
+                  </div>
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => set({...d, start_time: suggestion})} style={{ padding: "6px 12px", background: "#166534", color: "#FFF", border: "none", borderRadius: "100px", fontSize: "11px", fontWeight: "700", cursor: "pointer", fontFamily: FONT, boxShadow: "0 2px 6px rgba(22,101,52,0.2)" }}>
+                    Apply Slot
+                  </motion.button>
+                </motion.div>
+              )}
+
+              <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} onClick={onOpenCalendar} style={{ marginTop:"16px", width:"100%", padding:"10px", background:C.secondary, color:C.white, border:"none", borderRadius:"8px", fontSize:"12px", fontFamily:FONT, fontWeight:"700", cursor:"pointer", boxShadow: "0 4px 10px rgba(255,113,0,0.2)" }}>
+                <span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"7px"}}><Icon.Calendar /> View Full Calendar</span>
+              </motion.button>
+            </motion.div>
+          ) : (
+            <motion.div key="clear" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} style={{ marginTop:"12px", background:C.primaryLight, border:`1px solid ${C.border}`, borderRadius:"10px", padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:"16px" }}>
+              <div>
+                <p style={{ margin:0, fontSize:"13px", fontWeight:"700", color:C.primary, fontFamily:FONT }}>{d.venue&&d.date?"✓ No conflicts found on this date":"Check for Venue Conflicts"}</p>
+                <p style={{ margin:"3px 0 0", fontSize:"12px", color:C.textMuted, fontFamily:FONT }}>{d.venue&&d.date?`${d.venue} is available`:"Select a venue and date to check availability."}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -184,7 +206,70 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [toast, setToast] = useState(null);
+  
+  // Conflict Intelligence State
+  const [realConflicts, setRealConflicts] = useState([]);
+  const [isCheckingConflicts, setIsCheckingConflicts] = useState(false);
+  const [suggestion, setSuggestion] = useState(null);
+  
   const TOTAL = 3;
+
+  // Real-time Conflict Detection Logic
+  useEffect(() => {
+    if (step !== 1 || !s1.venue || !s1.date || !s1.start_time || !s1.end_time) {
+      setRealConflicts([]);
+      setSuggestion(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsCheckingConflicts(true);
+      try {
+        const response = await eventRequestAPI.getEventCalendar({
+          venue: s1.venue,
+          start: s1.date,
+          end: s1.date
+        });
+
+        if (response.success) {
+          // Filter to only those overlapping with our proposed time
+          const ourStart = parseTimeToMinutes(s1.start_time);
+          const ourEnd = parseTimeToMinutes(s1.end_time);
+          
+          const activeConflicts = response.data.filter(ev => {
+            const evStart = parseTimeToMinutes(ev.startTime);
+            const evEnd = parseTimeToMinutes(ev.endTime);
+            return (ourStart < evEnd && evStart < ourEnd);
+          });
+
+          setRealConflicts(activeConflicts);
+
+          if (activeConflicts.length > 0) {
+            // Calculate suggestion: 15 mins after the latest conflict
+            const latestEnd = Math.max(...activeConflicts.map(c => parseTimeToMinutes(c.endTime)));
+            const suggestedMinutes = latestEnd + 15;
+            const h = Math.floor(suggestedMinutes / 60);
+            const m = suggestedMinutes % 60;
+            setSuggestion(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+          } else {
+            setSuggestion(null);
+          }
+        }
+      } catch (err) {
+        console.error("Conflict check failed:", err);
+      } finally {
+        setIsCheckingConflicts(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [s1.venue, s1.date, s1.start_time, s1.end_time, step]);
+
+  const parseTimeToMinutes = (t) => {
+    if (!t) return 0;
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
 
   const goTo = n => { setAnim(true); setTimeout(() => { setStep(n); setAnim(false); }, 180); };
 
@@ -246,6 +331,11 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
     const errors = validateStep3();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
+      return;
+    }
+
+    if (realConflicts && realConflicts.length > 0) {
+      showToast("Conflict detected. Please resolve venue and time conflicts before submitting.", "error");
       return;
     }
     
@@ -376,7 +466,17 @@ export default function EventRequestFormPage({ onOpenCalendar, onBack }) {
       <div style={{ flex:1, overflowY:"auto", padding:"24px 40px 28px" }}>
         <div style={{ maxWidth:"760px", margin:"0 auto" }}>
           <div style={{ background:C.white, borderRadius:"16px", padding:"36px", border:`1px solid ${C.border}`, boxShadow:"0 4px 24px rgba(5,54,104,.07)", opacity:anim?0:1, transform:anim?"translateY(8px)":"translateY(0)", transition:"opacity .18s, transform .18s" }}>
-            {step===1 && <Step1 d={s1} set={setS1} onOpenCalendar={onOpenCalendar} errors={fieldErrors} />}
+            {step===1 && (
+              <Step1 
+                d={s1} 
+                set={setS1} 
+                onOpenCalendar={onOpenCalendar} 
+                errors={fieldErrors} 
+                conflicts={realConflicts}
+                isChecking={isCheckingConflicts}
+                suggestion={suggestion}
+              />
+            )}
             {step===2 && <Step2 d={s2} set={setS2} prefillName={prefillName} errors={fieldErrors} />}
             {step===3 && <Step3 d={s3} set={setS3} errors={fieldErrors} />}
           </div>

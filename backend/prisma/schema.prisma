@@ -143,6 +143,13 @@ enum MerchandiseOrderStatus {
   CANCELLED
 }
 
+enum DelegateRole {
+  CO_ORGANIZER
+  MANAGER
+  LOGISTICS
+  FINANCES
+}
+
 model User {
   id               Int      @id @default(autoincrement())
   name             String
@@ -177,6 +184,10 @@ model User {
   // relations for event requests
   eventRequestsSubmitted EventRequest[] @relation("EventRequestSubmitter")
   eventRequestsReviewed EventRequest[]  @relation("EventRequestReviewer")
+  
+  // relations for delegates
+  delegates         EventDelegate[]  @relation("EventDelegates")
+  delegateActions   EventDelegateHistory[] @relation("DelegateActionPerformedBy")
   
   // relations for events
   eventsSubmitted  Event[]          @relation("EventSubmitter")
@@ -279,6 +290,7 @@ model EventRequest {
   bannerUrl             String?
   tickets               Json?     // Array of {name, price, inventory, enabled}
   merchandise           Json?     // Array of {name, description, price, inventory, imageUrl, enabled}
+  pickupSlots           Json?     // Array of {label, date, startTime, endTime, location}
   
   // Workflow Status
   status                String    @default("DRAFT")  // DRAFT, SUBMITTED, PENDING, APPROVED, REJECTED, REVISION_REQUESTED, PUBLISHED
@@ -290,6 +302,14 @@ model EventRequest {
   reviewedBy            Int?      // Admin who reviewed
   reviewer              User?     @relation("EventRequestReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
   reviewNotes           String?
+  
+  // Delegate Management
+  delegates             EventDelegate[]  
+  delegateHistory       EventDelegateHistory[]
+  
+  // Merchandise scoping
+  merchandiseProducts   MerchandiseProduct[]
+  merchandiseOrders     MerchandiseOrder[]
   
   // Audit Trail
   createdAt             DateTime  @default(now())
@@ -570,6 +590,9 @@ model MerchandiseProduct {
   inventory   Int                    @default(0)
   isActive    Boolean                @default(true)
   
+  eventRequestId Int?
+  eventRequest   EventRequest?       @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
+  
   orderItems  MerchandiseOrderItem[]
   
   createdAt   DateTime               @default(now())
@@ -585,10 +608,14 @@ model MerchandiseOrder {
   buyerName       String
   buyerEmail      String?
   buyerPhone      String?
+  studentNumber   String?
   totalAmount     Float                  @default(0)
   status          MerchandiseOrderStatus @default(PENDING)
   notes           String?
   paymentSlipUrl  String?
+  
+  eventRequestId  Int?
+  eventRequest    EventRequest?          @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
   
   items           MerchandiseOrderItem[]
   
@@ -617,4 +644,46 @@ model MerchandiseOrderItem {
   @@index([orderId])
   @@index([productId])
   @@map("MerchandiseOrderItem")
+}
+
+// ========== DELEGATE MANAGEMENT ==========
+model EventDelegate {
+  id                 Int           @id @default(autoincrement())
+  eventRequestId     Int
+  eventRequest       EventRequest  @relation(fields: [eventRequestId], references: [id], onDelete: Cascade)
+  
+  delegateUserId     Int
+  delegateUser       User          @relation("EventDelegates", fields: [delegateUserId], references: [id], onDelete: Cascade)
+  
+  role               DelegateRole  @default(MANAGER)
+  permissions        String?       // JSON string of granular permissions
+  
+  delegatedAt        DateTime      @default(now())
+  removedAt          DateTime?
+  isActive           Boolean       @default(true)
+  
+  @@unique([eventRequestId, delegateUserId])
+  @@index([eventRequestId])
+  @@index([delegateUserId])
+  @@map("EventDelegate")
+}
+
+model EventDelegateHistory {
+  id                 Int           @id @default(autoincrement())
+  eventRequestId     Int
+  eventRequest       EventRequest  @relation(fields: [eventRequestId], references: [id], onDelete: Cascade)
+  
+  actionType         String        // ADDED, REMOVED, ROLE_CHANGED, PERMISSIONS_CHANGED
+  delegateUserId     Int
+  delegateName       String
+  role               DelegateRole?
+  performedBy        Int
+  performedByUser    User          @relation("DelegateActionPerformedBy", fields: [performedBy], references: [id], onDelete: SetNull)
+  
+  reason             String?
+  createdAt          DateTime      @default(now())
+  
+  @@index([eventRequestId])
+  @@index([createdAt])
+  @@map("EventDelegateHistory")
 }

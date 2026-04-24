@@ -378,7 +378,7 @@ const StudentDashboard = () => {
     });
   };
 
-  const ORDER_STEPS = ["Submitted", "Payment Check", "Confirmed", "Ready/Delivered"];
+  const ORDER_STEPS = ["Submitted", "Payment Check", "Confirmed", "Ready for Pickup", "Collected"];
 
   const getOrderTrackerMeta = (statusRaw) => {
     const status = String(statusRaw || "PENDING").toUpperCase();
@@ -392,21 +392,21 @@ const StudentDashboard = () => {
       };
     }
 
+    if (status.includes("DELIVER") || status.includes("COMPLETE") || status.includes("FULFIL") || status.includes("COLLECT")) {
+      return {
+        label: "Collected",
+        tone: "complete",
+        stepIndex: 4,
+        helper: "Thank you for your purchase. Also explore for more merch.",
+      };
+    }
+
     if (status.includes("READY")) {
       return {
         label: "Ready for Pickup",
         tone: "confirmed",
         stepIndex: 3,
-        helper: "Payment verified. Your order is ready for pickup.",
-      };
-    }
-
-    if (status.includes("DELIVER") || status.includes("COMPLETE") || status.includes("FULFIL") || status.includes("COLLECT")) {
-      return {
-        label: "Delivered",
-        tone: "complete",
-        stepIndex: 3,
-        helper: "Your order has completed fulfillment.",
+        helper: "Your order is ready to pick up and the allocated location for that item by organizer",
       };
     }
 

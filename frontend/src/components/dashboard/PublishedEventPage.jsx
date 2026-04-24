@@ -245,6 +245,9 @@ export default function PublishedEventPage() {
               <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'rgba(255,255,255,.12)', color: C.white, border: '1px solid rgba(255,255,255,.2)', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
                 <Icon.Eye size={14} /> Preview
               </button>
+              <button onClick={() => navigate(`/my-events/${eventRequest?.id || id}/delegates`)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'rgba(255,255,255,.12)', color: C.white, border: '1px solid rgba(255,255,255,.2)', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                <Icon.Users size={14} /> Delegates
+              </button>
               <button onClick={() => navigate(`/my-events/${eventRequest?.id || id}/merchandise`)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: C.secondary, color: C.white, border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 6px 18px rgba(255,113,0,.35)' }}>
                 <Icon.Package size={14} /> Merchandise
               </button>

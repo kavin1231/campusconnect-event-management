@@ -265,6 +265,33 @@ const publishEvent = async (eventRequestId) => {
       data: { status: "PUBLISHED" },
     });
 
+    // Create Merchandise Products if any
+    if (Array.isArray(request.merchandise) && request.merchandise.length > 0) {
+      for (const item of request.merchandise) {
+        // Only create if it doesn't exist for this event request (idempotency)
+        const existingProduct = await tx.merchandiseProduct.findFirst({
+          where: {
+            eventRequestId: request.id,
+            name: item.name
+          }
+        });
+
+        if (!existingProduct) {
+          await tx.merchandiseProduct.create({
+            data: {
+              name: item.name,
+              description: item.description || null,
+              price: Number(item.price || 0),
+              inventory: Number(item.inventory || 0),
+              imageUrl: item.imageUrl || null,
+              isActive: item.enabled !== false,
+              eventRequestId: request.id
+            }
+          });
+        }
+      }
+    }
+
     return {
       event: createdEvent,
       message: "Event published successfully",
@@ -931,6 +958,37 @@ export const replaceEventMerchandise = async (req, res) => {
     if (error?.stack) {
       console.error(error.stack);
     }
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const updatePickupSlots = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const { pickupSlots } = req.body;
+
+    const request = await prisma.eventRequest.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Event request not found" });
+    }
+
+    const auth = assertSubmitter(request, userId);
+    if (!auth.ok) {
+      return res.status(auth.error.status).json({ success: false, message: auth.error.message });
+    }
+
+    await prisma.eventRequest.update({
+      where: { id: request.id },
+      data: { pickupSlots },
+    });
+
+    res.json({ success: true, message: "Pickup slots updated" });
+  } catch (error) {
+    console.error("Error updating pickup slots:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

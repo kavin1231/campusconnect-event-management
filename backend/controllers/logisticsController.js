@@ -400,7 +400,7 @@ class LogisticsController {
 
   static async checkAvailability(req, res) {
     try {
-      const { assetId, startDate, endDate } = req.body;
+      const { assetId, startDate, endDate, quantityNeeded = 1 } = req.body;
 
       if (!assetId || !startDate || !endDate) {
         return res.status(400).json({
@@ -425,8 +425,16 @@ class LogisticsController {
         });
       }
 
+      const availability = await LogisticsController.checkAssetAvailability(
+        parseInt(assetId),
+        start,
+        end,
+        parseInt(quantityNeeded),
+      );
+
       const asset = await prisma.asset.findUnique({
         where: { id: parseInt(assetId) },
+        select: { id: true, name: true, quantity: true },
       });
 
       if (!asset) {
@@ -435,27 +443,20 @@ class LogisticsController {
           .json({ success: false, message: "Asset not found" });
       }
 
-      // Check for conflicting bookings during the requested timeframe
-      const conflictingBooking = await prisma.assetBooking.findFirst({
-        where: {
-          assetId: parseInt(assetId),
-          status: { in: ["APPROVED", "CHECKED_OUT"] },
-          OR: [
-            {
-              startDate: { lte: new Date(endDate) },
-              endDate: { gte: new Date(startDate) },
-            },
-          ],
-        },
-      });
-
-      const isAvailable = !conflictingBooking;
+      const bookedQuantity = Math.max(
+        0,
+        asset.quantity - (availability.availableQuantity || 0),
+      );
 
       res.json({
         success: true,
-        isAvailable,
+        isAvailable: availability.isAvailable,
+        reason: availability.reason,
         assetId: asset.id,
         assetName: asset.name,
+        availableQuantity: availability.availableQuantity,
+        bookedQuantity,
+        totalQuantity: asset.quantity,
       });
     } catch (error) {
       console.error("Check availability error:", error);

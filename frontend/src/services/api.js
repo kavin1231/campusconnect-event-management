@@ -226,6 +226,19 @@ export const logisticsAPI = {
     return response.json();
   },
 
+  checkAvailability: async (
+    assetId,
+    startDate,
+    endDate,
+    quantityNeeded = 1,
+  ) => {
+    const response = await fetchWithAuth("/logistics/availability/check", {
+      method: "POST",
+      body: JSON.stringify({ assetId, startDate, endDate, quantityNeeded }),
+    });
+    return response.json();
+  },
+
   approveRequest: async (requestId, approvedById) => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const resolvedApprovedById = approvedById || user?.id;

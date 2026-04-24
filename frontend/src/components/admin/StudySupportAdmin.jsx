@@ -22,6 +22,8 @@ const StudySupportAdmin = () => {
         sessionLink: '',
         sessionNotes: ''
     });
+    const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
 
     const SEMESTERS = ['Y1S1', 'Y1S2', 'Y2S1', 'Y2S2', 'Y3S1', 'Y3S2', 'Y4S1', 'Y4S2'];
     const MATERIAL_TYPES = ['pdf', 'link', 'video', 'other'];
@@ -180,6 +182,9 @@ const StudySupportAdmin = () => {
                     }
                 }
                 setShowForm(false);
+            } else {
+                const data = await res.json();
+                setError(data.message || 'Failed to save item');
             }
         } catch (err) {
             console.error('Error submitting form:', err);
@@ -193,6 +198,43 @@ const StudySupportAdmin = () => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        setUploadError(null);
+
+        const formDataFile = new FormData();
+        formDataFile.append('file', file);
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('http://localhost:5000/api/study-support/upload-material', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                body: formDataFile
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                setFormData(prev => ({
+                    ...prev,
+                    contentUrl: data.url
+                }));
+            } else {
+                setUploadError(data.message || 'Upload failed');
+            }
+        } catch (err) {
+            console.error('Error uploading file:', err);
+            setUploadError('Failed to upload file');
+        } finally {
+            setUploading(false);
+        }
     };
 
     if (loading) {
@@ -472,17 +514,38 @@ const StudySupportAdmin = () => {
                                         </select>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label>Content URL *</label>
-                                        <input
-                                            type="url"
-                                            name="contentUrl"
-                                            value={formData.contentUrl}
-                                            onChange={handleInputChange}
-                                            placeholder="https://example.com/material.pdf"
-                                            required
-                                        />
-                                    </div>
+                                    {formData.materialType === 'pdf' ? (
+                                        <div className="form-group">
+                                            <label>Content Upload (PDF/Image/Word) *</label>
+                                            <input
+                                                type="file"
+                                                onChange={handleFileUpload}
+                                                disabled={uploading}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+                                                required={!formData.contentUrl}
+                                            />
+                                            {uploading && <p className="upload-status">Uploading...</p>}
+                                            {uploadError && <p className="upload-error">{uploadError}</p>}
+                                            {formData.contentUrl && !uploading && (
+                                                <p className="upload-success">
+                                                    <CheckCircle size={14} /> File ready for {editingId ? 'update' : 'creation'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="form-group">
+                                            <label>Content URL *</label>
+                                            <input
+                                                type="url"
+                                                name="contentUrl"
+                                                value={formData.contentUrl}
+                                                onChange={handleInputChange}
+                                                placeholder="https://example.com/external-resource"
+                                                required
+                                            />
+                                            <small className="help-text">Provide an external link for this {formData.materialType}.</small>
+                                        </div>
+                                    )}
                                 </>
                             ) : (
                                 <>

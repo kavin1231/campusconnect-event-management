@@ -646,6 +646,110 @@ class AuthController {
       });
     }
   }
+
+  // Get user by ID (Admin only)
+  static async getUserById(req, res) {
+    try {
+      const { id } = req.params;
+      const { type } = req.query; // 'student' or 'staff'
+
+      let userData = null;
+      if (type === "student") {
+        userData = await StudentModel.findById(parseInt(id));
+      } else {
+        userData = await UserModel.findById(parseInt(id));
+      }
+
+      if (!userData) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        user: userData,
+      });
+    } catch (error) {
+      console.error("Get user by ID error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error fetching user",
+        error: error.message,
+      });
+    }
+  }
+
+  // Delete user (Admin only)
+  static async deleteUser(req, res) {
+    try {
+      const { id } = req.params;
+      const { type } = req.query; // 'student' or 'staff'
+
+      if (!id || !type) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID and type are required",
+        });
+      }
+
+      const userId = parseInt(id);
+
+      if (type === "student") {
+        const student = await StudentModel.findById(userId);
+        if (!student) {
+          return res.status(404).json({
+            success: false,
+            message: "Student not found",
+          });
+        }
+
+        // If they are also in User table (e.g. Club President), delete that record too
+        const user = await UserModel.findByEmail(student.email);
+        if (user) {
+          if (user.role === "SYSTEM_ADMIN") {
+            return res.status(400).json({
+              success: false,
+              message: "Cannot delete a student who is a System Admin",
+            });
+          }
+          await UserModel.delete(user.id);
+        }
+
+        await StudentModel.delete(userId);
+      } else {
+        const user = await UserModel.findById(userId);
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            message: "Staff user not found",
+          });
+        }
+
+        if (user.role === "SYSTEM_ADMIN") {
+          return res.status(400).json({
+            success: false,
+            message: "Cannot delete System Admin",
+          });
+        }
+
+        await UserModel.delete(userId);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error deleting user",
+        error: error.message,
+      });
+    }
+  }
 }
 
 export default AuthController;

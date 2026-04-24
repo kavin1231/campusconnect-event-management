@@ -24,8 +24,8 @@ const resolveProductImageUrl = (imageUrl) => {
 
 const normalizeOrderStatus = (status) => {
   const value = String(status || "pending").toLowerCase();
-  if (value.includes("collect")) return "collected";
-  if (value.includes("paid") || value.includes("verify")) return "paid";
+  if (value.includes("collect") || value.includes("deliver") || value.includes("complete")) return "collected";
+  if (value.includes("paid") || value.includes("verify") || value.includes("ready") || value.includes("confirm")) return "paid";
   return "pending";
 };
 
@@ -264,6 +264,7 @@ export default function MerchandiseOrdersPage() {
   const [page, setPage] = useState("merchandise");
   const [context, setContext] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [preview, setPreview] = useState(null);
   const [visible, setVisible] = useState(true);
   const [formError, setFormError] = useState(null);
@@ -278,6 +279,12 @@ export default function MerchandiseOrdersPage() {
     inventory: "",
     imageUrl: "",
   });
+  
+  // Dynamic Pickup Slots State
+  const [dynamicPickupSlots, setDynamicPickupSlots] = useState([]);
+  const [isSavingSlots, setIsSavingSlots] = useState(false);
+  const [newSlot, setNewSlot] = useState({ date: "", startTime: "", endTime: "", location: "" });
+  const [eventRequest, setEventRequest] = useState(null);
 
   const go = (nextPage, ctx = null) => {
     setContext(ctx);
@@ -306,10 +313,28 @@ export default function MerchandiseOrdersPage() {
     isActive: true,
   });
 
+  const fetchEventDetails = async () => {
+    try {
+      const response = await eventRequestAPI.getEventRequestById(id);
+      if (response.success) {
+        setEventRequest(response.data);
+        if (Array.isArray(response.data.pickupSlots)) {
+          setDynamicPickupSlots(response.data.pickupSlots);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching event details:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (id) fetchEventDetails();
+  }, [id]);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await merchandiseAPI.getProducts();
+        const response = await merchandiseAPI.getProducts({ eventRequestId: id });
         if (response.success) {
           setProducts(response.products);
         } else {
@@ -327,7 +352,7 @@ export default function MerchandiseOrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const response = await merchandiseAPI.getOrders();
+      const response = await merchandiseAPI.getOrders({ eventRequestId: id });
       if (response?.success && Array.isArray(response.orders)) {
         setOrders(response.orders);
       } else {
@@ -384,6 +409,7 @@ export default function MerchandiseOrdersPage() {
         inventory: parsedInventory,
         imageUrl: resolvedImageUrl,
         isActive: visible,
+        eventRequestId: Number(id),
       };
 
       const response = await merchandiseAPI.createProduct(payload);
@@ -419,6 +445,7 @@ export default function MerchandiseOrdersPage() {
     return {
       id: order.id,
       delegate: order.buyerName || "Unknown Student",
+      studentNumber: order.studentNumber || "-",
       item: firstItem?.product?.name || "N/A",
       size: firstItem?.size || "-",
       date: formatOrderDate(order.createdAt),
@@ -429,10 +456,12 @@ export default function MerchandiseOrdersPage() {
       buyerPhone: order.buyerPhone || "-",
       quantity: (order.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0),
       paymentSlipUrl: order.paymentSlipUrl || null,
+      rawOrder: order,
     };
   });
 
-  const filteredRows = filter === "all" ? orderRows : orderRows.filter((r) => r.status === filter);
+  const filteredRows = (filter === "all" ? orderRows : orderRows.filter((r) => r.status === filter))
+    .filter(r => !searchQuery || r.delegate.toLowerCase().includes(searchQuery.toLowerCase()) || r.item.toLowerCase().includes(searchQuery.toLowerCase()) || String(r.id).includes(searchQuery) || String(r.studentNumber).toLowerCase().includes(searchQuery.toLowerCase()));
 
   const stockRows = products.length
     ? products.map((p) => ({
@@ -744,13 +773,25 @@ export default function MerchandiseOrdersPage() {
             title={p.name}
             price={typeof p.price === "number" ? `$${p.price.toFixed(2)}` : "$0.00"}
             desc={p.description || "No description available."}
-            soldOut={p.status === "LOW_STOCK" || p.status === "OUT_OF_STOCK"}
+            soldOut={p.inventory <= 10}
             image={resolveProductImageUrl(p.imageUrl)}
             onClick={() => go("product_detail", p)}
             palette={palette}
           />
         ))}
       </div>
+
+      {products.some(p => p.inventory <= 10) && (
+        <div style={{ marginBottom: "14px", background: "#FEF2F2", border: "1px solid #FEE2E2", borderRadius: "10px", padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ color: "#DC2626" }}><Icon.AlertCircle size={20} /></div>
+          <div>
+            <p style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#991B1B", fontFamily: FONT }}>Low Stock Alert</p>
+            <p style={{ margin: 0, fontSize: "12px", color: "#B91C1C", fontFamily: FONT }}>
+              {products.filter(p => p.inventory <= 10).map(p => p.name).join(", ")} {products.filter(p => p.inventory <= 10).length > 1 ? "are" : "is"} running low on stock.
+            </p>
+          </div>
+        </div>
+      )}
 
       <section style={{ background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: "10px", overflow: "hidden" }}>
         <div
@@ -763,7 +804,29 @@ export default function MerchandiseOrdersPage() {
           }}
         >
           <p style={{ margin: 0, fontSize: "12px", fontWeight: "800", color: C.primary, fontFamily: FONT }}>Fulfillment Dashboard</p>
-          <div style={{ display: "flex", gap: "6px" }}>
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            <div style={{ position: "relative", marginRight: "10px" }}>
+              <input
+                type="text"
+                placeholder="Search orders..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  padding: "4px 8px 4px 26px",
+                  fontSize: "11px",
+                  borderRadius: "6px",
+                  border: `1px solid ${palette.border}`,
+                  background: palette.surface,
+                  color: palette.text,
+                  width: "160px",
+                  outline: "none",
+                  fontFamily: FONT,
+                }}
+              />
+              <span style={{ position: "absolute", left: "8px", top: "50%", transform: "translateY(-50%)", color: palette.textMuted }}>
+                <Icon.Search size={12} />
+              </span>
+            </div>
             {[["all", "All"], ["pending", "Pending"], ["paid", "Paid"], ["collected", "Collected"]].map(([key, label]) => (
               <button
                 key={key}
@@ -824,14 +887,24 @@ export default function MerchandiseOrdersPage() {
               cursor: "pointer",
             }}
           >
-            <span style={{
-              fontSize: "11px",
-              color: palette.text,
-              fontWeight: "600",
-              fontFamily: FONT,
-            }}>
-              {r.delegate}
-            </span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{
+                fontSize: "11px",
+                color: palette.text,
+                fontWeight: "600",
+                fontFamily: FONT,
+              }}>
+                {r.delegate}
+              </span>
+              <span style={{
+                fontSize: "9px",
+                color: palette.textDim,
+                fontFamily: FONT,
+                marginTop: "2px"
+              }}>
+                {r.studentNumber}
+              </span>
+            </div>
             <span style={{
               fontSize: "11px",
               color: palette.textMuted,
@@ -855,7 +928,19 @@ export default function MerchandiseOrdersPage() {
             </span>
             <StatusPill type={r.status}>{r.status}</StatusPill>
             <button
-              onClick={(e) => e.stopPropagation()}
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (r.action === "Mark Collected") {
+                  try {
+                    const response = await merchandiseAPI.updateOrder(r.id, { status: "COLLECTED" });
+                    if (response?.success) {
+                      await fetchOrders();
+                    }
+                  } catch (err) { console.error(err); }
+                } else if (r.action === "Process Payment") {
+                  go("order_detail", r.rawOrder);
+                }
+              }}
               style={{
                 justifySelf: "start",
                 border: "none",
@@ -1874,12 +1959,76 @@ export default function MerchandiseOrdersPage() {
     </>
   );
 
+  const handleAddSlot = async () => {
+    if (!newSlot.date || !newSlot.startTime || !newSlot.location) {
+      alert("Please fill in date, start time, and location.");
+      return;
+    }
+
+    const updatedSlots = [
+      ...dynamicPickupSlots,
+      { 
+        id: `slot-${Date.now()}`, 
+        ...newSlot, 
+        label: `Collection Window ${dynamicPickupSlots.length + 1}`,
+        assigned: 0,
+        total: 50
+      }
+    ];
+
+    setIsSavingSlots(true);
+    try {
+      const res = await eventRequestAPI.updatePickupSlots(id, updatedSlots);
+      if (res.success) {
+        setDynamicPickupSlots(updatedSlots);
+        setNewSlot({ date: "", startTime: "", endTime: "", location: "" });
+      }
+    } catch (err) {
+      console.error("Save slot error:", err);
+    } finally {
+      setIsSavingSlots(false);
+    }
+  };
+
+  const handleRemoveSlot = async (slotId) => {
+    const updatedSlots = dynamicPickupSlots.filter(s => s.id !== slotId);
+    setIsSavingSlots(true);
+    try {
+      const res = await eventRequestAPI.updatePickupSlots(id, updatedSlots);
+      if (res.success) {
+        setDynamicPickupSlots(updatedSlots);
+      }
+    } catch (err) {
+      console.error("Remove slot error:", err);
+    } finally {
+      setIsSavingSlots(false);
+    }
+  };
+
   const renderPickupSlotsPage = () => (
     <>
+      <button
+        onClick={() => go("merchandise")}
+        style={{
+          border: "none",
+          background: "none",
+          color: palette.textMuted,
+          fontSize: "11px",
+          fontWeight: "700",
+          letterSpacing: "0.05em",
+          textTransform: "uppercase",
+          cursor: "pointer",
+          marginBottom: "8px",
+          fontFamily: FONT,
+        }}
+      >
+        {"<"}
+        Back to Merchandise
+      </button>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "12px" }}>
         <div>
           <h1 style={{ margin: "0 0 4px", fontSize: "24px", color: palette.text, fontWeight: "800" }}>Pickup Slot Management</h1>
-          <p style={{ margin: 0, fontSize: "12px", color: palette.textMuted }}>Schedule and monitor merch pickup windows across campus.</p>
+          <p style={{ margin: 0, fontSize: "12px", color: palette.textMuted }}>Schedule and monitor merch pickup windows for {eventRequest?.title || "your event"}.</p>
         </div>
       </div>
 
@@ -1891,7 +2040,11 @@ export default function MerchandiseOrdersPage() {
             gap: "10px",
           }}
         >
-          {slotRows.map((slot) => {
+          {dynamicPickupSlots.length === 0 ? (
+            <div style={{ padding: "40px", textAlign: "center", background: palette.surfaceAlt, borderRadius: "12px", border: `1px dashed ${palette.border}` }}>
+              <p style={{ color: palette.textMuted, fontSize: "13px" }}>No pickup slots scheduled yet.</p>
+            </div>
+          ) : dynamicPickupSlots.map((slot) => {
             const pct = Math.round((slot.assigned / slot.total) * 100);
             return (
               <div
@@ -1901,8 +2054,15 @@ export default function MerchandiseOrdersPage() {
                   border: `1px solid ${palette.border}`,
                   borderRadius: "12px",
                   padding: "14px",
+                  position: "relative"
                 }}
               >
+                <button 
+                  onClick={() => handleRemoveSlot(slot.id)}
+                  style={{ position: "absolute", top: "10px", right: "10px", background: "none", border: "none", color: C.error, cursor: "pointer", padding: "4px" }}
+                >
+                  <Icon.Trash size={14} />
+                </button>
                 <div
                   style={{
                     display: "flex",
@@ -1919,27 +2079,13 @@ export default function MerchandiseOrdersPage() {
                   }}>
                     {slot.label}
                   </p>
-                  {slot.hot && (
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        color: C.white,
-                        background: C.error,
-                        borderRadius: "100px",
-                        padding: "2px 8px",
-                        fontWeight: "700",
-                      }}
-                    >
-                      HOT
-                    </span>
-                  )}
                 </div>
                 <p style={{
                   margin: "0 0 6px",
                   fontSize: "11px",
                   color: palette.textMuted,
                 }}>
-                  {slot.date} • {slot.time} • {slot.loc}
+                  {slot.date} • {slot.startTime} {slot.endTime ? `- ${slot.endTime}` : ""} • {slot.location}
                 </p>
                 <div
                   style={{
@@ -1952,8 +2098,8 @@ export default function MerchandiseOrdersPage() {
                   <div
                     style={{
                       height: "100%",
-                      width: `${pct}%`,
-                      background: pct > 90 ? C.error : pct > 60 ? C.secondary : C.success,
+                      width: `${pct || 0}%`,
+                      background: (pct || 0) > 90 ? C.error : (pct || 0) > 60 ? C.secondary : C.success,
                     }}
                   />
                 </div>
@@ -1962,7 +2108,7 @@ export default function MerchandiseOrdersPage() {
                   fontSize: "10px",
                   color: palette.textDim,
                 }}>
-                  Orders Assigned {slot.assigned}/{slot.total}
+                  Orders Assigned {slot.assigned || 0}/{slot.total || 50}
                 </p>
               </div>
             );
@@ -1993,59 +2139,88 @@ export default function MerchandiseOrdersPage() {
               gap: "8px",
             }}
           >
-            <input type="date" style={{
-              width: "100%",
-              padding: "8px 10px",
-              borderRadius: "8px",
-              border: `1px solid ${palette.border}`,
-              background: palette.surfaceAlt,
-              color: palette.text,
-              fontFamily: FONT,
-              fontSize: "12px",
-            }}
-          />
-          <input type="time" style={{
-            width: "100%",
-            padding: "8px 10px",
-            borderRadius: "8px",
-            border: `1px solid ${palette.border}`,
-            background: palette.surfaceAlt,
-            color: palette.text,
-            fontFamily: FONT,
-            fontSize: "12px",
-          }}
-          />
-          <input
-            placeholder="Location"
-            defaultValue="Main Student Union - East Wing"
-            style={{
-              width: "100%",
-              padding: "8px 10px",
-              borderRadius: "8px",
-              border: `1px solid ${palette.border}`,
-              background: palette.surfaceAlt,
-              color: palette.text,
-              fontFamily: FONT,
-              fontSize: "12px",
-            }}
-          />
-          <button
-            style={{
-              border: "none",
-              borderRadius: "8px",
-              background: C.primary,
-              color: C.white,
-              fontSize: "11px",
-              fontWeight: "700",
-              padding: "9px 14px",
-              cursor: "pointer",
-              fontFamily: FONT,
-            }}
-          >
-            Schedule Slot
-          </button>
+            <input 
+              type="date" 
+              value={newSlot.date}
+              onChange={e => setNewSlot({...newSlot, date: e.target.value})}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: "8px",
+                border: `1px solid ${palette.border}`,
+                background: palette.surfaceAlt,
+                color: palette.text,
+                fontFamily: FONT,
+                fontSize: "12px",
+              }}
+            />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <input 
+                type="time" 
+                value={newSlot.startTime}
+                onChange={e => setNewSlot({...newSlot, startTime: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: "8px",
+                  border: `1px solid ${palette.border}`,
+                  background: palette.surfaceAlt,
+                  color: palette.text,
+                  fontFamily: FONT,
+                  fontSize: "12px",
+                }}
+              />
+              <input 
+                type="time" 
+                value={newSlot.endTime}
+                onChange={e => setNewSlot({...newSlot, endTime: e.target.value})}
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: "8px",
+                  border: `1px solid ${palette.border}`,
+                  background: palette.surfaceAlt,
+                  color: palette.text,
+                  fontFamily: FONT,
+                  fontSize: "12px",
+                }}
+              />
+            </div>
+            <input
+              placeholder="Location (e.g. Student Center)"
+              value={newSlot.location}
+              onChange={e => setNewSlot({...newSlot, location: e.target.value})}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: "8px",
+                border: `1px solid ${palette.border}`,
+                background: palette.surfaceAlt,
+                color: palette.text,
+                fontFamily: FONT,
+                fontSize: "12px",
+              }}
+            />
+            <button
+              onClick={handleAddSlot}
+              disabled={isSavingSlots}
+              style={{
+                border: "none",
+                borderRadius: "8px",
+                background: C.primary,
+                color: C.white,
+                fontSize: "11px",
+                fontWeight: "700",
+                padding: "9px 14px",
+                cursor: "pointer",
+                fontFamily: FONT,
+                opacity: isSavingSlots ? 0.7 : 1
+              }}
+            >
+              {isSavingSlots ? "Scheduling..." : "Schedule Slot"}
+            </button>
+          </div>
         </div>
-      </div>
       </div>
     </>
   );

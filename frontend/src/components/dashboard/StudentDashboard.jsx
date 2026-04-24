@@ -6,15 +6,11 @@ import { dashboardAPI, sportsAPI, groupLinksAPI, studySupportAPI, merchandiseAPI
 import { FileText, Link as LinkIcon, Video, Calendar, AlertCircle, Trophy, Users, ExternalLink, Loader2 as LoaderIcon } from 'lucide-react';
 import "./StudentDashboard.css";
 
-// ÔöÇÔöÇ Filter options ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ├ö├Â├ç├ö├Â├ç Filter options ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
 const FILTERS = [
   { key: "all", label: "All Events" },
   { key: "upcoming", label: "Upcoming" },
   { key: "past", label: "Past Events" },
-  { key: "orders", label: "My Orders" },
-  { key: "explore", label: "Explore" },
-  { key: "study", label: "Study Materials" },
-  { key: "extracurricular", label: "Social" },
 ];
 
 const CATEGORIES = [
@@ -52,7 +48,7 @@ const StudentDashboard = () => {
   const profileRef = useRef(null);
   const searchTimerRef = useRef(null);
 
-  // ÔöÇÔöÇ Study Support States ÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Study Support States ├ö├Â├ç├ö├Â├ç
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
   const [activeStudyTab, setActiveStudyTab] = useState('materials');
@@ -62,7 +58,7 @@ const StudentDashboard = () => {
   const [studyLoading, setStudyLoading] = useState(false);
   const [studyError, setStudyError] = useState(null);
 
-  // ÔöÇÔöÇ Social Hub States ÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Social Hub States ├ö├Â├ç├ö├Â├ç
   const [sports, setSports] = useState([]);
   const [extraLinks, setExtraLinks] = useState([]);
   const [activeExtraTab, setActiveExtraTab] = useState('sports');
@@ -73,7 +69,7 @@ const StudentDashboard = () => {
   const [ordersError, setOrdersError] = useState(null);
   const [expandedOrderIds, setExpandedOrderIds] = useState([]);
 
-  // ÔöÇÔöÇ Auth guard ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Auth guard ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -97,7 +93,7 @@ const StudentDashboard = () => {
     }
   }, [navigate]);
 
-  // ÔöÇÔöÇ Fetch stats ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Fetch stats ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
     try {
@@ -110,7 +106,7 @@ const StudentDashboard = () => {
     }
   }, []);
 
-  // ÔöÇÔöÇ Fetch events ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Fetch events ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
@@ -135,7 +131,7 @@ const StudentDashboard = () => {
     }
   }, [user, fetchStats, fetchEvents]);
 
-  // ÔöÇÔöÇ Fetch Study Data ÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Fetch Study Data ├ö├Â├ç├ö├Â├ç
   const fetchStudyData = useCallback(async () => {
     if (filter !== "study") return;
     setStudyLoading(true);
@@ -160,7 +156,7 @@ const StudentDashboard = () => {
     }
   }, [filter]);
 
-  // ÔöÇÔöÇ Extracurricular Data Fetching ÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Extracurricular Data Fetching ├ö├Â├ç├ö├Â├ç
   const fetchExtraData = useCallback(async () => {
     if (filter !== "extracurricular") return;
     setExtraLoading(true);
@@ -267,7 +263,7 @@ const StudentDashboard = () => {
     return sA - sB;
   });
 
-  // ÔöÇÔöÇ Sync filter with URL ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Sync filter with URL ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   useEffect(() => {
     const urlFilter = searchParams.get("filter") || "all";
     if (urlFilter !== filter) {
@@ -275,14 +271,14 @@ const StudentDashboard = () => {
     }
   }, [searchParams, filter]);
 
-  // ÔöÇÔöÇ Debounced search ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Debounced search ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
     clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => setSearch(e.target.value), 400);
   };
 
-  // ÔöÇÔöÇ Profile dropdown close on outside click ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Profile dropdown close on outside click ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   useEffect(() => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target))
@@ -292,14 +288,14 @@ const StudentDashboard = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, [showProfileMenu]);
 
-  // ÔöÇÔöÇ Toast helper ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Toast helper ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   const showToast = (msg, type = "success") => {
     setToastMsg(msg);
     setToastType(type);
     setTimeout(() => setToastMsg(""), 3000);
   };
 
-  // ÔöÇÔöÇ Register / Unregister ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Register / Unregister ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   const toggleRegistration = async (event) => {
     setActionLoading((prev) => ({ ...prev, [event.id]: true }));
     try {
@@ -329,7 +325,7 @@ const StudentDashboard = () => {
     navigate("/");
   };
 
-  // ÔöÇÔöÇ Helpers ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Helpers ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   const getInitials = (name = "") => {
     const parts = name.trim().split(" ");
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
@@ -378,7 +374,7 @@ const StudentDashboard = () => {
     });
   };
 
-  const ORDER_STEPS = ["Submitted", "Payment Check", "Confirmed", "Ready/Delivered"];
+  const ORDER_STEPS = ["Submitted", "Payment Check", "Confirmed", "Ready for Pickup", "Collected"];
 
   const getOrderTrackerMeta = (statusRaw) => {
     const status = String(statusRaw || "PENDING").toUpperCase();
@@ -392,21 +388,21 @@ const StudentDashboard = () => {
       };
     }
 
+    if (status.includes("DELIVER") || status.includes("COMPLETE") || status.includes("FULFIL") || status.includes("COLLECT")) {
+      return {
+        label: "Collected",
+        tone: "complete",
+        stepIndex: 4,
+        helper: "Thank you for your purchase. Also explore for more merch.",
+      };
+    }
+
     if (status.includes("READY")) {
       return {
         label: "Ready for Pickup",
         tone: "confirmed",
         stepIndex: 3,
-        helper: "Payment verified. Your order is ready for pickup.",
-      };
-    }
-
-    if (status.includes("DELIVER") || status.includes("COMPLETE") || status.includes("FULFIL") || status.includes("COLLECT")) {
-      return {
-        label: "Delivered",
-        tone: "complete",
-        stepIndex: 3,
-        helper: "Your order has completed fulfillment.",
+        helper: "Your order is ready to pick up and the allocated location for that item by organizer",
       };
     }
 
@@ -438,16 +434,16 @@ const StudentDashboard = () => {
     );
   };
 
-  // ÔöÇÔöÇ Render ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // ├ö├Â├ç├ö├Â├ç Render ├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç├ö├Â├ç
   return (
     <>
       <Header />
       <div className="sd-layout">
         <Sidebar activePage="dashboard" />
 
-      {/* ÔöÇÔöÇ Main Wrapper ÔöÇÔöÇ */}
+      {/* ├ö├Â├ç├ö├Â├ç Main Wrapper ├ö├Â├ç├ö├Â├ç */}
       <div className="sd-content-wrapper">
-        {/* ÔöÇÔöÇ Toast ÔöÇÔöÇ */}
+        {/* ├ö├Â├ç├ö├Â├ç Toast ├ö├Â├ç├ö├Â├ç */}
         {toastMsg && (
           <div className={`sd-toast sd-toast-${toastType}`}>
             {toastType === "success" ? (
@@ -491,7 +487,7 @@ const StudentDashboard = () => {
             <div className="sd-header-content">
               <div className="sd-header-text">
                 <span className="sd-header-badge">WELCOME BACK</span>
-                <h1>Hello, {user?.name?.split(" ")[0]}! 👋</h1>
+                <h1>Hello, {user?.name?.split(" ")[0]}! ­ƒæï</h1>
                 <p>Here's what's happening with your campus events today.</p>
               </div>
               <div className="sd-header-stats">
@@ -508,7 +504,7 @@ const StudentDashboard = () => {
           </header>
         )}
 
-        {/* ÔöÇÔöÇ Body ÔöÇÔöÇ */}
+        {/* ├ö├Â├ç├ö├Â├ç Body ├ö├Â├ç├ö├Â├ç */}
         <main className="sd-main">
 
           {/* Stats row */}
@@ -518,25 +514,25 @@ const StudentDashboard = () => {
                 {
                   label: "Total Registered",
                   value: stats.registered,
-                  icon: "📝",
+                  icon: "­ƒôØ",
                   color: "#4f46e5",
                 },
                 {
                   label: "Upcoming",
                   value: stats.upcoming,
-                  icon: "📅",
+                  icon: "­ƒôà",
                   color: "#10b981",
                 },
                 {
                   label: "Completed",
                   value: stats.past,
-                  icon: "✅",
+                  icon: "Ô£à",
                   color: "#f59e0b",
                 },
                 {
                   label: "Events on Platform",
                   value: stats.totalEvents,
-                  icon: "🌐",
+                  icon: "­ƒîÉ",
                   color: "#8b5cf6",
                 },
               ].map((s) => (
@@ -549,7 +545,7 @@ const StudentDashboard = () => {
                   </div>
                   <div className="sd-stat-body">
                     <span className="sd-stat-value" style={{ color: s.color }}>
-                      {statsLoading ? "ÔÇö" : s.value}
+                      {statsLoading ? "├ö├ç├Â" : s.value}
                     </span>
                     <span className="sd-stat-label">{s.label}</span>
                   </div>
@@ -558,7 +554,7 @@ const StudentDashboard = () => {
             </div>
           )}
 
-          {/* ── Filter + Category bar ── */}
+          {/* ÔöÇÔöÇ Filter + Category bar ÔöÇÔöÇ */}
           {isEventsView && (
             <div className="sd-controls">
               <div className="sd-filter-tabs">
@@ -598,11 +594,11 @@ const StudentDashboard = () => {
           {loading ? (
             <div className="sd-loading">
               <div className="sd-spinner" />
-              <p>Loading events…</p>
+              <p>Loading eventsÔÇª</p>
             </div>
           ) : events.length === 0 ? (
             <div className="sd-empty">
-              <div className="sd-empty-icon">🔍</div>
+              <div className="sd-empty-icon">­ƒöì</div>
               <h3>No events found</h3>
               <p>Try changing the filter or search term.</p>
             </div>
@@ -746,7 +742,7 @@ const StudentDashboard = () => {
                           {busy ? (
                             <>
                               <div className="sd-btn-spinner sd-btn-spinner-dark" />
-                              ProcessingÔÇª
+                              Processing├ö├ç┬¬
                             </>
                           ) : (
                             <>
@@ -780,7 +776,7 @@ const StudentDashboard = () => {
                           {busy ? (
                             <>
                               <div className="sd-btn-spinner" />
-                              ProcessingÔÇª
+                              Processing├ö├ç┬¬
                             </>
                           ) : (
                             <>
@@ -817,7 +813,7 @@ const StudentDashboard = () => {
           <section className="sd-orders-tracker-view">
             <div className="sd-orders-header-card">
               <div className="sd-orders-header-main">
-                <div className="sd-orders-icon">📦</div>
+                <div className="sd-orders-icon">­ƒôª</div>
                 <div>
                   <h2>My Merchandise Orders</h2>
                   <p>Track each order from submission to payment confirmation and delivery.</p>
@@ -842,7 +838,7 @@ const StudentDashboard = () => {
               </div>
             ) : merchOrders.length === 0 ? (
               <div className="sd-empty">
-                <div className="sd-empty-icon">🧾</div>
+                <div className="sd-empty-icon">­ƒº¥</div>
                 <h3>No merchandise orders yet</h3>
                 <p>When you place an order, its tracker will appear here.</p>
               </div>
@@ -902,7 +898,7 @@ const StudentDashboard = () => {
                           aria-expanded={isExpanded}
                           aria-label={isExpanded ? "Collapse order progress" : "Expand order progress"}
                         >
-                          <span className={`sd-order-toggle-icon ${isExpanded ? "open" : ""}`}>▾</span>
+                          <span className={`sd-order-toggle-icon ${isExpanded ? "open" : ""}`}>Ôû¥</span>
                         </button>
                       </div>
 
@@ -915,7 +911,7 @@ const StudentDashboard = () => {
                               return (
                                 <div key={`${order.id}-${step}`} className="sd-order-step-item">
                                   <span className={`sd-order-step-dot ${done ? "done" : ""} ${active ? "active" : ""}`}>
-                                    {done ? "✓" : idx + 1}
+                                    {done ? "Ô£ô" : idx + 1}
                                   </span>
                                   <span className={`sd-order-step-text ${done || active ? "current" : ""}`}>{step}</span>
                                 </div>
@@ -937,12 +933,12 @@ const StudentDashboard = () => {
           </section>
         )}
         
-        {/* ÔöÇÔöÇ Study Support Section ÔöÇÔöÇ */}
+        {/* ├ö├Â├ç├ö├Â├ç Study Support Section ├ö├Â├ç├ö├Â├ç */}
         {filter === "study" && (
           <div className="sd-study-integrated-view">
             <header className="sd-study-header">
               <div className="sd-study-search-wrap">
-                <i className="search-icon">🔍</i>
+                <i className="search-icon">­ƒöì</i>
                 <input 
                   type="text" 
                   placeholder="Search materials, sessions, topics..." 
@@ -998,7 +994,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {getFilteredMaterials().length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">📚</div>
+                      <div className="empty-icon">­ƒôÜ</div>
                       <h3>No materials found</h3>
                       <p>Try adjusting your search or semester filter</p>
                     </div>
@@ -1045,7 +1041,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {getFilteredSessions().length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">🎥</div>
+                      <div className="empty-icon">­ƒÄÑ</div>
                       <h3>No sessions found</h3>
                       <p>Try adjusting your search or semester filter</p>
                     </div>
@@ -1078,7 +1074,7 @@ const StudentDashboard = () => {
                             </td>
                             <td>
                               <div className="table-creator">
-                                <div className="avatar-small">🎓</div>
+                                <div className="avatar-small">­ƒÄô</div>
                                 <span>{session.creator?.name || 'Admin'}</span>
                               </div>
                             </td>
@@ -1107,12 +1103,12 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* ÔöÇÔöÇ Social Hub Section ÔöÇÔöÇ */}
+        {/* ├ö├Â├ç├ö├Â├ç Social Hub Section ├ö├Â├ç├ö├Â├ç */}
         {filter === "extracurricular" && (
           <div className="sd-study-integrated-view">
             <header className="sd-study-header">
               <div className="sd-study-search-wrap">
-                <i className="search-icon">🔍</i>
+                <i className="search-icon">­ƒöì</i>
                 <input 
                   type="text" 
                   placeholder="Search clubs, hubs, communities..." 
@@ -1154,7 +1150,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {sports.length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">🏆</div>
+                      <div className="empty-icon">­ƒÅå</div>
                       <h3>No sports clubs found</h3>
                       <p>Check back later for active campus sports</p>
                     </div>
@@ -1182,7 +1178,7 @@ const StudentDashboard = () => {
                             </td>
                             <td>
                               <div className="table-creator">
-                                <div className="avatar-small">👤</div>
+                                <div className="avatar-small">­ƒæñ</div>
                                 <span>{sport.coachName || 'N/A'}</span>
                               </div>
                             </td>
@@ -1204,7 +1200,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {extraLinks.length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">🔗</div>
+                      <div className="empty-icon">­ƒöù</div>
                       <h3>No social hubs found</h3>
                       <p>Admin hasn't added any social groups yet</p>
                     </div>

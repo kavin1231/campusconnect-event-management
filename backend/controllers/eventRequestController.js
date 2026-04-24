@@ -248,13 +248,24 @@ const publishEvent = async (eventRequestId) => {
         updateData.description = safeDescription;
       }
 
-      if (organizerType && existing.organizerType !== organizerType) {
+      if (existing.status !== "PUBLISHED") {
+        updateData.status = "PUBLISHED";
+      }
+
+      if (!existing.organizerType) {
         updateData.organizerType = organizerType;
       }
 
-      if (organizerId && existing.organizerId !== organizerId) {
+      if (!existing.organizerId) {
         updateData.organizerId = organizerId;
       }
+
+      if (!existing.organizer) {
+        updateData.organizer = organizer.organizerName || request.organizingBody;
+      }
+
+      // organizerType and organizerId are stored in EventRequest, not Event
+      // Only update image and description which exist in Event table
 
       if (Object.keys(updateData).length > 0) {
         await tx.event.update({
@@ -285,18 +296,11 @@ const publishEvent = async (eventRequestId) => {
           request.bannerUrl ||
           "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1600",
         status: "PUBLISHED",
-        budget: request.estimatedBudget
-          ? Math.round(request.estimatedBudget)
-          : null,
-        expectedAttendees: request.expectedAttendance,
-        venue: request.venue,
-        submittedBy: request.submittedBy,
-        submittedDate: request.submittedAt,
-        approvedBy: request.reviewedBy,
-        approvedAt: request.reviewedAt,
-        organizer: organizer.organizerName || request.organizingBody || null,
+        organizer: organizer.organizerName || request.organizingBody,
         organizerType,
-        organizerId: organizerId || null,
+        organizerId,
+        submittedBy: request.submittedBy,
+        submittedDate: request.submittedAt || new Date(),
       },
     });
 
@@ -304,6 +308,33 @@ const publishEvent = async (eventRequestId) => {
       where: { id: parseInt(eventRequestId) },
       data: { status: "PUBLISHED" },
     });
+
+    // Create Merchandise Products if any
+    if (Array.isArray(request.merchandise) && request.merchandise.length > 0) {
+      for (const item of request.merchandise) {
+        // Only create if it doesn't exist for this event request (idempotency)
+        const existingProduct = await tx.merchandiseProduct.findFirst({
+          where: {
+            eventRequestId: request.id,
+            name: item.name
+          }
+        });
+
+        if (!existingProduct) {
+          await tx.merchandiseProduct.create({
+            data: {
+              name: item.name,
+              description: item.description || null,
+              price: Number(item.price || 0),
+              inventory: Number(item.inventory || 0),
+              imageUrl: item.imageUrl || null,
+              isActive: item.enabled !== false,
+              eventRequestId: request.id
+            }
+          });
+        }
+      }
+    }
 
     return {
       event: createdEvent,
@@ -441,6 +472,8 @@ export const createEventRequest = async (req, res) => {
         safetyMeasures: safetyMeasures || null,
         emergencyPlan: emergencyPlan || null,
         contingency: contingency || null,
+        status: "PENDING",
+        submittedAt: new Date(),
         submittedBy: userId,
       },
       include: {
@@ -558,6 +591,26 @@ export const getEventRequest = async (req, res) => {
         reviewer: {
           select: { id: true, name: true },
         },
+        // Include the actual published event and its registrations
+        event: {
+          include: {
+            registrations: {
+              include: {
+                student: true
+              }
+            }
+          }
+        },
+        // Include merchandise orders to track crowd revenue/orders
+        merchandiseOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        }
       },
     });
 
@@ -994,6 +1047,37 @@ export const replaceEventMerchandise = async (req, res) => {
     if (error?.stack) {
       console.error(error.stack);
     }
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const updatePickupSlots = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const { pickupSlots } = req.body;
+
+    const request = await prisma.eventRequest.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Event request not found" });
+    }
+
+    const auth = assertSubmitter(request, userId);
+    if (!auth.ok) {
+      return res.status(auth.error.status).json({ success: false, message: auth.error.message });
+    }
+
+    await prisma.eventRequest.update({
+      where: { id: request.id },
+      data: { pickupSlots },
+    });
+
+    res.json({ success: true, message: "Pickup slots updated" });
+  } catch (error) {
+    console.error("Error updating pickup slots:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

@@ -141,6 +141,18 @@ export const authAPI = {
     });
     return response.json();
   },
+
+  getUserById: async (id, type) => {
+    const response = await fetchWithAuth(`/auth/users/${id}?type=${type}`);
+    return response.json();
+  },
+
+  deleteUser: async (id, type) => {
+    const response = await fetchWithAuth(`/auth/users/${id}?type=${type}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
 };
 
 // ============================================
@@ -887,6 +899,60 @@ export const eventRequestAPI = {
         status: "REVISION_REQUESTED",
         reviewNotes,
       }),
+    });
+    return response.json();
+  },
+
+  // Delegate Management
+  getDelegates: async (eventRequestId) => {
+    const response = await fetchWithAuth(`/event-requests/${eventRequestId}/delegates`);
+    return response.json();
+  },
+
+  addDelegate: async (eventRequestId, delegateData) => {
+    const response = await fetchWithAuth(`/event-requests/${eventRequestId}/delegates`, {
+      method: "POST",
+      body: JSON.stringify(delegateData),
+    });
+    return response.json();
+  },
+
+  updateDelegate: async (eventRequestId, delegateId, delegateData) => {
+    const response = await fetchWithAuth(`/event-requests/${eventRequestId}/delegates/${delegateId}`, {
+      method: "PATCH",
+      body: JSON.stringify(delegateData),
+    });
+    return response.json();
+  },
+
+  removeDelegate: async (eventRequestId, delegateId) => {
+    const response = await fetchWithAuth(`/event-requests/${eventRequestId}/delegates/${delegateId}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  },
+
+  getDelegateHistory: async (eventRequestId) => {
+    const response = await fetchWithAuth(`/event-requests/${eventRequestId}/delegates/history`);
+    return response.json();
+  },
+
+  checkConflicts: async (params) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(`/event-requests/conflicts?${query}`);
+    return response.json();
+  },
+
+  getEventCalendar: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithAuth(`/event-requests/calendar?${query}`);
+    return response.json();
+  },
+
+  updatePickupSlots: async (id, slots) => {
+    const response = await fetchWithAuth(`/event-requests/${id}/pickup-slots`, {
+      method: "PATCH",
+      body: JSON.stringify({ pickupSlots: slots }),
     });
     return response.json();
   },

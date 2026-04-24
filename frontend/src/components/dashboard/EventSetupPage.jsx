@@ -479,9 +479,14 @@ export default function EventSetupPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: FONT }}>
         <div style={{ background: `linear-gradient(135deg, ${C.primary} 0%, #0a4f96 100%)`, padding: '24px 36px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,.04)' }} />
-          <button onClick={() => navigate('/my-events')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.12)', border: '1px solid rgba(255,255,255,.2)', cursor: 'pointer', color: 'rgba(255,255,255,.8)', fontSize: '12px', fontWeight: '600', padding: '6px 12px', borderRadius: '8px', marginBottom: '14px' }}>
-            <Icon.ArrowLeft size={14} /> My Events
-          </button>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+            <button onClick={() => navigate('/my-events')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer', color: 'rgba(255,255,255,.85)', fontSize: '12px', fontWeight: '600', padding: '6px 12px', borderRadius: '8px' }}>
+              <Icon.ArrowLeft size={14} /> Back to My Events
+            </button>
+            <button onClick={() => navigate(`/my-events/${eventRequest?.id || id}/delegates`)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer', color: 'rgba(255,255,255,.85)', fontSize: '12px', fontWeight: '600', padding: '6px 12px', borderRadius: '8px' }}>
+              <Icon.Users size={14} /> Delegates
+            </button>
+          </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
             <div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: 'rgba(74,222,128,.16)', border: '1px solid rgba(74,222,128,.3)', borderRadius: '100px', padding: '4px 12px', marginBottom: '10px' }}>

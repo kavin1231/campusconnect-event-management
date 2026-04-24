@@ -66,6 +66,7 @@ import {
   AnalyticsActivity,
 } from "./components/analytics";
 import { ClubsModule } from "./pages/ClubsModule";
+import DelegateManagementPage from "./pages/DelegateManagementPage";
 import "./App.css";
 
 function LogisticsEntry() {
@@ -215,6 +216,15 @@ function App() {
           element={
             <ProtectedRoute
               element={MerchandiseOrdersPage}
+              allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
+            />
+          }
+        />
+        <Route
+          path="/my-events/:id/delegates"
+          element={
+            <ProtectedRoute
+              element={DelegateManagementPage}
               allowedRoles={["STUDENT", "EVENT_ORGANIZER", "CLUB_PRESIDENT"]}
             />
           }

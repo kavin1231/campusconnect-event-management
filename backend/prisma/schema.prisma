@@ -1,9 +1,10 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
 }
 
 model Student {
@@ -16,10 +17,10 @@ model Student {
   year                  Int
   profileImage          String?
   createdAt             DateTime                   @default(now())
-  registrations         StudentEventRegistration[]
+  eventReviews          EventReview[]
   presidentApplications PresidentApplication[]
   notifications         StudentNotification[]
-  eventReviews          EventReview[]
+  registrations         StudentEventRegistration[]
 
   @@map("Student")
 }
@@ -29,33 +30,572 @@ model StudentEventRegistration {
   studentId    Int
   eventId      Int
   registeredAt DateTime @default(now())
-  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, eventId])
   @@map("StudentRegistration")
+}
+
+model User {
+  id                     Int                    @id @default(autoincrement())
+  name                   String
+  email                  String                 @unique
+  password               String
+  role                   Role
+  profileImage           String?
+  createdAt              DateTime               @default(now())
+  clubOrFacultyName      String?
+  clubOrFacultyType      String?
+  approvedBookings       AssetBooking[]         @relation("AssetBookingApprovedBy")
+  approvedReturns        AssetBooking[]         @relation("ReturnApprovedBy")
+  requestedBookings      AssetBooking[]         @relation("AssetBookingRequester")
+  presidingClub          Club[]                 @relation("ClubPresident")
+  ClubMember             ClubMember[]
+  damageReports          DamageReport[]
+  eventRequestsReviewed  EventRequest[]         @relation("EventRequestReviewer")
+  eventRequestsSubmitted EventRequest[]         @relation("EventRequestSubmitter")
+  FinanceRecord          FinanceRecord[]
+  managedOrganizations   Organization[]
+  createdBudgets         OrganizationBudget[]
+  managedSponsorshipLeads SponsorshipLead[]
+  approvedVendors        VendorPartner[]
+  approvedApplications   PresidentApplication[]
+  allocatedStallSlots    StallSlot[]
+  studyMaterials         StudyMaterial[]        @relation("StudyMaterialCreator")
+  studySessions          StudySession[]         @relation("StudySessionCreator")
+  notifications          UserNotification[]
+  delegates              EventDelegate[]        @relation("EventDelegates")
+  delegateActions        EventDelegateHistory[] @relation("DelegateActionPerformedBy")
+
+  @@map("User")
+}
+
+model Event {
+  id                 Int                        @id @default(autoincrement())
+  title              String
+  description        String
+  date               DateTime
+  category           String
+  location           String
+  image              String
+  registeredCount    Int                        @default(0)
+  status             String                     @default("PENDING")
+  budget             Int?
+  expectedAttendees  Int?
+  venue              String?
+  submittedBy        Int?
+  submittedDate      DateTime?                  @default(now())
+  approvedBy         Int?
+  approvedAt         DateTime?
+  rejectionReason    String?
+  createdAt          DateTime                   @default(now())
+  organizer          String?
+  organizerId        String?
+  organizerType      String?
+  updatedAt          DateTime?                  @default(now()) @updatedAt @db.Timestamptz(6)
+  reviews            EventReview[]
+  EventStall         EventStall[]
+  OrganizationBudget OrganizationBudget[]
+  SponsorshipLead    SponsorshipLead[]
+  registrations      StudentEventRegistration[]
+
+  @@map("Event")
+}
+
+model EventRequest {
+  id                   Int                @id @default(autoincrement())
+  title                String
+  eventType            String
+  eventTypeOther       String?
+  purposeTag           String
+  purposeDescription   String
+  bannerUrl            String?
+  eventDate            DateTime
+  startTime            String
+  endTime              String
+  setupTime            String
+  teardownTime         String
+  audience             String
+  organizingBody       String?
+  contactName          String?
+  contactId            String?
+  contactPhone         String?
+  contactEmail         String?
+  supervisorName       String?
+  supervisorDepartment String?
+  supervisorPhone      String?
+  venue                String?
+  expectedAttendance   Int?
+  seatingArrangement   String?
+  parkingRequired      Boolean            @default(false)
+  estimatedBudget      Float?
+  budgetBreakdown      String?
+  sponsorshipDetails   String?
+  fundSource           String?
+  riskAssessment       String?
+  safetyMeasures       String?
+  emergencyPlan        String?
+  contingency          String?
+  tickets              Json               @default("[]")
+  merchandise          Json               @default("[]")
+  status               EventRequestStatus @default(PENDING)
+  submittedBy          Int
+  submittedAt          DateTime           @default(now())
+  reviewedBy           Int?
+  reviewedAt           DateTime?
+  reviewNotes          String?
+  updatedAt            DateTime           @updatedAt
+  reviewer             User?              @relation("EventRequestReviewer", fields: [reviewedBy], references: [id])
+  submitter            User               @relation("EventRequestSubmitter", fields: [submittedBy], references: [id])
+  delegates            EventDelegate[]
+  delegateHistory      EventDelegateHistory[]
+  merchandiseProducts  MerchandiseProduct[]
+  merchandiseOrders    MerchandiseOrder[]
+
+  @@index([status])
+  @@index([submittedAt])
+  @@map("EventRequest")
+}
+
+model Club {
+  id               Int            @id @default(autoincrement())
+  name             String         @unique
+  description      String?
+  clubType         String?
+  logo             String?
+  status           String         @default("ACTIVE")
+  createdAt        DateTime       @default(now())
+  presidentId      Int?
+  assets           Asset[]        @relation("ClubAssets")
+  requestsReceived AssetBooking[] @relation("OwningClub")
+  requestsSent     AssetBooking[] @relation("RequestingClub")
+  president        User?          @relation("ClubPresident", fields: [presidentId], references: [id])
+  ClubMember       ClubMember[]
+  damageReports    DamageReport[]
+
+  @@map("Club")
+}
+
+model Asset {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  description       String?
+  imageUrl          String?             @default("https://images.unsplash.com/photo-1505228395891-9a51e7e86e81?auto=format&fit=crop&q=80&w=400")
+  ownerId           Int
+  clubId            Int?
+  status            AssetStatus         @default(AVAILABLE)
+  quantity          Int                 @default(1)
+  createdAt         DateTime            @default(now())
+  club              Club?               @relation("ClubAssets", fields: [clubId], references: [id])
+  bookings          AssetBooking[]
+  damageReports     DamageReport[]
+  MaintenanceRecord MaintenanceRecord[]
+
+  @@map("Asset")
+}
+
+model AssetBooking {
+  id                 Int           @id @default(autoincrement())
+  assetId            Int
+  requesterId        Int
+  requestingClubId   Int?
+  owningClubId       Int?
+  startDate          DateTime
+  endDate            DateTime
+  quantityRequested  Int           @default(1)
+  purpose            String?
+  status             BookingStatus @default(PENDING)
+  approvedById       Int?
+  approvedAt         DateTime?
+  checkedOutAt       DateTime?
+  returnedAt         DateTime?
+  approvedReturnBy   Int?
+  penalty            Float?        @default(0)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  approvedBy         User?         @relation("AssetBookingApprovedBy", fields: [approvedById], references: [id])
+  approvedReturnUser User?         @relation("ReturnApprovedBy", fields: [approvedReturnBy], references: [id])
+  asset              Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  owningClub         Club?         @relation("OwningClub", fields: [owningClubId], references: [id])
+  requester          User          @relation("AssetBookingRequester", fields: [requesterId], references: [id])
+  requestingClub     Club?         @relation("RequestingClub", fields: [requestingClubId], references: [id])
+
+  @@index([assetId])
+  @@index([requesterId])
+  @@index([status])
+  @@map("AssetBooking")
+}
+
+model DamageReport {
+  id            Int      @id @default(autoincrement())
+  assetId       Int
+  bookingId     Int?
+  clubId        Int
+  reportedBy    Int
+  title         String
+  description   String
+  damageType    String
+  severity      String
+  status        String   @default("PENDING")
+  images        String[] @default([])
+  estimatedCost Float?
+  resolution    String?
+  createdAt     DateTime @default(now())
+  asset         Asset    @relation(fields: [assetId], references: [id])
+  club          Club     @relation(fields: [clubId], references: [id])
+  reporter      User     @relation(fields: [reportedBy], references: [id])
+
+  @@map("DamageReport")
+}
+
+model PresidentApplication {
+  id                   Int               @id @default(autoincrement())
+  studentId            Int
+  presidentName        String
+  candidateId          String
+  clubOrFacultyType    String
+  clubOrFacultyName    String
+  currentQualification String
+  email                String
+  status               ApplicationStatus @default(PENDING)
+  rejectionReason      String?
+  appliedAt            DateTime          @default(now())
+  approvedRejectAt     DateTime?
+  approvedById         Int?
+  approvedBy           User?             @relation(fields: [approvedById], references: [id])
+  student              Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model StudentNotification {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  type      String
+  title     String
+  message   String
+  data      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([createdAt])
+}
+
+model UserNotification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  title     String
+  message   String
+  data      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model StudyMaterial {
+  id           Int      @id @default(autoincrement())
+  semester     String
+  title        String
+  description  String?
+  materialType String
+  contentUrl   String
+  uploadedAt   DateTime @default(now())
+  createdBy    Int
+  creator      User     @relation("StudyMaterialCreator", fields: [createdBy], references: [id])
+}
+
+model StudySession {
+  id           Int      @id @default(autoincrement())
+  semester     String
+  title        String
+  description  String?
+  sessionDate  DateTime
+  sessionLink  String?
+  sessionNotes String?
+  createdAt    DateTime @default(now())
+  createdBy    Int
+  creator      User     @relation("StudySessionCreator", fields: [createdBy], references: [id])
+}
+
+model EventReview {
+  id        Int           @id @default(autoincrement())
+  eventId   Int
+  studentId Int
+  reaction  ReactionType?
+  comment   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  event     Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  student   Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, eventId])
+  @@index([eventId])
+  @@map("EventReview")
+}
+
+model MerchandiseProduct {
+  id          Int                      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  status      MerchandiseProductStatus @default(IN_STOCK)
+  inventory   Int                      @default(0)
+  isActive    Boolean                  @default(true)
+  eventRequestId Int?
+  eventRequest   EventRequest?         @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  orderItems  MerchandiseOrderItem[]
+
+  @@map("MerchandiseProduct")
+}
+
+model MerchandiseOrder {
+  id              Int                    @id @default(autoincrement())
+  buyerName       String
+  buyerEmail      String?
+  buyerPhone      String?
+  status          MerchandiseOrderStatus @default(PENDING)
+  totalAmount     Float                  @default(0)
+  notes           String?
+  paymentSlipUrl  String?
+  eventRequestId  Int?
+  eventRequest    EventRequest?        @relation(fields: [eventRequestId], references: [id], onDelete: SetNull)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  items           MerchandiseOrderItem[]
+
+  @@map("MerchandiseOrder")
+}
+
+model MerchandiseOrderItem {
+  id        Int                @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int                @default(1)
+  unitPrice Float
+  size      String?
+  order     MerchandiseOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   MerchandiseProduct @relation(fields: [productId], references: [id])
+
+  @@map("MerchandiseOrderItem")
+}
+
+model ClubMember {
+  id       Int      @id @default(autoincrement())
+  clubId   Int
+  userId   Int
+  clubRole String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+  Club     Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  User     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, userId])
+}
+
+model EventStall {
+  id              Int            @id @default(autoincrement())
+  eventId         Int
+  stallNumber     Int
+  status          String         @default("AVAILABLE")
+  vendorId        Int?
+  serviceCategory String?
+  mapX            Float
+  mapY            Float
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime
+  event           Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  vendor          VendorPartner? @relation(fields: [vendorId], references: [id])
+
+  @@unique([eventId, stallNumber])
+  @@unique([eventId, vendorId])
+  @@index([eventId, status])
+}
+
+model FinanceRecord {
+  id              Int      @id @default(autoincrement())
+  type            String
+  title           String
+  category        String
+  amount          Float
+  transactionDate DateTime
+  notes           String?
+  createdById     Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  User            User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([category])
+  @@index([transactionDate])
+  @@index([type])
+}
+
+model GroupLink {
+  id        Int      @id @default(autoincrement())
+  name      String
+  platform  String
+  url       String
+  category  String
+  createdAt DateTime @default(now())
+}
+
+model MaintenanceRecord {
+  id              Int       @id @default(autoincrement())
+  assetId         Int
+  maintenanceType String
+  description     String
+  cost            Float     @default(0)
+  performedAt     DateTime
+  nextServiceAt   DateTime?
+  createdAt       DateTime  @default(now())
+  Asset           Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model Organization {
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  faculty            String
+  contactEmail       String
+  contactPhone       String?
+  description        String?
+  logoUrl            String?
+  themePrimary       String?
+  themeAccent        String?
+  createdAt          DateTime             @default(now())
+  managerId          Int
+  manager            User                 @relation(fields: [managerId], references: [id])
+  OrganizationBudget OrganizationBudget[]
+  SponsorshipLead    SponsorshipLead[]
+  StallSlot          StallSlot[]
+  VendorPartner      VendorPartner[]
+}
+
+model OrganizationBudget {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  eventId        Int?
+  category       String
+  plannedAmount  Float
+  actualAmount   Float        @default(0)
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  createdById    Int
+  createdBy      User         @relation(fields: [createdById], references: [id])
+  event          Event?       @relation(fields: [eventId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model SponsorContribution {
+  id              Int             @id @default(autoincrement())
+  sponsorshipId   Int
+  type            String
+  amount          Float?
+  inKindValue     Float?
+  description     String?
+  createdAt       DateTime        @default(now())
+  SponsorshipLead SponsorshipLead @relation(fields: [sponsorshipId], references: [id], onDelete: Cascade)
+}
+
+model SponsorshipLead {
+  id                  Int                   @id @default(autoincrement())
+  organizationId      Int?
+  eventId             Int?
+  sponsorName         String
+  companyName         String                @default("")
+  sponsorEmail        String?
+  contactPerson       String?
+  contactPhone        String?
+  sponsorshipType     String?
+  paymentStatus       String                @default("PENDING")
+  sponsorshipAmount   Float                 @default(0)
+  sponsorTier         String                @default("BRONZE")
+  status              String                @default("ACTIVE")
+  packageTier         String?
+  expectedValue       Float?
+  confirmedValue      Float?
+  stage               String                @default("LEAD")
+  benefitsChecklist   Json?
+  notes               String?
+  lastMovedAt         DateTime              @default(now())
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  managedById         Int
+  SponsorContribution SponsorContribution[]
+  event               Event?                @relation(fields: [eventId], references: [id])
+  managedBy           User                  @relation(fields: [managedById], references: [id])
+  organization        Organization?         @relation(fields: [organizationId], references: [id])
+}
+
+model Sport {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  description  String?
+  coachName    String?
+  whatsappLink String?
+  imageUrl     String?
+  createdAt    DateTime @default(now())
+}
+
+model StallSlot {
+  id             Int            @id @default(autoincrement())
+  organizationId Int
+  vendorId       Int?
+  slotCode       String
+  location       String
+  eventDate      DateTime
+  startTime      DateTime
+  endTime        DateTime
+  status         String         @default("AVAILABLE")
+  allocatedById  Int?
+  createdAt      DateTime       @default(now())
+  User           User?          @relation(fields: [allocatedById], references: [id])
+  Organization   Organization   @relation(fields: [organizationId], references: [id])
+  VendorPartner  VendorPartner? @relation(fields: [vendorId], references: [id])
+}
+
+model VendorPartner {
+  id              Int           @id @default(autoincrement())
+  organizationId  Int?
+  name            String
+  companyName     String        @default("")
+  serviceCategory String        @default("")
+  contactName     String
+  contactPhone    String
+  contactEmail    String?
+  address         String        @default("")
+  requirements    String?
+  status          String        @default("ACTIVE")
+  agreementStatus String        @default("NOT_STARTED")
+  approvedById    Int?
+  createdAt       DateTime      @default(now())
+  vendorFee       Float         @default(0)
+  eventStallAllocations EventStall[]
+  StallSlot       StallSlot[]
+  approvedBy      User?         @relation(fields: [approvedById], references: [id])
+  organization    Organization? @relation(fields: [organizationId], references: [id])
 }
 
 enum Role {
   STUDENT
   SYSTEM_ADMIN
   CLUB_PRESIDENT
-  EVENT_ORGANIZER
   OPERATIONS_MANAGER
+  EVENT_ORGANIZER
+  TECHNICAL_STAFF
 }
 
-enum ClubStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-  ARCHIVED
-}
-
-enum ClubRole {
-  PRESIDENT
-  VICE_PRESIDENT
-  TREASURER
-  MEMBER
+enum DelegateRole {
+  CO_ORGANIZER
+  MANAGER
+  LOGISTICS
+  FINANCES
 }
 
 enum AssetStatus {
@@ -64,25 +604,6 @@ enum AssetStatus {
   MAINTENANCE
   DAMAGED
   ARCHIVED
-}
-
-enum AssetCondition {
-  EXCELLENT
-  GOOD
-  FAIR
-  POOR
-  DAMAGED
-}
-
-enum AssetCategory {
-  EQUIPMENT
-  FURNITURE
-  TECHNOLOGY
-  SPORTS
-  SOUND_SYSTEM
-  DECORATION
-  VEHICLES
-  OTHER
 }
 
 enum BookingStatus {
@@ -95,33 +616,51 @@ enum BookingStatus {
   DAMAGED
 }
 
-enum DamageType {
-  PHYSICAL
-  MECHANICAL
-  ELECTRONIC
-  STRUCTURAL
-  OTHER
-}
-
-enum DamageSeverity {
-  MINOR
-  MODERATE
-  MAJOR
-  CRITICAL
-}
-
-enum DamageStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  RESOLVED
-  IN_PROGRESS
-}
-
 enum ApplicationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model EventDelegate {
+  id                 Int           @id @default(autoincrement())
+  eventRequestId     Int
+  eventRequest       EventRequest  @relation(fields: [eventRequestId], references: [id], onDelete: Cascade)
+  
+  delegateUserId     Int
+  delegateUser       User          @relation("EventDelegates", fields: [delegateUserId], references: [id], onDelete: Cascade)
+  
+  role               DelegateRole  @default(MANAGER)
+  permissions        String?       // JSON string of granular permissions
+  
+  delegatedAt        DateTime      @default(now())
+  removedAt          DateTime?
+  isActive           Boolean       @default(true)
+  
+  @@unique([eventRequestId, delegateUserId])
+  @@index([eventRequestId])
+  @@index([delegateUserId])
+  @@map("EventDelegate")
+}
+
+model EventDelegateHistory {
+  id                 Int           @id @default(autoincrement())
+  eventRequestId     Int
+  eventRequest       EventRequest  @relation(fields: [eventRequestId], references: [id], onDelete: Cascade)
+  
+  actionType         String        // ADDED, REMOVED, ROLE_CHANGED, PERMISSIONS_CHANGED
+  delegateUserId     Int
+  delegateName       String
+  role               DelegateRole?
+  performedBy        Int
+  performedByUser    User          @relation("DelegateActionPerformedBy", fields: [performedBy], references: [id], onDelete: SetNull)
+  
+  reason             String?
+  createdAt          DateTime      @default(now())
+  
+  @@index([eventRequestId])
+  @@index([createdAt])
+  @@map("EventDelegateHistory")
 }
 
 enum MerchandiseProductStatus {
@@ -137,528 +676,6 @@ enum MerchandiseOrderStatus {
   COLLECTED
   CANCELLED
 }
-
-model User {
-  id               Int      @id @default(autoincrement())
-  name             String
-  email            String   @unique
-  password         String
-  role             Role
-  profileImage     String?
-  createdAt        DateTime @default(now())
-  
-  // Logistics relations
-  approvedBookings AssetBooking[]   @relation("AssetBookingApprovedBy")
-  requestedBookings AssetBooking[]  @relation("AssetBookingRequester")
-  approvedReturns  AssetBooking[]   @relation("ReturnApprovedBy")
-  damageReports    DamageReport[]   @relation("DamageReportedByUser")
-  damageApprovals  DamageReport[]   @relation("DamageApprovedBy")
-  
-  // Governance/Apps relations
-  approvedApplications PresidentApplication[]
-  notifications    UserNotification[]
-  
-  // Operations relations
-  managedOrganizations Organization[]
-  sponsoredLeads      SponsorshipLead[]
-  budgetEntries       OrganizationBudget[]
-  approvedVendors     VendorPartner[]
-  allocatedStalls     StallSlot[]
-
-  // Study Support relations
-  createdMaterials StudyMaterial[]
-  createdSessions  StudySession[]
-  financeRecords  FinanceRecord[] @relation("FinanceRecordCreatedBy")
-
-  // Club President fields
-  clubOrFacultyName String?
-  clubOrFacultyType String? 
-
-  presidedClubs Club[] @relation("ClubPresident")
-  clubMemberships ClubMember[]
-  submittedEventRequests EventRequest[]
-  reviewedEventRequests EventRequest[] @relation("EventRequestReviewer")
-
-  @@map("User")
-}
-
-model Event {
-  id              Int                        @id @default(autoincrement())
-  title           String
-  description     String
-  date            DateTime
-  category        String
-  location        String
-  image           String
-  registeredCount Int                        @default(0)
-  status          String                     @default("PENDING")
-  budget          Int?
-  expectedAttendees Int?
-  venue           String?
-  organizer       String?
-  organizerType   String?
-  organizerId     String?
-  submittedBy     Int?
-  submittedDate   DateTime?                  @default(now())
-  approvedBy      Int?
-  approvedAt      DateTime?
-  rejectionReason String?
-  createdAt       DateTime                   @default(now())
-  registrations   StudentEventRegistration[]
-  reviews         EventReview[]
-  budgetEntries   OrganizationBudget[]
-  stallAllocations EventStall[]
-  sponsorships    SponsorshipLead[]
-
-  @@map("Event")
-}
-
-model Club {
-  id              Int            @id @default(autoincrement())
-  name            String         @unique
-  description     String?
-  clubType        String?        
-  logo            String?
-  status          String         @default("ACTIVE") 
-  createdAt       DateTime       @default(now())
-  
-  presidentId     Int?
-  president       User?          @relation("ClubPresident", fields: [presidentId], references: [id])
-  
-  members         ClubMember[]
-  assets          Asset[]
-  
-  requestsSent     AssetBooking[] @relation("RequestingClub")
-  requestsReceived AssetBooking[] @relation("OwningClub")
-  
-  damageReports    DamageReport[]
-}
-
-model ClubMember {
-  id        Int      @id @default(autoincrement())
-  clubId    Int
-  userId    Int
-  clubRole  String   @default("MEMBER") 
-  joinedAt  DateTime @default(now())
-  
-  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([clubId, userId])
-}
-
-model Asset {
-  id               Int                 @id @default(autoincrement())
-  name             String
-  description      String?
-  imageUrl         String?             @default("https://images.unsplash.com/photo-1505228395891-9a51e7e86e81?auto=format&fit=crop&q=80&w=400")
-  ownerId          Int                 
-  clubId           Int?                
-  status           AssetStatus         @default(AVAILABLE)
-  quantity         Int                 @default(1)
-  createdAt        DateTime            @default(now())
-  
-  club             Club?               @relation(fields: [clubId], references: [id])
-  bookings         AssetBooking[]
-  damageReports    DamageReport[]
-  maintenance      MaintenanceRecord[]
-  
-  @@map("Asset")
-}
-
-model AssetBooking {
-  id                  Int                @id @default(autoincrement())
-  assetId             Int
-  asset               Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
-  requesterId         Int
-  requester           User               @relation(name: "AssetBookingRequester", fields: [requesterId], references: [id])
-  
-  requestingClubId    Int?
-  requestingClub      Club?              @relation(name: "RequestingClub", fields: [requestingClubId], references: [id])
-  
-  owningClubId        Int?
-  owningClub          Club?              @relation(name: "OwningClub", fields: [owningClubId], references: [id])
-  
-  startDate           DateTime
-  endDate             DateTime
-  quantityRequested   Int                @default(1)
-  purpose             String?
-  
-  status              BookingStatus      @default(PENDING)
-  approvedById        Int?
-  approvedBy          User?              @relation(name: "AssetBookingApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
-  approvedAt          DateTime?
-  
-  checkedOutAt        DateTime?
-  returnedAt          DateTime?
-  approvedReturnBy    Int?
-  approvedReturnUser  User?              @relation(name: "ReturnApprovedBy", fields: [approvedReturnBy], references: [id], onDelete: SetNull)
-  
-  penalty             Float?             @default(0)
-  damageReport        DamageReport?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-
-  @@index([assetId])
-  @@index([requesterId])
-  @@index([status])
-  @@map("AssetBooking")
-}
-
-model DamageReport {
-  id              Int                @id @default(autoincrement())
-  bookingId       Int?               @unique
-  booking         AssetBooking?      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  
-  assetId         Int
-  asset           Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
-  clubId          Int
-  club            Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  
-  reportedBy      Int
-  reporter        User               @relation(name: "DamageReportedByUser", fields: [reportedBy], references: [id])
-  
-  title           String
-  description     String
-  damageType      DamageType
-  severity        DamageSeverity
-  
-  images          String[]           // Damage photos
-  estimatedCost   Float?
-  actualCost      Float?
-  
-  status          DamageStatus       @default(PENDING)
-  approvedById    Int?
-  approvedBy      User?              @relation(name: "DamageApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
-  
-  penalty         Float?
-  resolutionNotes String?
-  
-  createdAt       DateTime           @default(now())
-  resolvedAt      DateTime?
-
-  @@index([assetId])
-  @@index([clubId])
-  @@index([status])
-  @@map("DamageReport")
-}
-
-model MaintenanceRecord {
-  id            Int       @id @default(autoincrement())
-  assetId       Int
-  maintenanceType String  
-  description   String
-  cost          Float     @default(0)
-  performedAt   DateTime
-  nextServiceAt DateTime?
-  createdAt     DateTime  @default(now())
-  
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-}
-
-model MerchandiseProduct {
-  id          Int                       @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float
-  imageUrl    String?
-  status      MerchandiseProductStatus @default(IN_STOCK)
-  inventory   Int                       @default(0)
-  isActive    Boolean                   @default(true)
-  createdAt   DateTime                  @default(now())
-  updatedAt   DateTime                  @updatedAt
-
-  orderItems  MerchandiseOrderItem[]
-
-  @@map("MerchandiseProduct")
-}
-
-model MerchandiseOrder {
-  id          Int                      @id @default(autoincrement())
-  buyerName   String
-  buyerEmail  String?
-  buyerPhone  String?
-  status      MerchandiseOrderStatus  @default(PENDING)
-  totalAmount Float                   @default(0)
-  notes       String?
-  createdAt   DateTime                @default(now())
-  updatedAt   DateTime                @updatedAt
-
-  items       MerchandiseOrderItem[]
-
-  @@map("MerchandiseOrder")
-}
-
-model MerchandiseOrderItem {
-  id        Int                @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  quantity  Int                @default(1)
-  unitPrice Float
-  size      String?
-
-  order     MerchandiseOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   MerchandiseProduct @relation(fields: [productId], references: [id])
-
-  @@map("MerchandiseOrderItem")
-}
-
-model Organization {
-  id            Int      @id @default(autoincrement())
-  name          String
-  faculty       String
-  contactEmail  String
-  contactPhone  String?
-  description   String?
-  logoUrl       String?
-  themePrimary  String?
-  themeAccent   String?
-  createdAt     DateTime @default(now())
-  
-  managerId     Int
-  manager       User     @relation(fields: [managerId], references: [id])
-  
-  leads         SponsorshipLead[]
-  budgets       OrganizationBudget[]
-  vendors       VendorPartner[]
-  stalls        StallSlot[]
-}
-
-model SponsorshipLead {
-  id                Int      @id @default(autoincrement())
-  organizationId    Int?
-  eventId           Int?
-  sponsorName       String
-  companyName       String   @default("")
-  sponsorEmail      String?
-  contactPerson     String?
-  contactPhone      String?
-  sponsorshipType   String?
-  paymentStatus     String   @default("PENDING")
-  sponsorshipAmount Float    @default(0)
-  sponsorTier       String   @default("BRONZE")
-  status            String   @default("ACTIVE")
-  packageTier       String?  
-  expectedValue     Float?
-  confirmedValue    Float?
-  stage             String   @default("LEAD") 
-  benefitsChecklist Json?
-  notes             String?
-  lastMovedAt       DateTime @default(now())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  managedById       Int
-  manager           User     @relation(fields: [managedById], references: [id])
-  organization      Organization? @relation(fields: [organizationId], references: [id])
-  event             Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
-  contributions     SponsorContribution[]
-}
-
-model SponsorContribution {
-  id            Int      @id @default(autoincrement())
-  sponsorshipId Int
-  type          String   
-  amount        Float?
-  inKindValue   Float?
-  description   String?
-  createdAt     DateTime @default(now())
-  
-  sponsorship SponsorshipLead @relation(fields: [sponsorshipId], references: [id], onDelete: Cascade)
-}
-
-model OrganizationBudget {
-  id            Int      @id @default(autoincrement())
-  organizationId Int
-  eventId       Int?
-  category      String   
-  plannedAmount Float
-  actualAmount  Float    @default(0)
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  createdById   Int
-  creator       User         @relation(fields: [createdById], references: [id])
-  organization  Organization @relation(fields: [organizationId], references: [id])
-  event         Event?       @relation(fields: [eventId], references: [id])
-}
-
-model VendorPartner {
-  id              Int      @id @default(autoincrement())
-  organizationId  Int?
-  name            String
-  companyName     String   @default("")
-  serviceCategory String   @default("")
-  vendorFee       Float    @default(0)
-  contactName     String
-  contactPhone    String
-  contactEmail    String?
-  address         String   @default("")
-  requirements    String?
-  status          String   @default("ACTIVE")
-  agreementStatus String   @default("NOT_STARTED")
-  approvedById    Int?
-  approvedBy      User?    @relation(fields: [approvedById], references: [id])
-  createdAt       DateTime @default(now())
-
-  organization Organization? @relation(fields: [organizationId], references: [id])
-  stalls       StallSlot[]
-  eventStallAllocations EventStall[]
-}
-
-model FinanceRecord {
-  id              Int      @id @default(autoincrement())
-  type            String
-  title           String
-  category        String
-  amount          Float
-  transactionDate DateTime
-  notes           String?
-  createdById     Int
-  createdBy       User     @relation("FinanceRecordCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([type])
-  @@index([category])
-  @@index([transactionDate])
-}
-
-model EventStall {
-  id              Int           @id @default(autoincrement())
-  eventId         Int
-  stallNumber     Int
-  status          String        @default("AVAILABLE")
-  vendorId        Int?
-  serviceCategory String?
-  mapX            Float
-  mapY            Float
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  event           Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  vendor          VendorPartner? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
-
-  @@unique([eventId, stallNumber])
-  @@unique([eventId, vendorId])
-  @@index([eventId, status])
-}
-
-model StallSlot {
-  id            Int      @id @default(autoincrement())
-  organizationId Int
-  vendorId      Int?
-  slotCode      String
-  location      String
-  eventDate     DateTime
-  startTime     DateTime
-  endTime       DateTime
-  status        String   @default("AVAILABLE") 
-  allocatedById Int?
-  allocatedBy   User?    @relation(fields: [allocatedById], references: [id])
-  createdAt     DateTime @default(now())
-  
-  organization Organization @relation(fields: [organizationId], references: [id])
-  vendor       VendorPartner? @relation(fields: [vendorId], references: [id])
-}
-
-model Sport {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  description  String?
-  coachName    String?
-  whatsappLink String?
-  imageUrl     String?
-  createdAt    DateTime @default(now())
-}
-
-model GroupLink {
-  id        Int      @id @default(autoincrement())
-  name      String
-  platform  String
-  url       String
-  category  String
-  createdAt DateTime @default(now())
-}
-
-model StudyMaterial {
-  id           Int      @id @default(autoincrement())
-  semester     String   
-  title        String
-  description  String?
-  materialType String   
-  contentUrl   String
-  uploadedAt   DateTime @default(now())
-  createdBy    Int
-  
-  creator      User     @relation(fields: [createdBy], references: [id])
-}
-
-model StudySession {
-  id           Int      @id @default(autoincrement())
-  semester     String
-  title        String
-  description  String?
-  sessionDate  DateTime
-  sessionLink  String?
-  sessionNotes String?
-  createdAt    DateTime @default(now())
-  createdBy    Int
-  
-  creator      User     @relation(fields: [createdBy], references: [id])
-}
-
-model PresidentApplication {
-  id                    Int                @id @default(autoincrement())
-  studentId             Int
-  student               Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  presidentName         String
-  candidateId           String
-  clubOrFacultyType     String
-  clubOrFacultyName     String
-  currentQualification  String
-  email                 String
-  status                ApplicationStatus  @default(PENDING)
-  rejectionReason       String?
-  appliedAt             DateTime           @default(now())
-  approvedRejectAt      DateTime?
-  approvedById          Int?
-  approvedBy            User?              @relation(fields: [approvedById], references: [id], onDelete: SetNull)
-}
-
-model StudentNotification {
-  id        Int      @id @default(autoincrement())
-  studentId Int
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  type      String
-  title     String
-  message   String
-  data      String?
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([studentId])
-  @@index([createdAt])
-}
-
-model UserNotification {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String
-  title     String
-  message   String
-  data      String?
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
 enum ReactionType {
   LIKE
   LOVE
@@ -667,93 +684,10 @@ enum ReactionType {
   SAD
 }
 
-model EventReview {
-  id        Int           @id @default(autoincrement())
-  eventId   Int
-  studentId Int
-  reaction  ReactionType?
-  comment   String?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  
-  event     Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  student   Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, eventId])
-  @@index([eventId])
-  @@map("EventReview")
-}
-
 enum EventRequestStatus {
   PENDING
   APPROVED
   REJECTED
   REVISION_REQUESTED
   PUBLISHED
-}
-
-model EventRequest {
-  id                    Int                   @id @default(autoincrement())
-  
-  // Step 1: Basic Event Information
-  title                 String
-  eventType             String
-  eventTypeOther        String?
-  purposeTag            String
-  purposeDescription    String
-  bannerUrl             String?
-  eventDate             DateTime
-  startTime             String
-  endTime               String
-  setupTime             String
-  teardownTime          String
-  audience              String
-  
-  // Step 2: Organizer Details
-  organizingBody        String?
-  contactName           String?
-  contactId             String?
-  contactPhone          String?
-  contactEmail          String?
-  supervisorName        String?
-  supervisorDepartment  String?
-  supervisorPhone       String?
-  
-  // Step 3: Venue & Logistics
-  venue                 String?
-  expectedAttendance    Int?
-  seatingArrangement    String?
-  parkingRequired       Boolean @default(false)
-  
-  // Step 4: Financials & Sponsorship
-  estimatedBudget       Float?
-  budgetBreakdown       String?
-  sponsorshipDetails    String?
-  fundSource            String?
-  
-  // Step 5: Risk Management & Safety
-  riskAssessment        String?
-  safetyMeasures        String?
-  emergencyPlan         String?
-  contingency           String?
- 
-  // Step 6: Tickets & Merchandise
-  tickets               Json                  @default("[]")
-  merchandise           Json                  @default("[]")
-  
-  // Metadata
-  status                EventRequestStatus    @default(PENDING)
-  submittedBy           Int
-  submittedAt           DateTime              @default(now())
-  reviewedBy            Int?
-  reviewedAt            DateTime?
-  reviewNotes           String?
-  updatedAt             DateTime              @updatedAt
-  
-  submitter             User                  @relation(fields: [submittedBy], references: [id])
-  reviewer              User?                 @relation("EventRequestReviewer", fields: [reviewedBy], references: [id])
-  
-  @@index([status])
-  @@index([submittedAt])
-  @@map("EventRequest")
 }

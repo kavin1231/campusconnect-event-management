@@ -79,6 +79,8 @@ model Event {
   category           String
   location           String
   image              String
+  startTime          String?
+  endTime            String?
   registeredCount    Int                        @default(0)
   status             String                     @default("PENDING")
   budget             Int?
@@ -98,6 +100,8 @@ model Event {
   EventStall         EventStall[]
   OrganizationBudget OrganizationBudget[]
   SponsorshipLead    SponsorshipLead[]
+  eventRequestId     Int?                       @unique
+  eventRequest       EventRequest?              @relation("EventRequestToEvent", fields: [eventRequestId], references: [id])
   registrations      StudentEventRegistration[]
 
   @@map("Event")
@@ -150,6 +154,7 @@ model EventRequest {
   submitter            User               @relation("EventRequestSubmitter", fields: [submittedBy], references: [id])
   delegates            EventDelegate[]
   delegateHistory      EventDelegateHistory[]
+  event                Event?             @relation("EventRequestToEvent")
   merchandiseProducts  MerchandiseProduct[]
   merchandiseOrders    MerchandiseOrder[]
 

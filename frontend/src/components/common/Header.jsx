@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Header.css";
 import ThemeToggle from "./ThemeToggle";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
+import { resolveImageUrl } from "../../services/api";
 
 export default function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -155,7 +156,11 @@ export default function Header() {
               aria-label="Profile"
             >
               <div className="profile-avatar">
-                {user?.name?.charAt(0).toUpperCase() || "U"}
+                {user?.profileImage ? (
+                  <img src={resolveImageUrl(user.profileImage)} alt={user.name} className="profile-img-tiny" />
+                ) : (
+                  user?.name?.charAt(0).toUpperCase() || "U"
+                )}
               </div>
             </button>
 
@@ -163,7 +168,11 @@ export default function Header() {
               <div className="profile-dropdown">
                 <div className="profile-header">
                   <div className="profile-avatar-large">
-                    {user?.name?.charAt(0).toUpperCase() || "U"}
+                    {user?.profileImage ? (
+                      <img src={resolveImageUrl(user.profileImage)} alt={user.name} className="profile-img-large" />
+                    ) : (
+                      user?.name?.charAt(0).toUpperCase() || "U"
+                    )}
                   </div>
                   <div className="profile-info">
                     <h4>{user?.name}</h4>

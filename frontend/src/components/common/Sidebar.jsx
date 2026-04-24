@@ -34,7 +34,7 @@ import {
   X,
 } from "lucide-react";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
-import { authAPI } from "../../services/api";
+import { authAPI, resolveImageUrl } from "../../services/api";
 import ThemeToggle from "./ThemeToggle";
 
 const Sidebar = ({ activePage, isAdmin = false }) => {
@@ -386,30 +386,30 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
   ];
 
   const studentMenuItems = [
-    { id: "home", label: "Home", path: "/", icon: "🏠" },
-    { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: "📊" },
+    { id: "home", label: "Home", path: "/", icon: Home },
+    { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     {
       id: "explore-sports",
       label: "Social links",
       path: "/dashboard",
-      icon: "🏆",
+      icon: Trophy,
       query: "?filter=extracurricular",
     },
     {
       id: "study-materials",
       label: "Study Materials",
       path: "/dashboard",
-      icon: "📖",
+      icon: BookOpen,
       query: "?filter=study",
     },
     {
       id: "merchandise",
       label: "Merchandise",
       path: "/dashboard",
-      icon: "🛍️",
+      icon: ShoppingBag,
       query: "?filter=orders",
     },
-    { id: "profile", label: "My Profile", path: "/profile", icon: "👤" },
+    { id: "profile", label: "My Profile", path: "/profile", icon: UserRound },
   ];
 
   let menuItems;
@@ -425,7 +425,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           id: "switch-to-student",
           label: "Student View",
           path: "/dashboard",
-          icon: "🏠",
+          icon: Home,
         },
       ];
     } else {
@@ -435,7 +435,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           id: "president-workspace",
           label: "President Workspace",
           path: "/admin-dashboard",
-          icon: "🛡️",
+          icon: ShieldCheck,
         },
       ];
     }
@@ -597,7 +597,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
               >
                 <div className="sd-side-avatar">
                   {user.profileImage ? (
-                    <img src={user.profileImage} alt={user.name} />
+                    <img src={resolveImageUrl(user.profileImage)} alt={user.name} />
                   ) : (
                     user.name?.charAt(0).toUpperCase() || "U"
                   )}
@@ -769,7 +769,7 @@ const Sidebar = ({ activePage, isAdmin = false }) => {
           <div className="sd-side-user">
             <div className="sd-side-avatar">
               {user.profileImage ? (
-                <img src={user.profileImage} alt={user.name} />
+                <img src={resolveImageUrl(user.profileImage)} alt={user.name} />
               ) : (
                 user.name?.charAt(0).toUpperCase() || "U"
               )}

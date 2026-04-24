@@ -142,6 +142,7 @@ const EventDetail = () => {
     };
 
     const isRegistered = event?.registrations?.some(r => r.studentId === user?.id);
+    const isPastEvent = event?.date ? new Date(event.date) < new Date() : false;
     const resolvedEventImage = resolveMediaUrl(event?.image);
 
     if (loading) {
@@ -342,13 +343,15 @@ const EventDetail = () => {
                         <button 
                             className={`btn-registration-new ${isRegistered ? 'unregister' : 'register'}`}
                             onClick={isRegistered ? handleUnregister : handleRegister}
-                            disabled={registrationLoading}
+                            disabled={registrationLoading || isPastEvent}
                         >
                             {registrationLoading 
                                 ? <div className="btn-spinner"></div> 
-                                : isLoggedIn 
-                                    ? (isRegistered ? 'Cancel Registration' : 'Confirm Registration') 
-                                    : 'Login to Register'}
+                                : isPastEvent
+                                    ? (isRegistered ? 'Event Ended (Registered)' : 'Event Ended')
+                                    : isLoggedIn 
+                                        ? (isRegistered ? 'Cancel Registration' : 'Confirm Registration') 
+                                        : 'Login to Register'}
                         </button>
                         
                         {isRegistered && <p className="registration-success">🎉 You're on the list!</p>}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../common/Sidebar";
-import { authAPI } from "../../services/api";
+import { authAPI, resolveImageUrl } from "../../services/api";
 
 const StudentManagement = () => {
   const [students, setStudents] = useState([]);
@@ -87,7 +87,7 @@ const StudentManagement = () => {
                           <div className="flex items-center gap-3">
                             <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden">
                               {student.profileImage ? (
-                                <img src={student.profileImage} alt={student.name} className="size-full object-cover" />
+                                <img src={resolveImageUrl(student.profileImage)} alt={student.name} className="size-full object-cover" />
                               ) : (
                                 student.name.charAt(0).toUpperCase()
                               )}

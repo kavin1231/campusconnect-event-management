@@ -141,7 +141,7 @@ const Landing = () => {
     e.stopPropagation();
 
     if (!isLoggedIn) {
-      window.location.href = "/login";
+      navigate("/login");
       return;
     }
 
@@ -149,10 +149,14 @@ const Landing = () => {
     try {
       const response = await dashboardAPI.registerEvent(eventId);
       if (response.success) {
+        alert("Registration successful!");
         await fetchEvents();
+      } else {
+        alert(response.message || "Registration failed");
       }
     } catch (error) {
       console.error("Registration failed:", error);
+      alert("Registration failed. Please try again.");
     } finally {
       setRegistrationLoading((prev) => ({ ...prev, [eventId]: false }));
     }
@@ -162,16 +166,23 @@ const Landing = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
 
     setRegistrationLoading((prev) => ({ ...prev, [eventId]: true }));
     try {
       const response = await dashboardAPI.unregisterEvent(eventId);
       if (response.success) {
+        alert("Unregistered successfully");
         await fetchEvents();
+      } else {
+        alert(response.message || "Unregistration failed");
       }
     } catch (error) {
       console.error("Unregistration failed:", error);
+      alert("Unregistration failed. Please try again.");
     } finally {
       setRegistrationLoading((prev) => ({ ...prev, [eventId]: false }));
     }
@@ -194,9 +205,10 @@ const Landing = () => {
         }
       }
 
-      // Students can use the dashboard feed for registration state.
+      // Students and Club Presidents can use the dashboard feed for registration state.
       // Other roles should always use the public published feed.
-      if (localStorage.getItem("token") && String(currentUser?.role || "").toUpperCase() === "STUDENT") {
+      const currentRole = String(currentUser?.role || "").toUpperCase();
+      if (localStorage.getItem("token") && (currentRole === "STUDENT" || currentRole === "CLUB_PRESIDENT")) {
         data = await dashboardAPI.getEvents({ filter: 'upcoming' });
       } else {
         const response = await fetch(`${dashboardAPI.getEvents.API_BASE_URL || "http://localhost:5000/api"}/events/published`);

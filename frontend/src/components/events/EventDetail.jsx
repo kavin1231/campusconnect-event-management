@@ -91,13 +91,24 @@ const EventDetail = () => {
         });
     };
 
-    const formatTime = (dateStr) => {
-        const date = new Date(dateStr);
-        return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
+    const formatTime = (value) => {
+        if (!value) return 'TBD';
+        if (/am|pm/i.test(value)) return value;
+        const [hourPart, minutePart = '00'] = String(value).split(':');
+        const hourNum = Number(hourPart);
+        if (Number.isNaN(hourNum)) return value;
+        const period = hourNum >= 12 ? 'PM' : 'AM';
+        const hour12 = ((hourNum + 11) % 12) + 1;
+        const minutes = String(minutePart).padStart(2, '0');
+        return `${hour12}:${minutes} ${period}`;
+    };
+
+    const formatTimeRange = (start, end) => {
+        if (!start && !end) return 'Time TBD';
+        const s = formatTime(start);
+        const e = formatTime(end);
+        if (s && e) return `${s} - ${e}`;
+        return s || e;
     };
 
     const handleRegister = async () => {
@@ -206,7 +217,7 @@ const EventDetail = () => {
                         </div>
                         <div className="info-pill">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                            <span>{formatTime(event.date)}</span>
+                            <span>{formatTimeRange(event.startTime, event.endTime)}</span>
                         </div>
                         <div className="info-pill">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -318,7 +329,7 @@ const EventDetail = () => {
                             <div className="ticket-info">
                                 <label>Date & Time</label>
                                 <p>{formatDate(event.date)}</p>
-                                <p className="ticket-time">{formatTime(event.date)}</p>
+                                <p className="ticket-time">{formatTimeRange(event.startTime, event.endTime)}</p>
                             </div>
                             
                             <div className="ticket-info">

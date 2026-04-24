@@ -252,6 +252,14 @@ const publishEvent = async (eventRequestId) => {
         updateData.status = "PUBLISHED";
       }
 
+      if (request.startTime && existing.startTime !== request.startTime) {
+        updateData.startTime = request.startTime;
+      }
+
+      if (request.endTime && existing.endTime !== request.endTime) {
+        updateData.endTime = request.endTime;
+      }
+
       if (!existing.organizerType) {
         updateData.organizerType = organizerType;
       }
@@ -262,6 +270,10 @@ const publishEvent = async (eventRequestId) => {
 
       if (!existing.organizer) {
         updateData.organizer = organizer.organizerName || request.organizingBody;
+      }
+
+      if (!existing.eventRequestId) {
+        updateData.eventRequestId = request.id;
       }
 
       // organizerType and organizerId are stored in EventRequest, not Event
@@ -292,6 +304,8 @@ const publishEvent = async (eventRequestId) => {
         date: request.eventDate,
         category: request.purposeTag || "General",
         location: request.venue || "TBD",
+        startTime: request.startTime,
+        endTime: request.endTime,
         image:
           request.bannerUrl ||
           "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1600",
@@ -299,6 +313,7 @@ const publishEvent = async (eventRequestId) => {
         organizer: organizer.organizerName || request.organizingBody,
         organizerType,
         organizerId,
+        eventRequestId: request.id,
         submittedBy: request.submittedBy,
         submittedDate: request.submittedAt || new Date(),
       },

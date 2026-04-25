@@ -1,52 +1,35 @@
-﻿import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
-import { FeedbackPanel, FeedbackToast } from "../common/FeedbackUI";
+import { FeedbackPanel } from "../common/FeedbackUI";
+
+const formatDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toISOString().split("T")[0];
+};
+
+const normalizeStatus = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+
+const isActiveBookingStatus = (status) =>
+  ["approved", "checked_out", "overdue"].includes(normalizeStatus(status));
 
 const ResourceAvailabilityEngine = () => {
-  const [user, setUser] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
-  const [viewMode, setViewMode] = useState("timeline"); // timeline or calendar
+  const [viewMode, setViewMode] = useState("timeline");
   const [assets, setAssets] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [availabilityCheck, setAvailabilityCheck] = useState(null);
-  const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [toast, setToast] = useState(null);
-
-  const [newBooking, setNewBooking] = useState({
-    assetId: null,
-    club: "",
-    startDate: "",
-    endDate: "",
-  });
-
-  // Get user role from localStorage
-  useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        setUser(JSON.parse(userStr));
-      } catch (error) {
-        console.error("Error parsing user:", error);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     fetchAssetsAndRequests();
   }, []);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2600);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  const showToast = (message, type = "info") => {
-    setToast({ message, type });
-  };
 
   const fetchAssetsAndRequests = async () => {
     setLoading(true);
@@ -56,98 +39,82 @@ const ResourceAvailabilityEngine = () => {
         logisticsAPI.listRequests(),
       ]);
 
-      setErrorMsg("");
-      if (assetsData.success) {
-        setAssets(assetsData.assets || []);
-      } else {
-        setErrorMsg(assetsData.message || "Unable to load assets.");
-      }
-      if (requestsData.success) {
-        setRequests(requestsData.requests || []);
-      } else {
-        setErrorMsg(
-          requestsData.message ||
-            "Unable to load booking requests for availability.",
+      if (!assetsData.success || !requestsData.success) {
+        throw new Error(
+          assetsData.message || requestsData.message || "Failed to load data",
         );
       }
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      setErrorMsg("Unable to load availability data right now.");
-    }
-    setLoading(false);
-  };
 
-  // Check availability when user selects dates
-  const checkAvailability = async (assetId, startDate, endDate) => {
-    if (!assetId || !startDate || !endDate) {
-      setAvailabilityCheck(null);
-      return;
-    }
+      const loadedAssets = assetsData.assets || [];
+      setAssets(loadedAssets);
+      setRequests(requestsData.requests || []);
+      setErrorMsg("");
 
-    setAvailabilityLoading(true);
-    try {
-      const response = await fetch(
-        `/api/logistics/availability/check?assetId=${assetId}&startDate=${startDate}&endDate=${endDate}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      );
-      const data = await response.json();
-      if (data.success) {
-        setAvailabilityCheck({
-          isAvailable: data.isAvailable,
-          availableQuantity: data.availableQuantity,
-          bookedQuantity: data.bookedQuantity,
-        });
+      if (!selectedAsset && loadedAssets.length > 0) {
+        setSelectedAsset(loadedAssets[0]);
       }
     } catch (error) {
-      console.error("Failed to check availability:", error);
-      setAvailabilityCheck(null);
-      showToast("Availability check failed. Please try again.", "error");
+      console.error("Failed to fetch availability data:", error);
+      setErrorMsg(error.message || "Unable to load availability data right now.");
+    } finally {
+      setLoading(false);
     }
-    setAvailabilityLoading(false);
   };
 
-  // Trigger availability check when dates change
-  useEffect(() => {
-    if (newBooking.startDate && newBooking.endDate && newBooking.assetId) {
-      checkAvailability(
-        newBooking.assetId,
-        newBooking.startDate,
-        newBooking.endDate,
-      );
+  const normalizedRequests = useMemo(
+    () =>
+      requests.map((request) => ({
+        ...request,
+        status: normalizeStatus(request.status),
+        assetId: request.assetDetails?.id,
+        assetName: request.assetDetails?.name || request.asset || "Resource Item",
+        borrower:
+          request.ownerDetails?.name || request.owner || request.club || "Organizer",
+        clubName: request.club || "General",
+        startDate: request.startDate || request.neededDate,
+        endDate: request.endDate || request.returnDate,
+      })),
+    [requests],
+  );
+
+  const selectedAssetBookings = useMemo(() => {
+    if (!selectedAsset) return [];
+    return normalizedRequests.filter(
+      (request) => request.assetId === selectedAsset.id && request.startDate && request.endDate,
+    );
+  }, [normalizedRequests, selectedAsset]);
+
+  const activeBookings = useMemo(
+    () => selectedAssetBookings.filter((booking) => isActiveBookingStatus(booking.status)),
+    [selectedAssetBookings],
+  );
+
+  const modeBookings = useMemo(() => {
+    if (viewMode === "timeline") return selectedAssetBookings;
+    return selectedAssetBookings;
+  }, [selectedAssetBookings, viewMode]);
+
+  const selectedAssetSummary = useMemo(() => {
+    if (!selectedAsset) {
+      return {
+        totalQty: 0,
+        availableQty: 0,
+        activeCount: 0,
+      };
     }
-  }, [newBooking.startDate, newBooking.endDate, newBooking.assetId]);
 
-  // Get bookings for selected asset from requests
-  const getAssetBookings = (assetId) => {
-    return requests
-      .filter(
-        (r) =>
-          r.asset?.id === assetId &&
-          (r.status === "approved" || r.status === "checked_out"),
-      )
-      .map((r) => ({
-        id: r.id,
-        club: r.club?.name || r.requestingClub?.name || "Unknown",
-        startDate: r.startDate || r.neededDate,
-        endDate: r.endDate || r.returnDate,
-        status: r.status,
-      }));
-  };
-
-  const isSlotAvailable = availabilityCheck?.isAvailable ?? true;
+    return {
+      totalQty: Number(selectedAsset.quantity || 0),
+      availableQty: Number(selectedAsset.availableQty || selectedAsset.available || 0),
+      activeCount: activeBookings.length,
+    };
+  }, [selectedAsset, activeBookings]);
 
   return (
     <div className="flex min-h-screen">
       <Sidebar isAdmin={true} />
       <div className="flex-1">
         <div className="availability-engine bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen">
-          <FeedbackToast toast={toast} onClose={() => setToast(null)} />
-
-          {/* HEADER */}
           <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-40">
             <div className="px-8 py-6">
               <div className="flex items-center gap-4 mb-4">
@@ -155,16 +122,11 @@ const ResourceAvailabilityEngine = () => {
                   ⚙️
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">
-                    Resource Availability Engine
-                  </h1>
-                  <p className="text-gray-400 text-sm">
-                    Prevent double bookings & manage schedules
-                  </p>
+                  <h1 className="text-2xl font-bold text-white">Resource Availability Engine</h1>
+                  <p className="text-gray-400 text-sm">Real-time conflict detection and booking insights</p>
                 </div>
               </div>
 
-              {/* VIEW MODE TOGGLE */}
               <div className="flex gap-2 mt-4">
                 {["timeline", "calendar"].map((mode) => (
                   <button
@@ -176,14 +138,13 @@ const ResourceAvailabilityEngine = () => {
                         : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                     }`}
                   >
-                    {mode === "timeline" ? "📊 Timeline" : "📅 Calendar"}
+                    {mode === "timeline" ? "Timeline" : "Calendar"}
                   </button>
                 ))}
               </div>
             </div>
           </header>
 
-          {/* MAIN CONTENT */}
           <div className="px-8 py-8 max-w-7xl mx-auto">
             {errorMsg && (
               <div className="mb-6">
@@ -198,51 +159,39 @@ const ResourceAvailabilityEngine = () => {
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* LEFT SIDEBAR - ASSET SELECTION */}
               <div className="lg:col-span-1">
                 <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 sticky top-28">
-                  <h2 className="text-lg font-bold text-white mb-4">
-                    📦 Assets
-                  </h2>
-                  <div className="space-y-2">
+                  <h2 className="text-lg font-bold text-white mb-4">Assets</h2>
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                     {loading ? (
                       <div className="space-y-2">
                         {Array.from({ length: 5 }).map((_, idx) => (
-                          <div
-                            key={idx}
-                            className="h-14 rounded-lg bg-gray-700/70 animate-pulse"
-                          />
+                          <div key={idx} className="h-14 rounded-lg bg-gray-700/70 animate-pulse" />
                         ))}
                       </div>
                     ) : assets.length === 0 ? (
                       <FeedbackPanel
                         type="info"
                         title="No assets available"
-                        message="Add or publish assets to start availability scheduling."
+                        message="Add assets to begin availability scheduling."
                       />
                     ) : (
-                      assets.map((asset) => {
-                        const bookingsCount = getAssetBookings(asset.id).length;
-                        return (
-                          <button
-                            key={asset.id}
-                            onClick={() => setSelectedAsset(asset)}
-                            className={`w-full text-left p-4 rounded-lg transition ${
-                              selectedAsset?.id === asset.id
-                                ? "bg-rose-600 text-white"
-                                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                            }`}
-                          >
-                            <p className="font-medium">
-                              {asset.name || "Unnamed"}
-                            </p>
-                            <p className="text-xs mt-1">
-                              {bookingsCount} booking
-                              {bookingsCount !== 1 ? "s" : ""}
-                            </p>
-                          </button>
-                        );
-                      })
+                      assets.map((asset) => (
+                        <button
+                          key={asset.id}
+                          onClick={() => setSelectedAsset(asset)}
+                          className={`w-full text-left p-4 rounded-lg transition ${
+                            selectedAsset?.id === asset.id
+                              ? "bg-rose-600 text-white"
+                              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                          }`}
+                        >
+                          <p className="font-medium">{asset.name || "Unnamed"}</p>
+                          <p className="text-xs mt-1">
+                            {asset.availableQty || asset.available || 0}/{asset.quantity || 0} available
+                          </p>
+                        </button>
+                      ))
                     )}
                   </div>
 
@@ -315,16 +264,16 @@ const ResourceAvailabilityEngine = () => {
                             }`}
                           >
                             {availabilityLoading ? (
-                              "≡ƒöä Checking..."
+                              "🔄 Checking..."
                             ) : isSlotAvailable ? (
                               <>
-                                Γ£ô Slot Available
+                                ✅ Slot Available
                                 {availabilityCheck?.availableQuantity &&
                                   ` (${availabilityCheck.availableQuantity} units)`}
                               </>
                             ) : (
                               <>
-                                Γ£ù Slot Booked
+                                ❌ Slot Booked
                                 {availabilityCheck?.bookedQuantity &&
                                   ` (${availabilityCheck.bookedQuantity} units booked)`}
                               </>
@@ -349,61 +298,51 @@ const ResourceAvailabilityEngine = () => {
                 </div>
               </div>
 
-              {/* RIGHT CONTENT - BOOKINGS VIEW */}
               <div className="lg:col-span-3">
                 {loading ? (
                   <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                    <p className="text-gray-400 text-lg">
-                      Loading availability timeline...
-                    </p>
+                    <p className="text-gray-400 text-lg">Loading availability timeline...</p>
                   </div>
                 ) : selectedAsset ? (
                   <div className="bg-gray-800 border border-gray-700 rounded-xl p-8">
-                    <div className="mb-6">
-                      <h2 className="text-2xl font-bold text-white mb-2">
-                        {selectedAsset.name || "Unnamed"}
-                      </h2>
-                      <p className="text-gray-400">
-                        Owner:{" "}
-                        {selectedAsset.owner?.name ||
-                          selectedAsset.owningClub?.name ||
-                          "Unknown"}
-                      </p>
+                    <div className="mb-6 flex flex-wrap gap-4 items-start justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-white mb-2">{selectedAsset.name || "Unnamed"}</h2>
+                        <p className="text-gray-400 text-sm">
+                          Owner: {selectedAsset.owner?.name || selectedAsset.club || "General"}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3 min-w-[320px]">
+                        <StatPill label="Total" value={selectedAssetSummary.totalQty} />
+                        <StatPill label="Available" value={selectedAssetSummary.availableQty} tone="green" />
+                        <StatPill label="Active" value={selectedAssetSummary.activeCount} tone="blue" />
+                      </div>
                     </div>
 
                     {viewMode === "timeline" ? (
-                      <TimelineView
-                        bookings={getAssetBookings(selectedAsset.id)}
-                      />
+                      <TimelineView bookings={modeBookings} />
                     ) : (
-                      <CalendarView
-                        bookings={getAssetBookings(selectedAsset.id)}
-                      />
+                      <CalendarView bookings={modeBookings} />
                     )}
 
-                    {/* BOOKINGS LIST */}
                     <div className="mt-8">
-                      <h3 className="text-lg font-bold text-white mb-4">
-                        ≡ƒôï Bookings
-                      </h3>
-                      {getAssetBookings(selectedAsset.id).length === 0 ? (
-                        <p className="text-gray-400">
-                          No bookings for this asset
-                        </p>
+                      <h3 className="text-lg font-bold text-white mb-4">Bookings</h3>
+                      {modeBookings.length === 0 ? (
+                        <p className="text-gray-400">No bookings for this asset</p>
                       ) : (
                         <div className="space-y-3">
-                          {getAssetBookings(selectedAsset.id).map((booking) => (
-                            <BookingCard key={booking.id} booking={booking} />
-                          ))}
+                          {modeBookings
+                            .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+                            .map((booking) => (
+                              <BookingCard key={booking.id} booking={booking} />
+                            ))}
                         </div>
                       )}
                     </div>
                   </div>
                 ) : (
                   <div className="bg-gray-800 border border-gray-700 rounded-xl p-12 text-center">
-                    <p className="text-gray-400 text-lg">
-                      Select an asset to view bookings
-                    </p>
+                    <p className="text-gray-400 text-lg">Select an asset to view availability details</p>
                   </div>
                 )}
               </div>
@@ -415,96 +354,251 @@ const ResourceAvailabilityEngine = () => {
   );
 };
 
-const TimelineView = ({ bookings }) => {
-  const months = ["Mar", "Apr", "May"];
+const StatPill = ({ label, value, tone = "default" }) => {
+  const toneClass =
+    tone === "green"
+      ? "text-emerald-300 border-emerald-500/30 bg-emerald-500/10"
+      : tone === "blue"
+        ? "text-blue-300 border-blue-500/30 bg-blue-500/10"
+        : "text-white border-gray-600 bg-gray-700/60";
 
   return (
-    <div className="bg-gray-700 rounded-lg p-6 overflow-x-auto">
-      <div className="space-y-4">
-        {[1, 2, 3, 4, 5].map((week) => (
-          <div key={week} className="flex items-center gap-4">
-            <span className="text-gray-400 text-sm font-medium w-20">
-              Week {week}
-            </span>
-            <div className="flex-1 h-10 bg-gray-600 rounded relative overflow-hidden">
-              {bookings.map((booking) => {
-                const startDate = new Date(booking.startDate);
-                const endDate = new Date(booking.endDate);
-                const position = ((startDate.getDate() - 1) / 30) * 100;
-                const width =
-                  ((endDate.getDate() - startDate.getDate()) / 30) * 100 || 3;
+    <div className={`rounded-lg border px-3 py-2 ${toneClass}`}>
+      <p className="text-[11px] uppercase tracking-wide opacity-80">{label}</p>
+      <p className="text-lg font-bold leading-tight">{value}</p>
+    </div>
+  );
+};
 
-                return (
-                  <div
-                    key={booking.id}
-                    style={{
-                      left: `${position}%`,
-                      width: `${width}%`,
-                    }}
-                    className={`absolute h-full flex items-center px-2 text-xs text-white font-medium ${
-                      booking.status === "approved"
-                        ? "bg-green-500"
-                        : "bg-yellow-500"
-                    }`}
-                  >
-                    <span className="truncate">{booking.club}</span>
-                  </div>
-                );
-              })}
+const TimelineView = ({ bookings }) => {
+  if (bookings.length === 0) {
+    return (
+      <div className="bg-gray-700 rounded-lg p-6 text-center text-gray-400">
+        No booking timeline data available
+      </div>
+    );
+  }
+
+  const sorted = [...bookings].sort(
+    (a, b) => new Date(a.startDate) - new Date(b.startDate),
+  );
+
+  const minDate = new Date(sorted[0].startDate);
+  const maxDate = new Date(
+    sorted.reduce(
+      (latest, booking) =>
+        new Date(booking.endDate) > latest ? new Date(booking.endDate) : latest,
+      new Date(sorted[0].endDate),
+    ),
+  );
+
+  const totalDays = Math.max(
+    1,
+    Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)),
+  );
+
+  return (
+    <div className="bg-gray-700 rounded-lg p-6 space-y-3">
+      {sorted.map((booking) => {
+        const start = new Date(booking.startDate);
+        const end = new Date(booking.endDate);
+        const offsetDays = Math.max(
+          0,
+          Math.ceil((start - minDate) / (1000 * 60 * 60 * 24)),
+        );
+        const durationDays = Math.max(
+          1,
+          Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1,
+        );
+
+        const left = (offsetDays / totalDays) * 100;
+        const width = (durationDays / totalDays) * 100;
+
+        return (
+          <div key={booking.id}>
+            <div className="flex items-center justify-between mb-1 text-xs text-gray-300">
+              <span>{booking.borrower}</span>
+              <span>
+                {formatDate(booking.startDate)} to {formatDate(booking.endDate)}
+              </span>
+            </div>
+            <div className="h-6 bg-gray-800 rounded relative overflow-hidden">
+              <div
+                className={`absolute h-full rounded ${
+                  booking.status === "returned"
+                    ? "bg-emerald-500"
+                    : booking.status === "overdue"
+                      ? "bg-red-500"
+                      : "bg-rose-500"
+                }`}
+                style={{ left: `${left}%`, width: `${Math.min(width, 100)}%` }}
+                title={`${booking.borrower} (${booking.quantityRequested || booking.quantity || 1})`}
+              />
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 };
 
 const CalendarView = ({ bookings }) => {
-  const daysInMonth = 31;
-  const firstDay = 3; // March starts on Monday
+  const now = new Date();
+  const [visibleMonth, setVisibleMonth] = useState(
+    new Date(now.getFullYear(), now.getMonth(), 1),
+  );
+  const [selectedDateKey, setSelectedDateKey] = useState(null);
+
+  const year = visibleMonth.getFullYear();
+  const month = visibleMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthLabel = visibleMonth.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+
+  const dateToKey = (day) =>
+    `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  const getBookingsForDateKey = (key) =>
+    bookings.filter((booking) => {
+      if (!booking.startDate || !booking.endDate) return false;
+      return booking.startDate <= key && booking.endDate >= key;
+    });
+
+  const bookingCountForDay = (day) => {
+    const key = dateToKey(day);
+    return getBookingsForDateKey(key).length;
+  };
+
+  const selectedDayBookings = useMemo(() => {
+    if (!selectedDateKey) return [];
+    return getBookingsForDateKey(selectedDateKey).sort(
+      (a, b) => new Date(a.startDate) - new Date(b.startDate),
+    );
+  }, [bookings, selectedDateKey]);
+
+  const goToPreviousMonth = () => {
+    setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setSelectedDateKey(null);
+  };
+
+  const goToNextMonth = () => {
+    setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setSelectedDateKey(null);
+  };
+
+  const goToCurrentMonth = () => {
+    setVisibleMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+    setSelectedDateKey(null);
+  };
 
   return (
     <div className="bg-gray-700 rounded-lg p-6">
-      <div className="grid grid-cols-7 gap-2 mb-4">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-          <div
-            key={day}
-            className="text-center font-bold text-gray-300 text-sm p-2"
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <h4 className="text-white font-semibold text-sm">{monthLabel}</h4>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={goToPreviousMonth}
+            className="px-3 py-1 rounded-md bg-gray-800 border border-gray-600 text-gray-200 text-xs hover:bg-gray-750"
           >
+            Previous
+          </button>
+          <button
+            type="button"
+            onClick={goToCurrentMonth}
+            className="px-3 py-1 rounded-md bg-gray-800 border border-gray-600 text-gray-200 text-xs hover:bg-gray-750"
+          >
+            Current
+          </button>
+          <button
+            type="button"
+            onClick={goToNextMonth}
+            className="px-3 py-1 rounded-md bg-gray-800 border border-gray-600 text-gray-200 text-xs hover:bg-gray-750"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-2 mb-3">
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+          <div key={day} className="text-center text-gray-300 text-xs font-bold">
             {day}
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-7 gap-2">
-        {Array.from({ length: firstDay + daysInMonth }).map((_, index) => {
-          const date = index - firstDay + 1;
-          if (date <= 0 || date > daysInMonth)
-            return <div key={index} className="h-20"></div>;
+        {Array.from({ length: startOffset }).map((_, idx) => (
+          <div key={`blank-${idx}`} className="h-16" />
+        ))}
 
-          const dateStr = `2024-03-${String(date).padStart(2, "0")}`;
-          const dayBookings = bookings.filter(
-            (b) => b.startDate <= dateStr && b.endDate >= dateStr,
-          );
+        {Array.from({ length: daysInMonth }, (_, index) => {
+          const day = index + 1;
+          const dayKey = dateToKey(day);
+          const count = bookingCountForDay(day);
+          const isSelected = selectedDateKey === dayKey;
+          const isToday =
+            dayKey ===
+            `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+              now.getDate(),
+            ).padStart(2, "0")}`;
 
           return (
-            <div
-              key={date}
-              className={`h-20 p-2 rounded-lg border ${
-                dayBookings.length > 0
-                  ? "bg-rose-500/20 border-rose-500/50"
+            <button
+              type="button"
+              key={day}
+              onClick={() => setSelectedDateKey(dayKey)}
+              className={`h-16 rounded-lg border p-2 ${
+                isSelected
+                  ? "bg-rose-500/35 border-rose-400"
+                  : count > 0
+                  ? "bg-rose-500/20 border-rose-500/40"
                   : "bg-gray-800 border-gray-600"
               }`}
             >
-              <p className="text-white font-bold text-sm mb-1">{date}</p>
-              {dayBookings.map((booking) => (
-                <p key={booking.id} className="text-xs text-gray-300 truncate">
-                  {booking.club}
-                </p>
-              ))}
-            </div>
+              <p className={`text-xs font-semibold ${isToday ? "text-rose-300" : "text-white"}`}>
+                {day}
+              </p>
+              {count > 0 && (
+                <p className="text-[11px] text-rose-200 mt-1">{count} booking{count > 1 ? "s" : ""}</p>
+              )}
+            </button>
           );
         })}
+      </div>
+
+      <div className="mt-4 border-t border-gray-600 pt-4">
+        <h5 className="text-sm text-white font-semibold mb-2">
+          {selectedDateKey ? `Bookings on ${selectedDateKey}` : "Select a day to view bookings"}
+        </h5>
+
+        {selectedDateKey && selectedDayBookings.length === 0 && (
+          <p className="text-xs text-gray-300">No bookings on this day.</p>
+        )}
+
+        {selectedDayBookings.length > 0 && (
+          <div className="space-y-2">
+            {selectedDayBookings.map((booking) => (
+              <div
+                key={`day-${selectedDateKey}-${booking.id}`}
+                className="rounded-md border border-gray-600 bg-gray-800 px-3 py-2"
+              >
+                <p className="text-sm text-white font-medium">{booking.borrower}</p>
+                <p className="text-xs text-gray-300">
+                  {formatDate(booking.startDate)} to {formatDate(booking.endDate)} | Qty {booking.quantityRequested || booking.quantity || 1}
+                </p>
+                <p className="text-xs text-gray-400 mt-1 uppercase">
+                  {booking.status.replace(/_/g, " ")}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -512,21 +606,27 @@ const CalendarView = ({ bookings }) => {
 
 const BookingCard = ({ booking }) => (
   <div className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:border-rose-500/50 transition">
-    <div className="flex items-start justify-between">
+    <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-white font-bold">{booking.club}</p>
-        <p className="text-gray-400 text-sm">
-          {booking.startDate} to {booking.endDate}
+        <p className="text-white font-bold">{booking.borrower}</p>
+        <p className="text-gray-300 text-sm mt-1">
+          {formatDate(booking.startDate)} to {formatDate(booking.endDate)}
+        </p>
+        <p className="text-gray-400 text-xs mt-1">
+          Qty: {booking.quantityRequested || booking.quantity || 1}
+          {booking.clubName ? ` | Club: ${booking.clubName}` : ""}
         </p>
       </div>
       <span
-        className={`px-3 py-1 text-xs rounded-full font-medium ${
-          booking.status === "approved"
-            ? "bg-green-500/20 text-green-400"
-            : "bg-yellow-500/20 text-yellow-400"
+        className={`px-3 py-1 text-xs rounded-full font-medium uppercase ${
+          booking.status === "returned"
+            ? "bg-emerald-500/20 text-emerald-300"
+            : booking.status === "overdue"
+              ? "bg-red-500/20 text-red-300"
+              : "bg-yellow-500/20 text-yellow-300"
         }`}
       >
-        {booking.status.toUpperCase()}
+        {booking.status.replace(/_/g, " ")}
       </span>
     </div>
   </div>

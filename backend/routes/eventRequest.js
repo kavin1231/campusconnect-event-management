@@ -2,6 +2,7 @@ import express from "express";
 import * as eventRequestController from "../controllers/eventRequestController.js";
 import { verifyToken, requireRole } from "../middleware/authMiddleware.js";
 import eventImageUpload from "../middleware/eventImageUpload.js";
+import delegateRoutes from "./delegates.js";
 
 const router = express.Router();
 
@@ -60,11 +61,18 @@ router.put(
   eventRequestController.replaceEventMerchandise,
 );
 
+// Update pickup slots for approved event requests
+router.patch(
+  "/:id/pickup-slots",
+  verifyToken,
+  eventRequestController.updatePickupSlots,
+);
+
 // Update event request status (admin only)
 router.patch(
   "/:id/status",
   verifyToken,
-  requireRole("SYSTEM_ADMIN"),
+  requireRole("SYSTEM_ADMIN", "CLUB_PRESIDENT"),
   eventRequestController.updateEventRequestStatus,
 );
 

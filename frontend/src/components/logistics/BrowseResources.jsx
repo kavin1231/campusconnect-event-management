@@ -1,4 +1,4 @@
-﻿import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import { logisticsAPI } from "../../services/api";
@@ -221,6 +221,7 @@ const BrowseResources = () => {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [toast, setToast] = useState(null);
+  const [cancelingRequestId, setCancelingRequestId] = useState(null);
 
   const [requestForm, setRequestForm] = useState({
     quantity: 1,
@@ -354,6 +355,28 @@ const BrowseResources = () => {
     }
   };
 
+  const handleCancelRequest = async (requestId) => {
+    setCancelingRequestId(requestId);
+    try {
+      const response = await logisticsAPI.rejectRequest(
+        requestId,
+        "Cancelled by requester",
+      );
+
+      if (response?.success) {
+        showToast("Request cancelled successfully.", "success");
+        await fetchMyRequests();
+      } else {
+        showToast(response?.message || "Failed to cancel request.", "error");
+      }
+    } catch (error) {
+      console.error("Failed to cancel request:", error);
+      showToast("Failed to cancel request.", "error");
+    } finally {
+      setCancelingRequestId(null);
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
       <Sidebar isAdmin={true} />
@@ -431,6 +454,8 @@ const BrowseResources = () => {
                     errorMsg={errorMsg}
                     onRetry={fetchMyRequests}
                     navigate={navigate}
+                    onCancel={handleCancelRequest}
+                    cancelingRequestId={cancelingRequestId}
                   />
                 )}
               </motion.div>
@@ -676,7 +701,7 @@ const ResourceCard = memo(({ asset, onRequest }) => {
 
         {asset.images && asset.images.length > 0 && (
           <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur">
-            ≡ƒô╕ {asset.images.length} photos
+            {asset.images.length} photos
           </div>
         )}
 
@@ -718,7 +743,7 @@ const ResourceCard = memo(({ asset, onRequest }) => {
           <div className="bg-gray-700 rounded-lg p-3">
             <p className="text-gray-400 text-xs mb-1">Category</p>
             <p className="text-white text-sm font-medium">
-              {asset.category || "ΓÇö"}
+              {asset.category || "-"}
             </p>
           </div>
         </div>
@@ -767,7 +792,15 @@ const ResourceCard = memo(({ asset, onRequest }) => {
   );
 });
 
-const MyRequestsMode = ({ requests, loading, errorMsg, onRetry, navigate }) => (
+const MyRequestsMode = ({
+  requests,
+  loading,
+  errorMsg,
+  onRetry,
+  navigate,
+  onCancel,
+  cancelingRequestId,
+}) => (
   <div className="space-y-4">
     {errorMsg ? (
       <FeedbackPanel
@@ -833,7 +866,7 @@ const MyRequestsMode = ({ requests, loading, errorMsg, onRetry, navigate }) => (
           {request.status === "pending" && (
             <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <p className="text-yellow-300 text-sm">
-                ΓÅ│ Awaiting approval from{" "}
+                ⚠ Awaiting approval from{" "}
                 {request.owner || request.club || "owner"}
               </p>
             </div>
@@ -848,8 +881,14 @@ const MyRequestsMode = ({ requests, loading, errorMsg, onRetry, navigate }) => (
               >
                 View Checkout Details
               </button>
-              <button className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition">
-                Cancel Request
+              <button
+                onClick={() => onCancel(request.id)}
+                disabled={cancelingRequestId === request.id}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/40 disabled:cursor-not-allowed text-white rounded-lg text-sm transition"
+              >
+                {cancelingRequestId === request.id
+                  ? "Cancelling..."
+                  : "Cancel Request"}
               </button>
             </div>
           )}

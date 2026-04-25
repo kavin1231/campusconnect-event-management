@@ -18,6 +18,7 @@ const MerchandisePurchasePage = () => {
   const [buyerName, setBuyerName] = useState(user?.name || "");
   const [buyerEmail, setBuyerEmail] = useState(user?.email || "");
   const [buyerPhone, setBuyerPhone] = useState("");
+  const [studentNumber, setStudentNumber] = useState("");
   const [paymentSlip, setPaymentSlip] = useState(null);
   const [paymentSlipPreview, setPaymentSlipPreview] = useState(null);
   const [step, setStep] = useState("info"); // "info" or "payment"
@@ -76,6 +77,10 @@ const MerchandisePurchasePage = () => {
     }
     if (!buyerEmail.trim()) {
       setError("Please enter your email");
+      return false;
+    }
+    if (!studentNumber.trim()) {
+      setError("Please enter your student number");
       return false;
     }
     if (!buyerPhone.trim()) {
@@ -163,6 +168,7 @@ const MerchandisePurchasePage = () => {
         buyerName: buyerName.trim(),
         buyerEmail: buyerEmail.trim(),
         buyerPhone: buyerPhone.trim(),
+        studentNumber: studentNumber.trim(),
         paymentSlipUrl,
         items: [
           {
@@ -366,6 +372,18 @@ const MerchandisePurchasePage = () => {
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
                   placeholder="Enter your full name"
+                  disabled={stock <= 0}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="studentNumber">Student Number</label>
+                <input
+                  type="text"
+                  id="studentNumber"
+                  value={studentNumber}
+                  onChange={(e) => setStudentNumber(e.target.value)}
+                  placeholder="Enter your student ID"
                   disabled={stock <= 0}
                 />
               </div>

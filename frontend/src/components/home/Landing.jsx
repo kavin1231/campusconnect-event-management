@@ -118,7 +118,12 @@ const Landing = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [registrationLoading, setRegistrationLoading] = useState({});
+  const [activeFilter, setActiveFilter] = useState("All Events");
   const profileRef = useRef(null);
+
+  const filteredEvents = activeFilter === "All Events" 
+    ? events 
+    : events.filter(e => e.category && e.category.toLowerCase().includes(activeFilter.toLowerCase()));
 
   const summarizeDescription = (value) => {
     const normalized = String(value || "")
@@ -136,7 +141,7 @@ const Landing = () => {
     e.stopPropagation();
 
     if (!isLoggedIn) {
-      window.location.href = "/login";
+      navigate("/login");
       return;
     }
 
@@ -144,10 +149,14 @@ const Landing = () => {
     try {
       const response = await dashboardAPI.registerEvent(eventId);
       if (response.success) {
+        alert("Registration successful!");
         await fetchEvents();
+      } else {
+        alert(response.message || "Registration failed");
       }
     } catch (error) {
       console.error("Registration failed:", error);
+      alert("Registration failed. Please try again.");
     } finally {
       setRegistrationLoading((prev) => ({ ...prev, [eventId]: false }));
     }
@@ -157,16 +166,23 @@ const Landing = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
 
     setRegistrationLoading((prev) => ({ ...prev, [eventId]: true }));
     try {
       const response = await dashboardAPI.unregisterEvent(eventId);
       if (response.success) {
+        alert("Unregistered successfully");
         await fetchEvents();
+      } else {
+        alert(response.message || "Unregistration failed");
       }
     } catch (error) {
       console.error("Unregistration failed:", error);
+      alert("Unregistration failed. Please try again.");
     } finally {
       setRegistrationLoading((prev) => ({ ...prev, [eventId]: false }));
     }
@@ -189,9 +205,10 @@ const Landing = () => {
         }
       }
 
-      // Students can use the dashboard feed for registration state.
+      // Students and Club Presidents can use the dashboard feed for registration state.
       // Other roles should always use the public published feed.
-      if (localStorage.getItem("token") && String(currentUser?.role || "").toUpperCase() === "STUDENT") {
+      const currentRole = String(currentUser?.role || "").toUpperCase();
+      if (localStorage.getItem("token") && (currentRole === "STUDENT" || currentRole === "CLUB_PRESIDENT")) {
         data = await dashboardAPI.getEvents({ filter: 'upcoming' });
       } else {
         const response = await fetch(`${dashboardAPI.getEvents.API_BASE_URL || "http://localhost:5000/api"}/events/published`);
@@ -534,7 +551,10 @@ const Landing = () => {
 
       <main className="main-content">
         <div className="filter-chips">
-          <button className="chip active">
+          <button 
+            className={`chip ${activeFilter === 'All Events' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('All Events')}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -553,7 +573,10 @@ const Landing = () => {
             </svg>
             All Events
           </button>
-          <button className="chip">
+          <button 
+            className={`chip ${activeFilter === 'Sports' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Sports')}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -571,7 +594,10 @@ const Landing = () => {
             </svg>
             Sports
           </button>
-          <button className="chip">
+          <button 
+            className={`chip ${activeFilter === 'Tech' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Tech')}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -588,7 +614,10 @@ const Landing = () => {
             </svg>
             Tech
           </button>
-          <button className="chip">
+          <button 
+            className={`chip ${activeFilter === 'Arts' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Arts')}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -607,7 +636,10 @@ const Landing = () => {
             </svg>
             Arts
           </button>
-          <button className="chip">
+          <button 
+            className={`chip ${activeFilter === 'Music' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Music')}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -624,6 +656,108 @@ const Landing = () => {
               <circle cx="18" cy="16" r="3"></circle>
             </svg>
             Music
+          </button>
+          <button 
+            className={`chip ${activeFilter === 'Academic' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Academic')}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Academic
+          </button>
+          <button 
+            className={`chip ${activeFilter === 'Workshops' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Workshops')}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            Workshops
+          </button>
+          <button 
+            className={`chip ${activeFilter === 'Cultural' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Cultural')}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Cultural
+          </button>
+          <button 
+            className={`chip ${activeFilter === 'Gaming' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Gaming')}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
+              <path d="M6 12h4"></path>
+              <path d="M8 10v4"></path>
+              <circle cx="15" cy="13" r="1"></circle>
+              <circle cx="18" cy="11" r="1"></circle>
+            </svg>
+            Gaming
+          </button>
+          <button 
+            className={`chip ${activeFilter === 'Entertainment' ? 'active' : ''}`}
+            onClick={() => setActiveFilter('Entertainment')}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5z"></path>
+              <path d="M12 18h.01"></path>
+              <path d="M7 12c.5-2 1.5-3 3-3s2.5 1 3 3c.5 2 1.5 3 3 3s2.5-1 3-3"></path>
+            </svg>
+            Entertainment
           </button>
         </div>
 
@@ -713,7 +847,7 @@ const Landing = () => {
         )}
 
         <section className="events-section">
-          {events.length > 0 && (
+          {filteredEvents.length > 0 && (
             <div className="section-header">
               <div className="section-title-wrap">
                 <h2>Upcoming Club Events</h2>
@@ -730,15 +864,15 @@ const Landing = () => {
               <div className="spinner"></div>
               <p>Loading events...</p>
             </div>
-          ) : events.length === 0 ? (
+          ) : filteredEvents.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">🎨</div>
-              <h3>No events available</h3>
-              <p>Stay tuned! Amazing campus events are coming soon.</p>
+              <div className="empty-icon">📂</div>
+              <h3>No events found for "{activeFilter}"</h3>
+              <p>Try selecting a different category.</p>
             </div>
           ) : (
             <div className="events-grid">
-              {events.map((event, index) => {
+              {filteredEvents.map((event, index) => {
                 const formatted = formatDate(event.date);
                 return (
                   <div

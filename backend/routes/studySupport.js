@@ -5,12 +5,12 @@ import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// PDF Upload route
+// Material Upload route
 router.post(
-    '/upload-pdf',
+    '/upload-material',
     verifyToken,
     requireRole('SYSTEM_ADMIN'),
-    upload.single('pdf'),
+    upload.single('file'),
     (req, res) => {
         try {
             if (!req.file) {

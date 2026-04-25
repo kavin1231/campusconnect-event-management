@@ -5,6 +5,8 @@ import { useTheme } from "../../context/ThemeContext";
 import { governanceAPI } from "../../services/api";
 import "./professional-theme.css";
 
+const REFRESH_INTERVAL_MS = 15000;
+
 const GovernanceDashboard = () => {
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
@@ -17,6 +19,7 @@ const GovernanceDashboard = () => {
   });
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -30,14 +33,42 @@ const GovernanceDashboard = () => {
     try {
       const userData = JSON.parse(userStr);
       setUser(userData);
-      fetchEventApprovals();
+      fetchEventApprovals({ silent: false });
     } catch (e) {
       navigate("/login");
     }
   }, [navigate]);
 
-  const fetchEventApprovals = async () => {
-    setLoading(true);
+  useEffect(() => {
+    if (!user) return;
+
+    const refresh = () => {
+      fetchEventApprovals({ silent: true });
+    };
+
+    const intervalId = setInterval(refresh, REFRESH_INTERVAL_MS);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    };
+
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [user]);
+
+  const fetchEventApprovals = async ({ silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true);
+    }
+
     try {
       const data = await governanceAPI.getEventApprovals();
       if (data.success) {
@@ -52,58 +83,69 @@ const GovernanceDashboard = () => {
           activeClubs: data.stats?.activeClubs || 0,
           totalEvents: data.events?.length || 0,
         });
+        setLastUpdatedAt(new Date());
       }
     } catch (error) {
       console.error("Failed to fetch event approvals:", error);
     }
-    setLoading(false);
+
+    if (!silent) {
+      setLoading(false);
+    }
   };
 
   if (!user) return <div className="p-10">Loading...</div>;
 
   return (
-    <div 
+    <div
       className="flex min-h-screen"
       style={{
         backgroundColor: "var(--bg-darker)",
-        color: "var(--text-main)"
+        color: "var(--text-main)",
       }}
     >
       <Sidebar isAdmin={true} />
       <div className="flex-1 flex flex-col">
         {/* HEADER */}
         <div className="px-5 sm:px-8 pt-8 pb-6">
-          <div 
+          <div
             className="rounded-3xl border p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
             style={{
               borderColor: "var(--border-color)",
-              background: isDarkMode 
-                ? "linear-gradient(to right, rgba(99, 102, 241, 0.1), var(--bg-card))" 
-                : "linear-gradient(to right, rgba(255, 107, 53, 0.05), var(--bg-card))"
+              background: isDarkMode
+                ? "linear-gradient(to right, rgba(99, 102, 241, 0.1), var(--bg-card))"
+                : "linear-gradient(to right, rgba(255, 107, 53, 0.05), var(--bg-card))",
             }}
           >
             <div className="flex flex-wrap justify-between gap-4 items-start">
               <div>
-                <p 
+                <p
                   className="text-xs tracking-[0.18em] uppercase mb-2"
                   style={{ color: "var(--primary-accent)", opacity: 0.8 }}
                 >
                   Governance Management
                 </p>
-                <h1 
+                <h1
                   className="text-3xl md:text-4xl font-black"
                   style={{ color: "var(--text-main)" }}
                 >
                   Governance Hub
                 </h1>
-                <p 
+                <p
                   className="mt-2 max-w-2xl"
                   style={{ color: "var(--text-muted)" }}
                 >
                   Manage approvals, roles & permissions
                 </p>
+                {lastUpdatedAt && (
+                  <p
+                    className="mt-2 text-xs"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Last updated: {lastUpdatedAt.toLocaleTimeString()}
+                  </p>
+                )}
               </div>
-              
             </div>
           </div>
         </div>
@@ -144,19 +186,19 @@ const GovernanceDashboard = () => {
                   className="rounded-2xl p-4 border shadow-sm hover:-translate-y-0.5 transition"
                   style={{
                     borderColor: "var(--border-color)",
-                    backgroundColor: "var(--bg-card)"
+                    backgroundColor: "var(--bg-card)",
                   }}
                 >
                   <div className={`flex items-center gap-2 ${stat.color}`}>
                     <span className="text-lg">{stat.icon}</span>
-                    <p 
+                    <p
                       className="text-xs font-semibold uppercase tracking-wider"
                       style={{ color: "var(--text-muted)" }}
                     >
                       {stat.title}
                     </p>
                   </div>
-                  <p 
+                  <p
                     className="text-2xl font-black mt-2"
                     style={{ color: "var(--text-main)" }}
                   >
@@ -172,7 +214,10 @@ const GovernanceDashboard = () => {
             <h2 className="text-sm uppercase tracking-[0.15em] text-slate-300 mb-4">
               Dashboard
             </h2>
-            <div className="flex gap-2 border-b mb-6" style={{ borderColor: "var(--border-color)" }}>
+            <div
+              className="flex gap-2 border-b mb-6"
+              style={{ borderColor: "var(--border-color)" }}
+            >
               {["overview", "approvals", "permissions"].map((tab) => (
                 <button
                   key={tab}
@@ -183,7 +228,10 @@ const GovernanceDashboard = () => {
                       : "hover:text-indigo-400"
                   }`}
                   style={{
-                    color: activeTab === tab ? "var(--primary-accent)" : "var(--text-muted)"
+                    color:
+                      activeTab === tab
+                        ? "var(--primary-accent)"
+                        : "var(--text-muted)",
                   }}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -208,20 +256,29 @@ const OverviewTab = () => {
   return (
     <div className="space-y-6">
       {/* QUICK ACTIONS */}
-      <div 
+      <div
         className="rounded-2xl border p-5"
-        style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
+        style={{
+          borderColor: "var(--border-color)",
+          backgroundColor: "var(--bg-card)",
+        }}
       >
-        <div className="mb-5 flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
+        <div
+          className="mb-5 flex items-center gap-2"
+          style={{ color: "var(--primary-accent)" }}
+        >
           <span className="text-xl">⚡</span>
           <div>
-            <h3 
+            <h3
               className="text-sm uppercase tracking-[0.15em] font-semibold"
               style={{ color: "var(--text-main)" }}
             >
               Quick Actions
             </h3>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--text-muted)" }}
+            >
               Common management tasks
             </p>
           </div>
@@ -255,20 +312,29 @@ const OverviewTab = () => {
       </div>
 
       {/* RECENT ACTIVITIES */}
-      <div 
+      <div
         className="rounded-2xl border p-5"
-        style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
+        style={{
+          borderColor: "var(--border-color)",
+          backgroundColor: "var(--bg-card)",
+        }}
       >
-        <div className="mb-5 flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
+        <div
+          className="mb-5 flex items-center gap-2"
+          style={{ color: "var(--primary-accent)" }}
+        >
           <span className="text-xl">📋</span>
           <div>
-            <h3 
+            <h3
               className="text-sm uppercase tracking-[0.15em] font-semibold"
               style={{ color: "var(--text-main)" }}
             >
               Recent Activities
             </h3>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--text-muted)" }}
+            >
               Latest actions on the platform
             </p>
           </div>
@@ -317,13 +383,15 @@ const ActionButton = ({ icon, title, desc, href }) => (
     <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">
       {icon}
     </div>
-    <h3 
+    <h3
       className="font-bold mb-1 group-hover:text-indigo-600 transition"
       style={{ color: "var(--text-main)" }}
     >
       {title}
     </h3>
-    <p className="text-sm" style={{ color: "var(--text-muted)" }}>{desc}</p>
+    <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+      {desc}
+    </p>
   </button>
 );
 
@@ -346,15 +414,22 @@ const ActivityItem = ({ title, time, status }) => {
   const config = statusConfig[status];
 
   return (
-    <div className="py-4 first:pt-0 last:pb-0 flex items-start gap-4" style={{ borderColor: "var(--border-color)" }}>
+    <div
+      className="py-4 first:pt-0 last:pb-0 flex items-start gap-4"
+      style={{ borderColor: "var(--border-color)" }}
+    >
       <div
         className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${config.color}`}
       >
         {config.badge}
       </div>
       <div className="flex-1">
-        <p className="font-medium" style={{ color: "var(--text-main)" }}>{title}</p>
-        <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>{time}</p>
+        <p className="font-medium" style={{ color: "var(--text-main)" }}>
+          {title}
+        </p>
+        <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
+          {time}
+        </p>
       </div>
     </div>
   );
@@ -408,24 +483,33 @@ const ApprovalsTab = () => {
   ]);
 
   return (
-    <div 
+    <div
       className="rounded-2xl border"
-      style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
+      style={{
+        borderColor: "var(--border-color)",
+        backgroundColor: "var(--bg-card)",
+      }}
     >
-      <div 
+      <div
         className="px-5 py-4 border-b flex items-center justify-between"
         style={{ borderColor: "var(--border-color)" }}
       >
-        <div className="flex items-center gap-2" style={{ color: "var(--primary-accent)" }}>
+        <div
+          className="flex items-center gap-2"
+          style={{ color: "var(--primary-accent)" }}
+        >
           <span className="text-lg">📋</span>
           <div>
-            <h3 
+            <h3
               className="text-sm uppercase tracking-[0.15em] font-semibold"
               style={{ color: "var(--text-main)" }}
             >
               Pending & Managed Approvals
             </h3>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--text-muted)" }}
+            >
               All club and event submissions
             </p>
           </div>
@@ -436,13 +520,16 @@ const ApprovalsTab = () => {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left min-w-[700px]">
-          <thead 
+          <thead
             className="sticky top-0"
             style={{ backgroundColor: "var(--bg-darker)" }}
           >
-            <tr 
+            <tr
               className="uppercase text-xs tracking-wider border-b"
-              style={{ color: "var(--text-muted)", borderColor: "var(--border-color)" }}
+              style={{
+                color: "var(--text-muted)",
+                borderColor: "var(--border-color)",
+              }}
             >
               <th className="px-5 py-3">Type</th>
               <th className="px-5 py-3">Name</th>
@@ -452,7 +539,10 @@ const ApprovalsTab = () => {
               <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y" style={{ borderColor: "var(--border-color)" }}>
+          <tbody
+            className="divide-y"
+            style={{ borderColor: "var(--border-color)" }}
+          >
             {approvals.map((approval) => (
               <tr
                 key={approval.id}
@@ -460,24 +550,35 @@ const ApprovalsTab = () => {
                 style={{ borderBottom: "1px solid var(--border-color)" }}
               >
                 <td className="px-5 py-4">
-                  <span 
+                  <span
                     className="inline-block px-3 py-1 border rounded-lg text-sm font-medium"
-                    style={{ 
-                      backgroundColor: "var(--bg-input)", 
+                    style={{
+                      backgroundColor: "var(--bg-input)",
                       color: "var(--text-muted)",
-                      borderColor: "var(--border-color)"
+                      borderColor: "var(--border-color)",
                     }}
                   >
                     {approval.type}
                   </span>
                 </td>
-                <td className="px-5 py-4 font-medium" style={{ color: "var(--text-main)" }}>
+                <td
+                  className="px-5 py-4 font-medium"
+                  style={{ color: "var(--text-main)" }}
+                >
                   {approval.name}
                 </td>
-                <td className="px-5 py-4" style={{ color: "var(--text-muted)" }}>
+                <td
+                  className="px-5 py-4"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   {approval.submittedBy}
                 </td>
-                <td className="px-5 py-4" style={{ color: "var(--text-muted)" }}>{approval.date}</td>
+                <td
+                  className="px-5 py-4"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {approval.date}
+                </td>
                 <td className="px-5 py-4">
                   <span
                     className={`px-2.5 py-1 rounded-full border text-xs font-semibold uppercase ${
@@ -493,12 +594,12 @@ const ApprovalsTab = () => {
                 </td>
                 <td className="px-5 py-4 text-right">
                   <div className="flex gap-2 justify-end">
-                    <button 
+                    <button
                       className="px-3 py-1.5 rounded-lg border transition text-xs font-semibold uppercase"
-                      style={{ 
-                        backgroundColor: "var(--bg-input)", 
+                      style={{
+                        backgroundColor: "var(--bg-input)",
                         borderColor: "var(--border-color)",
-                        color: "var(--text-main)"
+                        color: "var(--text-main)",
                       }}
                     >
                       View
@@ -550,24 +651,35 @@ const PermissionsTab = () => {
         <div
           key={role.id}
           className="rounded-2xl border p-5"
-          style={{ borderColor: "var(--border-color)", backgroundColor: "var(--bg-card)" }}
+          style={{
+            borderColor: "var(--border-color)",
+            backgroundColor: "var(--bg-card)",
+          }}
         >
-          <div 
+          <div
             className="flex items-start justify-between mb-5 pb-5 border-b"
             style={{ borderColor: "var(--border-color)" }}
           >
             <div>
-              <h3 className="text-lg font-semibold" style={{ color: "var(--text-main)" }}>
+              <h3
+                className="text-lg font-semibold"
+                style={{ color: "var(--text-main)" }}
+              >
                 {role.name}
               </h3>
-              <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{role.description}</p>
+              <p
+                className="text-sm mt-1"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {role.description}
+              </p>
             </div>
-            <button 
+            <button
               className="px-4 py-2 rounded-lg border transition text-sm font-semibold"
               style={{
                 backgroundColor: "var(--bg-input)",
                 borderColor: "var(--border-color)",
-                color: "var(--text-main)"
+                color: "var(--text-main)",
               }}
             >
               Edit Permissions

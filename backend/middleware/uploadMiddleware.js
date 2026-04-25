@@ -24,12 +24,21 @@ const storage = multer.diskStorage({
     }
 });
 
-// File filter for PDFs only
+// File filter for various study material types
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
+    const allowedMimeTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/png',
+        'image/webp'
+    ];
+
+    if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Only PDF files are allowed!'), false);
+        cb(new Error('Invalid file type! Only PDFs, Word documents, and images are allowed.'), false);
     }
 };
 

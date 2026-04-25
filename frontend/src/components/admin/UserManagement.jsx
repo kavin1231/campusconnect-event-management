@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../common/Sidebar";
-import { authAPI } from "../../services/api";
+import { authAPI, resolveImageUrl } from "../../services/api";
 import Modal from "../ui/Modal";
 import { Eye, Trash2, Search, AlertTriangle, CheckCircle2 } from "lucide-react";
 
@@ -174,7 +174,7 @@ const UserManagement = () => {
                           <div className="flex items-center gap-3">
                             <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden">
                               {user.profileImage ? (
-                                <img src={user.profileImage} alt={user.name} className="size-full object-cover" />
+                                <img src={resolveImageUrl(user.profileImage)} alt={user.name} className="size-full object-cover" />
                               ) : (
                                 (user.name || "U").charAt(0).toUpperCase()
                               )}
@@ -241,7 +241,7 @@ const UserManagement = () => {
             <div className="flex items-center gap-4 p-4 bg-neutral-dark/50 rounded-xl border border-neutral-border">
               <div className="size-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-black overflow-hidden">
                 {selectedUser.profileImage ? (
-                  <img src={selectedUser.profileImage} alt={selectedUser.name} className="size-full object-cover" />
+                  <img src={resolveImageUrl(selectedUser.profileImage)} alt={selectedUser.name} className="size-full object-cover" />
                 ) : (
                   (selectedUser.name || "U").charAt(0).toUpperCase()
                 )}

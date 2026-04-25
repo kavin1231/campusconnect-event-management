@@ -12,6 +12,27 @@ import OperationsController from "../controllers/operationsController.js";
 
 const router = express.Router();
 
+const EVENT_SAFE_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  date: true,
+  category: true,
+  location: true,
+  image: true,
+  registeredCount: true,
+  status: true,
+  budget: true,
+  expectedAttendees: true,
+  venue: true,
+  submittedBy: true,
+  submittedDate: true,
+  approvedBy: true,
+  approvedAt: true,
+  rejectionReason: true,
+  createdAt: true,
+};
+
 const parseOrganizerFilter = (query) => {
   const organizerTypeRaw = String(query.organizerType || "").trim();
   const organizerIdRaw = String(query.organizerId || "").trim();
@@ -37,10 +58,13 @@ router.get("/published", async (req, res) => {
   try {
     const organizerFilterResult = parseOrganizerFilter(req.query);
     if (organizerFilterResult.error) {
-      return res.status(400).json({ success: false, message: organizerFilterResult.error });
+      return res
+        .status(400)
+        .json({ success: false, message: organizerFilterResult.error });
     }
 
-    const events = await prisma.event.findMany({
+    // First try to get PUBLISHED events
+    let events = await prisma.event.findMany({
       where: {
         status: "PUBLISHED",
         date: { gte: new Date() },
@@ -48,30 +72,51 @@ router.get("/published", async (req, res) => {
       },
       orderBy: { date: "asc" },
       select: {
-        id: true,
-        title: true,
-        description: true,
-        date: true,
-        category: true,
-        location: true,
-        image: true,
+        ...EVENT_SAFE_SELECT,
         _count: {
-          select: { registrations: true }
+          select: { registrations: true },
         },
-        status: true,
-        organizer: true,
-        organizerType: true,
-        organizerId: true,
       },
-    });
+    }).catch(() => []);
 
-    const mappedEvents = events.map(ev => ({
+    // If no published events found, get all future events (for backward compatibility with existing data)
+    if (events.length === 0) {
+      events = await prisma.event.findMany({
+        where: {
+          date: { gte: new Date() },
+          ...organizerFilterResult.filter,
+        },
+        orderBy: { date: "asc" },
+        take: 20, // Limit to prevent too many results
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          date: true,
+          category: true,
+          location: true,
+          image: true,
+          _count: {
+            select: { registrations: true }
+          },
+        },
+      }).catch((err) => {
+        console.error("Error getting fallback events:", err);
+        return [];
+      });
+    }
+
+    const mappedEvents = events.map((ev) => ({
       ...ev,
       registeredCount: ev._count.registrations,
-      _count: undefined
+      organizer: null,
+      organizerType: null,
+      organizerId: null,
+      _count: undefined,
     }));
     res.json({ success: true, events: mappedEvents });
   } catch (error) {
+    console.error("Error fetching published events:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -80,18 +125,18 @@ router.get("/published", async (req, res) => {
 router.get("/calendar/view", async (req, res) => {
   try {
     const events = await prisma.event.findMany({
-      where: { status: "APPROVED" },
+      where: { status: { in: ["APPROVED", "PUBLISHED"] } },
       orderBy: { date: "asc" },
     });
 
     // Transform and organize events by full date (YYYY-MM-DD)
     const eventsByDay = {};
-    
+
     events.forEach((event) => {
       // Format date as YYYY-MM-DD to ensure events only show on their specific date/month
       const eventDate = new Date(event.date);
       const fullDateKey = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}-${String(eventDate.getDate()).padStart(2, "0")}`;
-      
+
       if (!eventsByDay[fullDateKey]) {
         eventsByDay[fullDateKey] = [];
       }
@@ -122,7 +167,9 @@ router.get("/", async (req, res) => {
     const { status } = req.query;
     const organizerFilterResult = parseOrganizerFilter(req.query);
     if (organizerFilterResult.error) {
-      return res.status(400).json({ success: false, message: organizerFilterResult.error });
+      return res
+        .status(400)
+        .json({ success: false, message: organizerFilterResult.error });
     }
 
     const filter = {
@@ -133,6 +180,9 @@ router.get("/", async (req, res) => {
     const events = await prisma.event.findMany({
       where: filter,
       orderBy: { date: "asc" },
+      select: {
+        ...EVENT_SAFE_SELECT,
+      },
     });
     res.json({ success: true, events });
   } catch (error) {
@@ -249,7 +299,7 @@ router.get("/:eventId", async (req, res) => {
           },
         },
         _count: {
-          select: { registrations: true }
+          select: { registrations: true },
         },
       },
     });

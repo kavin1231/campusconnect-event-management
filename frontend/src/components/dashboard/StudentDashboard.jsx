@@ -3,18 +3,19 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../common/Header";
 import Sidebar from "../common/Sidebar";
 import { dashboardAPI, sportsAPI, groupLinksAPI, studySupportAPI, merchandiseAPI, resolveImageUrl } from "../../services/api";
-import { FileText, Link as LinkIcon, Video, Calendar, AlertCircle, Trophy, Users, ExternalLink, Loader2 as LoaderIcon } from 'lucide-react';
+import { 
+  FileText, Link as LinkIcon, Video, Calendar, AlertCircle, Trophy, Users, 
+  ExternalLink, Globe, CheckCircle2, Loader2 as LoaderIcon,
+  Search, Clock, MapPin, CreditCard, ChevronRight, Package,
+  Filter, MoreHorizontal
+} from 'lucide-react';
 import "./StudentDashboard.css";
 
-// ÔöÇÔöÇ Filter options ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// --- Filter options ---
 const FILTERS = [
   { key: "all", label: "All Events" },
   { key: "upcoming", label: "Upcoming" },
   { key: "past", label: "Past Events" },
-  { key: "orders", label: "My Orders" },
-  { key: "explore", label: "Explore" },
-  { key: "study", label: "Study Materials" },
-  { key: "extracurricular", label: "Social" },
 ];
 
 const CATEGORIES = [
@@ -52,7 +53,7 @@ const StudentDashboard = () => {
   const profileRef = useRef(null);
   const searchTimerRef = useRef(null);
 
-  // ÔöÇÔöÇ Study Support States ÔöÇÔöÇ
+  // --- Study Support States ---
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [studySessions, setStudySessions] = useState([]);
   const [activeStudyTab, setActiveStudyTab] = useState('materials');
@@ -62,7 +63,7 @@ const StudentDashboard = () => {
   const [studyLoading, setStudyLoading] = useState(false);
   const [studyError, setStudyError] = useState(null);
 
-  // ÔöÇÔöÇ Social Hub States ÔöÇÔöÇ
+  // --- Social Hub States ---
   const [sports, setSports] = useState([]);
   const [extraLinks, setExtraLinks] = useState([]);
   const [activeExtraTab, setActiveExtraTab] = useState('sports');
@@ -73,7 +74,7 @@ const StudentDashboard = () => {
   const [ordersError, setOrdersError] = useState(null);
   const [expandedOrderIds, setExpandedOrderIds] = useState([]);
 
-  // ÔöÇÔöÇ Auth guard ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // Authentication and Data Fetching
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -97,7 +98,7 @@ const StudentDashboard = () => {
     }
   }, [navigate]);
 
-  // ÔöÇÔöÇ Fetch stats ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- Fetch stats ---
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
     try {
@@ -110,7 +111,7 @@ const StudentDashboard = () => {
     }
   }, []);
 
-  // ÔöÇÔöÇ Fetch events ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- Fetch events ---
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
@@ -135,7 +136,7 @@ const StudentDashboard = () => {
     }
   }, [user, fetchStats, fetchEvents]);
 
-  // ÔöÇÔöÇ Fetch Study Data ÔöÇÔöÇ
+  // --- Fetch Study Data ---
   const fetchStudyData = useCallback(async () => {
     if (filter !== "study") return;
     setStudyLoading(true);
@@ -160,7 +161,7 @@ const StudentDashboard = () => {
     }
   }, [filter]);
 
-  // ÔöÇÔöÇ Extracurricular Data Fetching ÔöÇÔöÇ
+  // --- // --- Extracurricular Data Fetching -
   const fetchExtraData = useCallback(async () => {
     if (filter !== "extracurricular") return;
     setExtraLoading(true);
@@ -267,7 +268,7 @@ const StudentDashboard = () => {
     return sA - sB;
   });
 
-  // ÔöÇÔöÇ Sync filter with URL ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- // --- Sync filter with URL -
   useEffect(() => {
     const urlFilter = searchParams.get("filter") || "all";
     if (urlFilter !== filter) {
@@ -275,14 +276,14 @@ const StudentDashboard = () => {
     }
   }, [searchParams, filter]);
 
-  // ÔöÇÔöÇ Debounced search ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- // --- Debounced search -
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
     clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => setSearch(e.target.value), 400);
   };
 
-  // ÔöÇÔöÇ Profile dropdown close on outside click ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- Profile dropdown close on outside click ---
   useEffect(() => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target))
@@ -292,14 +293,14 @@ const StudentDashboard = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, [showProfileMenu]);
 
-  // ÔöÇÔöÇ Toast helper ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- Toast helper ---
   const showToast = (msg, type = "success") => {
     setToastMsg(msg);
     setToastType(type);
     setTimeout(() => setToastMsg(""), 3000);
   };
 
-  // ÔöÇÔöÇ Register / Unregister ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- // --- Register / Unregister -
   const toggleRegistration = async (event) => {
     setActionLoading((prev) => ({ ...prev, [event.id]: true }));
     try {
@@ -329,7 +330,7 @@ const StudentDashboard = () => {
     navigate("/");
   };
 
-  // ÔöÇÔöÇ Helpers ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- // --- Helpers -
   const getInitials = (name = "") => {
     const parts = name.trim().split(" ");
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
@@ -378,7 +379,7 @@ const StudentDashboard = () => {
     });
   };
 
-  const ORDER_STEPS = ["Submitted", "Payment Check", "Confirmed", "Ready/Delivered"];
+  const ORDER_STEPS = ["Submitted", "Payment Check", "Confirmed", "Ready for Pickup", "Collected"];
 
   const getOrderTrackerMeta = (statusRaw) => {
     const status = String(statusRaw || "PENDING").toUpperCase();
@@ -392,21 +393,21 @@ const StudentDashboard = () => {
       };
     }
 
+    if (status.includes("DELIVER") || status.includes("COMPLETE") || status.includes("FULFIL") || status.includes("COLLECT")) {
+      return {
+        label: "Collected",
+        tone: "complete",
+        stepIndex: 4,
+        helper: "Thank you for your purchase. Also explore for more merch.",
+      };
+    }
+
     if (status.includes("READY")) {
       return {
         label: "Ready for Pickup",
         tone: "confirmed",
         stepIndex: 3,
-        helper: "Payment verified. Your order is ready for pickup.",
-      };
-    }
-
-    if (status.includes("DELIVER") || status.includes("COMPLETE") || status.includes("FULFIL") || status.includes("COLLECT")) {
-      return {
-        label: "Delivered",
-        tone: "complete",
-        stepIndex: 3,
-        helper: "Your order has completed fulfillment.",
+        helper: "Your order is ready to pick up and the allocated location for that item by organizer",
       };
     }
 
@@ -438,16 +439,16 @@ const StudentDashboard = () => {
     );
   };
 
-  // ÔöÇÔöÇ Render ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  // --- // --- Render -
   return (
     <>
       <Header />
       <div className="sd-layout">
         <Sidebar activePage="dashboard" />
 
-      {/* ÔöÇÔöÇ Main Wrapper ÔöÇÔöÇ */}
+      {/* - Main Wrapper - */}
       <div className="sd-content-wrapper">
-        {/* ÔöÇÔöÇ Toast ÔöÇÔöÇ */}
+        {/* - Toast - */}
         {toastMsg && (
           <div className={`sd-toast sd-toast-${toastType}`}>
             {toastType === "success" ? (
@@ -491,7 +492,7 @@ const StudentDashboard = () => {
             <div className="sd-header-content">
               <div className="sd-header-text">
                 <span className="sd-header-badge">WELCOME BACK</span>
-                <h1>Hello, {user?.name?.split(" ")[0]}! 👋</h1>
+                <h1>Hello, {user?.name?.split(" ")[0]}! -</h1>
                 <p>Here's what's happening with your campus events today.</p>
               </div>
               <div className="sd-header-stats">
@@ -508,7 +509,7 @@ const StudentDashboard = () => {
           </header>
         )}
 
-        {/* ÔöÇÔöÇ Body ÔöÇÔöÇ */}
+        {/* - Body - */}
         <main className="sd-main">
 
           {/* Stats row */}
@@ -518,25 +519,25 @@ const StudentDashboard = () => {
                 {
                   label: "Total Registered",
                   value: stats.registered,
-                  icon: "📝",
+                  icon: <Users size={24} />,
                   color: "#4f46e5",
                 },
                 {
                   label: "Upcoming",
                   value: stats.upcoming,
-                  icon: "📅",
+                  icon: <Calendar size={24} />,
                   color: "#10b981",
                 },
                 {
                   label: "Completed",
                   value: stats.past,
-                  icon: "✅",
+                  icon: <CheckCircle2 size={24} />,
                   color: "#f59e0b",
                 },
                 {
                   label: "Events on Platform",
                   value: stats.totalEvents,
-                  icon: "🌐",
+                  icon: <Globe size={24} />,
                   color: "#8b5cf6",
                 },
               ].map((s) => (
@@ -549,7 +550,7 @@ const StudentDashboard = () => {
                   </div>
                   <div className="sd-stat-body">
                     <span className="sd-stat-value" style={{ color: s.color }}>
-                      {statsLoading ? "ÔÇö" : s.value}
+                      {statsLoading ? "..." : s.value}
                     </span>
                     <span className="sd-stat-label">{s.label}</span>
                   </div>
@@ -558,7 +559,7 @@ const StudentDashboard = () => {
             </div>
           )}
 
-          {/* ── Filter + Category bar ── */}
+          {/* --- Filter + Category bar --- */}
           {isEventsView && (
             <div className="sd-controls">
               <div className="sd-filter-tabs">
@@ -598,11 +599,11 @@ const StudentDashboard = () => {
           {loading ? (
             <div className="sd-loading">
               <div className="sd-spinner" />
-              <p>Loading events…</p>
+              <p>Loading events...</p>
             </div>
           ) : events.length === 0 ? (
             <div className="sd-empty">
-              <div className="sd-empty-icon">🔍</div>
+              <div className="sd-empty-icon text-4xl mb-4">-</div>
               <h3>No events found</h3>
               <p>Try changing the filter or search term.</p>
             </div>
@@ -746,7 +747,7 @@ const StudentDashboard = () => {
                           {busy ? (
                             <>
                               <div className="sd-btn-spinner sd-btn-spinner-dark" />
-                              ProcessingÔÇª
+                              Processing...
                             </>
                           ) : (
                             <>
@@ -780,7 +781,7 @@ const StudentDashboard = () => {
                           {busy ? (
                             <>
                               <div className="sd-btn-spinner" />
-                              ProcessingÔÇª
+                              Processing...
                             </>
                           ) : (
                             <>
@@ -817,7 +818,7 @@ const StudentDashboard = () => {
           <section className="sd-orders-tracker-view">
             <div className="sd-orders-header-card">
               <div className="sd-orders-header-main">
-                <div className="sd-orders-icon">📦</div>
+                <div className="sd-orders-icon"><Package size={32} /></div>
                 <div>
                   <h2>My Merchandise Orders</h2>
                   <p>Track each order from submission to payment confirmation and delivery.</p>
@@ -842,7 +843,7 @@ const StudentDashboard = () => {
               </div>
             ) : merchOrders.length === 0 ? (
               <div className="sd-empty">
-                <div className="sd-empty-icon">🧾</div>
+                 <div className="sd-empty-icon text-4xl mb-4"><Package size={48} /></div>
                 <h3>No merchandise orders yet</h3>
                 <p>When you place an order, its tracker will appear here.</p>
               </div>
@@ -902,7 +903,7 @@ const StudentDashboard = () => {
                           aria-expanded={isExpanded}
                           aria-label={isExpanded ? "Collapse order progress" : "Expand order progress"}
                         >
-                          <span className={`sd-order-toggle-icon ${isExpanded ? "open" : ""}`}>▾</span>
+                          <span className={`sd-order-toggle-icon ${isExpanded ? "open" : ""}`}>-</span>
                         </button>
                       </div>
 
@@ -915,7 +916,7 @@ const StudentDashboard = () => {
                               return (
                                 <div key={`${order.id}-${step}`} className="sd-order-step-item">
                                   <span className={`sd-order-step-dot ${done ? "done" : ""} ${active ? "active" : ""}`}>
-                                    {done ? "✓" : idx + 1}
+                                    {done ? <CheckCircle2 size={14} className="text-emerald-500" /> : idx + 1}
                                   </span>
                                   <span className={`sd-order-step-text ${done || active ? "current" : ""}`}>{step}</span>
                                 </div>
@@ -937,12 +938,12 @@ const StudentDashboard = () => {
           </section>
         )}
         
-        {/* ÔöÇÔöÇ Study Support Section ÔöÇÔöÇ */}
+        {/* --- Study Support Section --- */}
         {filter === "study" && (
           <div className="sd-study-integrated-view">
             <header className="sd-study-header">
               <div className="sd-study-search-wrap">
-                <i className="search-icon">🔍</i>
+                <Search className="search-icon" size={16} />
                 <input 
                   type="text" 
                   placeholder="Search materials, sessions, topics..." 
@@ -998,7 +999,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {getFilteredMaterials().length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">📚</div>
+                      <div className="empty-icon text-4xl mb-4"><FileText size={48} /></div>
                       <h3>No materials found</h3>
                       <p>Try adjusting your search or semester filter</p>
                     </div>
@@ -1045,7 +1046,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {getFilteredSessions().length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">🎥</div>
+                      <div className="empty-icon text-4xl mb-4"><Video size={48} /></div>
                       <h3>No sessions found</h3>
                       <p>Try adjusting your search or semester filter</p>
                     </div>
@@ -1078,7 +1079,7 @@ const StudentDashboard = () => {
                             </td>
                             <td>
                               <div className="table-creator">
-                                <div className="avatar-small">🎓</div>
+                                <div className="avatar-small"><Users size={14} /></div>
                                 <span>{session.creator?.name || 'Admin'}</span>
                               </div>
                             </td>
@@ -1107,12 +1108,12 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* ÔöÇÔöÇ Social Hub Section ÔöÇÔöÇ */}
+        {/* --- Social Hub Section --- */}
         {filter === "extracurricular" && (
           <div className="sd-study-integrated-view">
             <header className="sd-study-header">
               <div className="sd-study-search-wrap">
-                <i className="search-icon">🔍</i>
+                <Search className="search-icon" size={16} />
                 <input 
                   type="text" 
                   placeholder="Search clubs, hubs, communities..." 
@@ -1154,7 +1155,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {sports.length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">🏆</div>
+                      <div className="empty-icon text-4xl mb-4"><Trophy size={48} /></div>
                       <h3>No sports clubs found</h3>
                       <p>Check back later for active campus sports</p>
                     </div>
@@ -1182,7 +1183,7 @@ const StudentDashboard = () => {
                             </td>
                             <td>
                               <div className="table-creator">
-                                <div className="avatar-small">👤</div>
+                                <div className="avatar-small"><Users size={14} /></div>
                                 <span>{sport.coachName || 'N/A'}</span>
                               </div>
                             </td>
@@ -1204,7 +1205,7 @@ const StudentDashboard = () => {
                 <div className="sd-study-table-wrapper">
                   {extraLinks.length === 0 ? (
                     <div className="sd-study-empty">
-                      <div className="empty-icon">🔗</div>
+                      <div className="empty-icon text-4xl mb-4"><Globe size={48} /></div>
                       <h3>No social hubs found</h3>
                       <p>Admin hasn't added any social groups yet</p>
                     </div>

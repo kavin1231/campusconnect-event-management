@@ -140,7 +140,7 @@ class MerchandiseController {
 
   static async createProduct(req, res) {
     try {
-      const { name, description, price, imageUrl, status, inventory, isActive } = req.body;
+      const { name, description, price, imageUrl, status, inventory, isActive, eventRequestId } = req.body;
 
       if (!name || price === undefined || price === null) {
         return res.status(400).json({ success: false, message: "Name and price are required" });
@@ -155,6 +155,7 @@ class MerchandiseController {
           status: status || undefined,
           inventory: toInt(inventory) ?? 0,
           isActive: typeof isActive === "boolean" ? isActive : true,
+          eventRequestId: eventRequestId ? parseInt(eventRequestId) : null,
         },
       });
 
@@ -172,6 +173,7 @@ class MerchandiseController {
       const where = {};
       if (status) where.status = status;
       if (active !== undefined) where.isActive = active === "true";
+      if (req.query.eventRequestId) where.eventRequestId = parseInt(req.query.eventRequestId);
       if (search) {
         where.OR = [
           { name: { contains: search, mode: "insensitive" } },
@@ -262,10 +264,14 @@ class MerchandiseController {
 
   static async createOrder(req, res) {
     try {
-      const { buyerName, buyerEmail, buyerPhone, items, status, notes, paymentSlipUrl } = req.body;
+      const { buyerName, buyerEmail, buyerPhone, studentNumber, items, status, notes, paymentSlipUrl } = req.body;
 
       if (!buyerName) {
         return res.status(400).json({ success: false, message: "buyerName is required" });
+      }
+
+      if (!studentNumber) {
+        return res.status(400).json({ success: false, message: "studentNumber is required" });
       }
 
       const normalizedItems = normalizeItems(items);
@@ -277,9 +283,11 @@ class MerchandiseController {
 
       const createOrderWithItems = async (tx, includePaymentSlip) => {
         const data = {
+          buyerId: req.user?.id || null,
           buyerName,
           buyerEmail: buyerEmail || null,
           buyerPhone: buyerPhone || null,
+          studentNumber: studentNumber.trim(),
           status: status || undefined,
           notes: serializeOrderNotes({ notesText: notes || null, pickupLocation: null }),
           totalAmount,
@@ -359,6 +367,9 @@ class MerchandiseController {
 
       const where = {};
       if (status) where.status = status;
+      if (req.query.eventRequestId) {
+        where.items = { some: { product: { eventRequestId: toInt(req.query.eventRequestId) } } };
+      }
 
       if (orderId !== undefined) {
         const parsedOrderId = toInt(orderId);
@@ -377,12 +388,13 @@ class MerchandiseController {
       }
 
       if (req.user?.role === "STUDENT" || req.user?.role === "CLUB_PRESIDENT") {
-        where.buyerEmail = req.user?.email || "";
+        where.buyerId = req.user?.id || null;
       }
       if (search) {
         where.OR = [
           { buyerName: { contains: search, mode: "insensitive" } },
           { buyerEmail: { contains: search, mode: "insensitive" } },
+          { studentNumber: { contains: search, mode: "insensitive" } },
         ];
       }
 
@@ -416,12 +428,13 @@ class MerchandiseController {
 
       if (status) where.status = status;
       if (req.user?.role === "STUDENT" || req.user?.role === "CLUB_PRESIDENT") {
-        where.buyerEmail = req.user?.email || "";
+        where.buyerId = req.user?.id || null;
       }
       if (search) {
         where.OR = [
           { buyerName: { contains: search, mode: "insensitive" } },
           { buyerEmail: { contains: search, mode: "insensitive" } },
+          { studentNumber: { contains: search, mode: "insensitive" } },
         ];
       }
 
